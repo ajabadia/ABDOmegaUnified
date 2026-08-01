@@ -14,14 +14,34 @@ if not exist "%PLUGIN_OUT%" mkdir "%PLUGIN_OUT%"
 
 :: 1. Check for Clang
 set "CLANG_CMD=clang"
+set "LLVM_BIN="
 
-:: Priority 1: User-provided local LLVM path
-set "LOCAL_LLVM=D:\desarrollos\ABDOmega\clang+llvm-22.1.4-x86_64-pc-windows-msvc\bin\clang.exe"
-if exist "!LOCAL_LLVM!" (
-    set "CLANG_CMD=!LOCAL_LLVM!"
-    echo [INFO] Using Local LLVM 22.1.4: !CLANG_CMD!
-) else (
-    REM Priority 2: Standard PATH check
+:: Priority 1: LLVM_HOME env var (same convention as lint.bat)
+if not "%LLVM_HOME%"=="" (
+    set "LLVM_HOME_NORM=%LLVM_HOME%"
+    if "!LLVM_HOME_NORM:~-1!"=="\" set "LLVM_HOME_NORM=!LLVM_HOME_NORM:~0,-1!"
+    set "LLVM_BIN=!LLVM_HOME_NORM!\bin"
+    if exist "!LLVM_BIN!\clang.exe" (
+        set "CLANG_CMD=!LLVM_BIN!\clang.exe"
+        echo [INFO] Using Clang from LLVM_HOME: !CLANG_CMD!
+    ) else (
+        echo [WARN] LLVM_HOME set but clang.exe not found in !LLVM_BIN!; using fallback
+        set "LLVM_BIN="
+    )
+)
+
+:: Priority 2: Known local LLVM install (fallback)
+if not defined LLVM_BIN (
+    set "LOCAL_LLVM=D:\desarrollos\ABDOmega\clang+llvm-22.1.4-x86_64-pc-windows-msvc\bin"
+    if exist "!LOCAL_LLVM!\clang.exe" (
+        set "LLVM_BIN=!LOCAL_LLVM!"
+        set "CLANG_CMD=!LOCAL_LLVM!\clang.exe"
+        echo [INFO] Using Local LLVM 22.1.4: !CLANG_CMD!
+    )
+)
+
+:: Priority 3: Standard PATH check, then .NET Emscripten SDK fallback
+if not defined LLVM_BIN (
     where !CLANG_CMD! >nul 2>&1
     if !ERRORLEVEL! neq 0 (
         echo [INFO] Local LLVM not found. Searching for .NET Emscripten SDK...
@@ -44,11 +64,18 @@ for %%f in ("%PLUGIN_SRC%\*.c" "%PLUGIN_SRC%\*.cpp") do (
     set "FILEEXT=%%~xf"
     echo [OMEGA] Compiling !FILENAME!!FILEEXT!...
     
-    REM Determine Compiler
+    REM Determine Compiler: clang++ from resolved LLVM bin, else PATH clang++
     set "COMPILER_CMD=!CLANG_CMD!"
     if "!FILEEXT!"==".cpp" (
-        set "COMPILER_CMD=!SDK_DIR!\clang+llvm-22.1.4-x86_64-pc-windows-msvc\bin\clang++.exe"
-        if not exist "!COMPILER_CMD!" set "COMPILER_CMD=clang++"
+        if defined LLVM_BIN (
+            if exist "!LLVM_BIN!\clang++.exe" (
+                set "COMPILER_CMD=!LLVM_BIN!\clang++.exe"
+            ) else (
+                set "COMPILER_CMD=clang++"
+            )
+        ) else (
+            set "COMPILER_CMD=clang++"
+        )
     )
 
     REM Determine Output Directory (Check if subfolder exists)
