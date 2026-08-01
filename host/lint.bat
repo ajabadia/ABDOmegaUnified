@@ -41,20 +41,21 @@ if not exist "!CLANG_TIDY!" (
 echo [OMEGA] Audit Started: %DATE% %TIME% > "%REPORT_FILE%"
 echo --------------------------------------- >> "%REPORT_FILE%"
 
-:: 1. Audit WASM Modules
+:: 1. Audit WASM Modules (ubicacion actual: repo-root/modules/<modulo>/<modulo>.cpp)
 echo [OMEGA] Auditing WASM Modules...
-for %%f in (src\WasmPlugins\*.cpp) do (
+REM cmd NO expande wildcards anidados en 'for %%f in (..\modules\*\*.cpp)'; usar dir /s /b
+for /f "delims=" %%f in ('dir /s /b ..\modules\*.cpp') do (
     echo [INFO] Inspecting %%f...
     echo >> "%REPORT_FILE%"
     echo [MODULE] %%f >> "%REPORT_FILE%"
     echo ======================================= >> "%REPORT_FILE%"
-    REM Added --checks and --header-filter for LLVM 22
-    "!CLANG_TIDY!" "--checks=modernize-*,bugprone-*,performance-*,readability-*" "--header-filter=.*" "%%f" -- -target wasm32 -I src\Core\Ace >> "%REPORT_FILE%" 2>&1
+    REM Added --checks and --header-filter for LLVM 22; -include wasm_compat.h como build_wasm.bat
+    "!CLANG_TIDY!" "--checks=modernize-*,bugprone-*,performance-*,readability-*" "--header-filter=.*" "%%f" -- -target wasm32 -include ..\engine\bindings\wasm_compat.h -I ..\engine\include >> "%REPORT_FILE%" 2>&1
 )
 
 :: 2. Audit Core Engine (Key Components)
 echo [OMEGA] Auditing Core Engine...
-set "CORE_FILES=src\Core\Ace\AceCatalog.cpp src\Core\Ace\AceValidator.cpp src\Core\Wasm\WasmModuleService.cpp"
+set "CORE_FILES=src\Core\Ace\Registry\AceCatalog.cpp src\Core\Ace\Validation\AceValidator.cpp src\Core\Wasm\Service\WasmModuleService.cpp"
 set "WAMR_INC=build\_deps\wamr-src\core\iwasm\include"
 
 for %%f in (%CORE_FILES%) do (
