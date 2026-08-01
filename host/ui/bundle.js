@@ -1,4 +1,4 @@
-var Omega = (() => {
+(() => {
   // src/RPC/omega_log.ts
   var OmegaLog = class {
     static excludedTags = /* @__PURE__ */ new Set(["TELEMETRY"]);
@@ -2762,6 +2762,373 @@ var Omega = (() => {
     }
   };
 
+  // ../../web/src/omega-ui-core/uca/treeUtils.ts
+  function mergeWithOverrides(base, overrides, policy) {
+    const result = JSON.parse(JSON.stringify(base));
+    for (const [path, value] of Object.entries(overrides)) {
+      const matchingRules = policy.filter((p) => path === p.path || path.startsWith(p.path + ".")).sort((a, b) => b.path.length - a.path.length);
+      const activeRule = matchingRules[0];
+      if (activeRule) {
+        if (activeRule.mode === "locked") {
+          console.warn(`[UCA] Path is locked by policy: ${path}`);
+          continue;
+        }
+        if (activeRule.mode === "hidden") {
+          continue;
+        }
+      }
+      setPathValue(result, path, value);
+    }
+    return result;
+  }
+  function setPathValue(obj, path, value) {
+    const parts = path.split(".");
+    let current = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      if (part === void 0) continue;
+      if (!current[part] || typeof current[part] !== "object") {
+        current[part] = {};
+      }
+      current = current[part];
+    }
+    const lastPart = parts[parts.length - 1];
+    if (lastPart !== void 0) {
+      current[lastPart] = value;
+    }
+  }
+  function applySlotMappings(node, mappings) {
+    if (node.bind && mappings[node.bind]) {
+      node.bind = mappings[node.bind] || void 0;
+    }
+    if (node.children) {
+      node.children.forEach((child) => applySlotMappings(child, mappings));
+    }
+  }
+
+  // ../../web/src/omega-ui-core/uca/ucaSemantics.ts
+  function resolveNodeSemantics(node, ctx) {
+    let templateBase = {};
+    if (node.snapshot) {
+      templateBase = JSON.parse(JSON.stringify(node.snapshot));
+    } else if (node.cellRef && ctx.moduleTemplates?.[node.cellRef]) {
+      const template = ctx.moduleTemplates[node.cellRef];
+      if (template) {
+        const baseNode = template.baseNode;
+        if (baseNode) {
+          const blueprint = JSON.parse(JSON.stringify(baseNode));
+          templateBase = mergeWithOverrides(blueprint, node.overrides || {}, template.policy || []);
+          if (node.slotMappings) {
+            applySlotMappings(templateBase, node.slotMappings);
+          }
+        }
+      }
+    } else if (node.kind === "cell" && (node.cellRef || node.templateRef)) {
+      const ref = node.cellRef || node.templateRef;
+      const template = ctx.catalog[ref];
+      if (template) {
+        templateBase = JSON.parse(JSON.stringify(template.baseNode));
+      }
+    }
+    const resolved = {
+      ...templateBase,
+      ...node,
+      layout: {
+        ...templateBase.layout,
+        ...node.layout,
+        // Ensure position is at least 0,0 if not provided
+        pos: node.layout?.pos || templateBase.layout?.pos || { x: 0, y: 0 }
+      },
+      style: {
+        ...templateBase.style,
+        ...node.style
+      },
+      children: [
+        ...templateBase.children || [],
+        ...node.children || []
+      ]
+    };
+    if (ctx.parentStyle) {
+      resolved.style = {
+        ...resolved.style,
+        font: resolved.style?.font || ctx.parentStyle.font || void 0,
+        fontColor: resolved.style?.fontColor || ctx.parentStyle.fontColor || void 0
+      };
+    }
+    if (resolved.layout && !resolved.layout.size && templateBase.layout?.size) {
+      resolved.layout.size = { ...templateBase.layout.size };
+    }
+    if (resolved.children && resolved.children.length > 0) {
+      resolved.children = resolved.children.map((child, index) => {
+        const childCtx = {
+          ...ctx,
+          parentStyle: resolved.style
+        };
+        const resolvedChild = resolveNodeSemantics(child, childCtx);
+        if (!child.id) {
+          resolvedChild.id = `${resolved.id}_child_${index}`;
+        } else if (templateBase.children?.some((tc) => tc.id === child.id)) {
+          resolvedChild.id = `${resolved.id}_${child.id}`;
+        }
+        return resolvedChild;
+      });
+    }
+    return resolved;
+  }
+
+  // ../../web/src/omega-ui-core/uca/spatialConstraints.ts
+  function getNodeSize(node) {
+    return {
+      width: node.layout?.size?.width || 48,
+      height: node.layout?.size?.height || 48
+    };
+  }
+
+  // ../../web/src/omega-ui-core/uca/layoutResolver.ts
+  function resolveLayout(node, providedSize) {
+    const mode = node.layout?.mode || "absolute";
+    const gap = node.layout?.gap || 0;
+    const padding = node.layout?.padding || 0;
+    const nestedResolvedChildren = node.children ? node.children.map((c) => resolveLayout(c)) : [];
+    const childrenSizes = nestedResolvedChildren.map((c) => getNodeSize(c));
+    let autoWidth = 0;
+    let autoHeight = 0;
+    if (mode === "stack-v") {
+      autoWidth = childrenSizes.reduce((max, s) => Math.max(max, s.width), 0) + 2 * padding;
+      autoHeight = childrenSizes.reduce((acc, s) => acc + s.height, 0) + Math.max(0, childrenSizes.length - 1) * gap + 2 * padding;
+    } else if (mode === "stack-h") {
+      autoWidth = childrenSizes.reduce((acc, s) => acc + s.width, 0) + Math.max(0, childrenSizes.length - 1) * gap + 2 * padding;
+      autoHeight = childrenSizes.reduce((max, s) => Math.max(max, s.height), 0) + 2 * padding;
+    } else {
+      autoWidth = childrenSizes.reduce((max, s, i) => {
+        const childX = nestedResolvedChildren[i].layout?.pos?.x || 0;
+        return Math.max(max, childX + s.width);
+      }, 0) + 2 * padding;
+      autoHeight = childrenSizes.reduce((max, s, i) => {
+        const childY = nestedResolvedChildren[i].layout?.pos?.y || 0;
+        return Math.max(max, childY + s.height);
+      }, 0) + 2 * padding;
+    }
+    const effectiveSize = {
+      width: providedSize?.width || node.layout?.size?.width || autoWidth || 80,
+      height: providedSize?.height || node.layout?.size?.height || autoHeight || 80
+    };
+    const nodeWithEffectiveSize = {
+      ...node,
+      layout: {
+        ...node.layout,
+        pos: node.layout?.pos || { x: 0, y: 0 },
+        size: effectiveSize
+      }
+    };
+    if (!nodeWithEffectiveSize.children || nodeWithEffectiveSize.children.length === 0) return nodeWithEffectiveSize;
+    if (mode === "absolute") {
+      return {
+        ...nodeWithEffectiveSize,
+        children: nestedResolvedChildren
+      };
+    }
+    const containerWidth = effectiveSize.width;
+    const containerHeight = effectiveSize.height;
+    let totalContentSize = 0;
+    if (mode === "stack-v") {
+      totalContentSize = childrenSizes.reduce((acc, s) => acc + s.height, 0) + Math.max(0, childrenSizes.length - 1) * gap;
+    } else if (mode === "stack-h") {
+      totalContentSize = childrenSizes.reduce((acc, s) => acc + s.width, 0) + Math.max(0, childrenSizes.length - 1) * gap;
+    }
+    const justify = nodeWithEffectiveSize.layout?.justify || "start";
+    const align = nodeWithEffectiveSize.layout?.align || "start";
+    let cursor = padding;
+    let effectiveGap = gap;
+    if (justify === "center") {
+      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
+      cursor = padding + Math.max(0, (containerSize - 2 * padding - totalContentSize) / 2);
+    } else if (justify === "end") {
+      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
+      cursor = containerSize - padding - totalContentSize;
+    } else if (justify === "space-between" && nestedResolvedChildren.length > 1) {
+      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
+      const totalChildrenSize = childrenSizes.reduce((acc, s) => acc + (mode === "stack-v" ? s.height : s.width), 0);
+      effectiveGap = Math.max(0, (containerSize - 2 * padding - totalChildrenSize) / (nestedResolvedChildren.length - 1));
+      cursor = padding;
+    }
+    const stackedChildren = nestedResolvedChildren.map((child, index) => {
+      const size = childrenSizes[index];
+      if (!size) return child;
+      let resolvedPos = { x: 0, y: 0 };
+      const resolvedSize = { ...child.layout?.size || { width: size.width, height: size.height } };
+      let needsReResolve = false;
+      if (mode === "stack-v") {
+        let x = padding;
+        if (align === "center") x = padding + (containerWidth - 2 * padding - size.width) / 2;
+        else if (align === "end") x = containerWidth - padding - size.width;
+        else if (align === "stretch") {
+          x = padding;
+          resolvedSize.width = Math.max(0, containerWidth - 2 * padding);
+          if (resolvedSize.width !== size.width) needsReResolve = true;
+        }
+        resolvedPos = { x, y: cursor };
+        cursor += size.height + effectiveGap;
+      } else if (mode === "stack-h") {
+        let y = padding;
+        if (align === "center") y = padding + (containerHeight - 2 * padding - size.height) / 2;
+        else if (align === "end") y = containerHeight - padding - size.height;
+        else if (align === "stretch") {
+          y = padding;
+          resolvedSize.height = Math.max(0, containerHeight - 2 * padding);
+          if (resolvedSize.height !== size.height) needsReResolve = true;
+        }
+        resolvedPos = { x: cursor, y };
+        cursor += size.width + effectiveGap;
+      }
+      let finalChild = child;
+      if (needsReResolve && child.children && child.children.length > 0) {
+        finalChild = resolveLayout(child, resolvedSize);
+      }
+      return {
+        ...finalChild,
+        layout: {
+          ...finalChild.layout,
+          pos: resolvedPos,
+          size: resolvedSize
+        }
+      };
+    });
+    return {
+      ...nodeWithEffectiveSize,
+      children: stackedChildren
+    };
+  }
+
+  // src/Renderers/ManifestRenderer.ts
+  var ManifestRenderer = class {
+    /**
+     * Render a complete module panel from its manifest.
+     * Returns an HTML string ready for innerHTML injection.
+     */
+    static renderModulePanel(manifest, forceUpper = false) {
+      if (!manifest) return "";
+      const hp = manifest?.rack?.hp || manifest?.metadata?.hp || manifest?.hp || 8;
+      const widthPx = Math.max(hp * 15, 120);
+      const title = (manifest.name || manifest.id || "MODULE").toUpperCase();
+      const slot = manifest?.rack?.slot || manifest?.slot || "";
+      const isUpper = forceUpper || slot === "upper" || title.includes("MIDI") || title.includes("MONITOR") || title.includes("TRIGGER");
+      const heightPx = isUpper ? 144 : 436;
+      const knobSize = 32;
+      const jackSize = 22;
+      const tree = manifest.ui?.tree;
+      if (tree) {
+        const html = this.renderNode(tree, manifest, 0);
+        return `
+        <div class="omega-module-chassis ${isUpper ? "chassis-1u" : "chassis-3u"}" style="
+          width: ${widthPx}px;
+          height: ${heightPx}px;
+          position: relative;
+          background: linear-gradient(180deg, #1e2638 0%, #0d121d 100%);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 0;
+          overflow: hidden;
+          box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.45);
+        ">
+          ${html}
+        </div>
+      `.trim();
+      }
+      const controls = manifest?.controls || manifest?.ui?.controls || [];
+      const jacks = manifest?.jacks || manifest?.ui?.jacks || [];
+      let controlsHTML = "";
+      controls.forEach((c) => {
+        controlsHTML += `
+        <div style="display:flex; flex-direction:column; align-items:center; width:${knobSize + 12}px; gap:3px;">
+          <div style="width:${knobSize}px; height:${knobSize}px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #475569, #0f172a); border:2px solid #64748b; box-shadow:0 3px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2); position:relative;">
+            <div style="position:absolute; top:3px; left:${Math.floor(knobSize / 2) - 1}px; width:3px; height:${Math.floor(knobSize / 3)}px; background:var(--neon-cyan, #00f2ff); border-radius:1px;"></div>
+          </div>
+          <span style="font-size:8px; font-family:monospace; color:#cbd5e1; text-transform:uppercase; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%; font-weight:bold;">${c.name || c.id}</span>
+        </div>
+      `;
+      });
+      let jacksHTML = "";
+      jacks.forEach((j) => {
+        const color = j.dataType === "midi" ? "#a855f7" : j.dataType === "audio" ? "#10b981" : "#06b6d4";
+        jacksHTML += `
+        <div class="module-jack" data-jack-id="${j.id}" data-jack-type="${j.dataType || "cv"}" data-jack-direction="${j.direction || "input"}" style="display:flex; flex-direction:column; align-items:center; width:${jackSize + 10}px; gap:3px;">
+          <div class="port-socket size-A color-cyan" data-source="${j.id}" style="width:${jackSize}px; height:${jackSize}px; border-radius:50%; background:#090d16; border:2px solid ${color}; box-shadow:0 0 6px ${color}40, inset 0 0 4px #000; position:relative; display:flex; align-items:center; justify-content:center;">
+            <div class="port-inner" style="width:8px; height:8px; border-radius:50%; background:#000; border:1px solid #334155;"></div>
+          </div>
+          <span style="font-size:8px; font-family:monospace; color:${color}; font-weight:bold; text-transform:uppercase; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%;">${j.name || j.id}</span>
+        </div>
+      `;
+      });
+      return `
+      <div class="omega-module-chassis ${isUpper ? "chassis-1u" : "chassis-3u"}" style="
+        width: ${widthPx}px;
+        height: ${heightPx}px;
+        position: relative;
+        background: linear-gradient(180deg, #1e2638 0%, #0d121d 100%);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 0;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.45);
+      ">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:4px; margin-bottom:4px;">
+          <span style="font-family:'Outfit',monospace; font-size:10px; font-weight:900; color:var(--neon-cyan); letter-spacing:1px; text-transform:uppercase;">${title}</span>
+          <span style="font-size:8px; font-family:monospace; color:#64748b; background:#090d16; padding:1px 5px; border-radius:3px; border:1px solid rgba(255,255,255,0.05);">${hp} HP</span>
+        </div>
+        
+        <div style="display:flex; flex-wrap:wrap; gap:${isUpper ? "6px" : "16px"}; justify-content:center; align-items:center; flex-grow:1; padding:${isUpper ? "2px 0" : "10px 0"};">
+          ${controlsHTML || '<div style="font-size:9px; color:#64748b; font-family:monospace;">DSP CORE</div>'}
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:${isUpper ? "4px" : "10px"}; justify-content:center; align-items:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:${isUpper ? "4px" : "8px"}; margin-top:4px;">
+          ${jacksHTML}
+        </div>
+      </div>
+    `.trim();
+    }
+    /**
+     * Recursively render a single OmegaNode and its children.
+     */
+    static renderNode(rawNode, manifest, depth) {
+      const semanticNode = resolveNodeSemantics(rawNode, { catalog: manifest.moduleTemplates || {} });
+      const node = resolveLayout(semanticNode);
+      if (node.visible === false) return "";
+      const posX = node.layout?.pos?.x || 0;
+      const posY = node.layout?.pos?.y || 0;
+      const width = node.layout?.size?.width;
+      const height = node.layout?.size?.height;
+      if (node.kind === "rack" || node.kind === "face" || node.kind === "container" || node.kind === "group") {
+        const childrenHtml = (node.children || []).map((child) => this.renderNode(child, manifest, depth + 1)).join("");
+        return `
+        <div class="omega-node-${node.kind}" style="
+          position: absolute;
+          left: ${posX}px;
+          top: ${posY}px;
+          ${width ? `width: ${width}px;` : ""}
+          ${height ? `height: ${height}px;` : ""}
+        ">
+          ${childrenHtml}
+        </div>
+      `;
+      }
+      const cellOptions = {
+        skin: manifest.ui?.skin || "industrial",
+        zoom: manifest.ui?.layout?.zoom || 1,
+        runtimeValue: 0.5,
+        steps: 100,
+        isSelected: false,
+        isLiveMode: true,
+        manifest
+      };
+      return CellRenderer.renderCellHTML(node, cellOptions);
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.ManifestRenderer = ManifestRenderer;
+  }
+
   // src/Components/patchbay/matrixLayout.ts
   var DEFAULT_REGISTRIES = {
     midi_in: [
@@ -3880,369 +4247,6 @@ var Omega = (() => {
     }
   };
 
-  // ../../web/src/omega-ui-core/uca/treeUtils.ts
-  function mergeWithOverrides(base, overrides, policy) {
-    const result = JSON.parse(JSON.stringify(base));
-    for (const [path, value] of Object.entries(overrides)) {
-      const matchingRules = policy.filter((p) => path === p.path || path.startsWith(p.path + ".")).sort((a, b) => b.path.length - a.path.length);
-      const activeRule = matchingRules[0];
-      if (activeRule) {
-        if (activeRule.mode === "locked") {
-          console.warn(`[UCA] Path is locked by policy: ${path}`);
-          continue;
-        }
-        if (activeRule.mode === "hidden") {
-          continue;
-        }
-      }
-      setPathValue(result, path, value);
-    }
-    return result;
-  }
-  function setPathValue(obj, path, value) {
-    const parts = path.split(".");
-    let current = obj;
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i];
-      if (part === void 0) continue;
-      if (!current[part] || typeof current[part] !== "object") {
-        current[part] = {};
-      }
-      current = current[part];
-    }
-    const lastPart = parts[parts.length - 1];
-    if (lastPart !== void 0) {
-      current[lastPart] = value;
-    }
-  }
-  function applySlotMappings(node, mappings) {
-    if (node.bind && mappings[node.bind]) {
-      node.bind = mappings[node.bind] || void 0;
-    }
-    if (node.children) {
-      node.children.forEach((child) => applySlotMappings(child, mappings));
-    }
-  }
-
-  // ../../web/src/omega-ui-core/uca/ucaSemantics.ts
-  function resolveNodeSemantics(node, ctx) {
-    let templateBase = {};
-    if (node.snapshot) {
-      templateBase = JSON.parse(JSON.stringify(node.snapshot));
-    } else if (node.cellRef && ctx.moduleTemplates?.[node.cellRef]) {
-      const template = ctx.moduleTemplates[node.cellRef];
-      if (template) {
-        const baseNode = template.baseNode;
-        if (baseNode) {
-          const blueprint = JSON.parse(JSON.stringify(baseNode));
-          templateBase = mergeWithOverrides(blueprint, node.overrides || {}, template.policy || []);
-          if (node.slotMappings) {
-            applySlotMappings(templateBase, node.slotMappings);
-          }
-        }
-      }
-    } else if (node.kind === "cell" && (node.cellRef || node.templateRef)) {
-      const ref = node.cellRef || node.templateRef;
-      const template = ctx.catalog[ref];
-      if (template) {
-        templateBase = JSON.parse(JSON.stringify(template.baseNode));
-      }
-    }
-    const resolved = {
-      ...templateBase,
-      ...node,
-      layout: {
-        ...templateBase.layout,
-        ...node.layout,
-        // Ensure position is at least 0,0 if not provided
-        pos: node.layout?.pos || templateBase.layout?.pos || { x: 0, y: 0 }
-      },
-      style: {
-        ...templateBase.style,
-        ...node.style
-      },
-      children: [
-        ...templateBase.children || [],
-        ...node.children || []
-      ]
-    };
-    if (ctx.parentStyle) {
-      resolved.style = {
-        ...resolved.style,
-        font: resolved.style?.font || ctx.parentStyle.font || void 0,
-        fontColor: resolved.style?.fontColor || ctx.parentStyle.fontColor || void 0
-      };
-    }
-    if (resolved.layout && !resolved.layout.size && templateBase.layout?.size) {
-      resolved.layout.size = { ...templateBase.layout.size };
-    }
-    if (resolved.children && resolved.children.length > 0) {
-      resolved.children = resolved.children.map((child, index) => {
-        const childCtx = {
-          ...ctx,
-          parentStyle: resolved.style
-        };
-        const resolvedChild = resolveNodeSemantics(child, childCtx);
-        if (!child.id) {
-          resolvedChild.id = `${resolved.id}_child_${index}`;
-        } else if (templateBase.children?.some((tc) => tc.id === child.id)) {
-          resolvedChild.id = `${resolved.id}_${child.id}`;
-        }
-        return resolvedChild;
-      });
-    }
-    return resolved;
-  }
-
-  // ../../web/src/omega-ui-core/uca/spatialConstraints.ts
-  function getNodeSize(node) {
-    return {
-      width: node.layout?.size?.width || 48,
-      height: node.layout?.size?.height || 48
-    };
-  }
-
-  // ../../web/src/omega-ui-core/uca/layoutResolver.ts
-  function resolveLayout(node, providedSize) {
-    const mode = node.layout?.mode || "absolute";
-    const gap = node.layout?.gap || 0;
-    const padding = node.layout?.padding || 0;
-    const nestedResolvedChildren = node.children ? node.children.map((c) => resolveLayout(c)) : [];
-    const childrenSizes = nestedResolvedChildren.map((c) => getNodeSize(c));
-    let autoWidth = 0;
-    let autoHeight = 0;
-    if (mode === "stack-v") {
-      autoWidth = childrenSizes.reduce((max, s) => Math.max(max, s.width), 0) + 2 * padding;
-      autoHeight = childrenSizes.reduce((acc, s) => acc + s.height, 0) + Math.max(0, childrenSizes.length - 1) * gap + 2 * padding;
-    } else if (mode === "stack-h") {
-      autoWidth = childrenSizes.reduce((acc, s) => acc + s.width, 0) + Math.max(0, childrenSizes.length - 1) * gap + 2 * padding;
-      autoHeight = childrenSizes.reduce((max, s) => Math.max(max, s.height), 0) + 2 * padding;
-    } else {
-      autoWidth = childrenSizes.reduce((max, s, i) => {
-        const childX = nestedResolvedChildren[i].layout?.pos?.x || 0;
-        return Math.max(max, childX + s.width);
-      }, 0) + 2 * padding;
-      autoHeight = childrenSizes.reduce((max, s, i) => {
-        const childY = nestedResolvedChildren[i].layout?.pos?.y || 0;
-        return Math.max(max, childY + s.height);
-      }, 0) + 2 * padding;
-    }
-    const effectiveSize = {
-      width: providedSize?.width || node.layout?.size?.width || autoWidth || 80,
-      height: providedSize?.height || node.layout?.size?.height || autoHeight || 80
-    };
-    const nodeWithEffectiveSize = {
-      ...node,
-      layout: {
-        ...node.layout,
-        pos: node.layout?.pos || { x: 0, y: 0 },
-        size: effectiveSize
-      }
-    };
-    if (!nodeWithEffectiveSize.children || nodeWithEffectiveSize.children.length === 0) return nodeWithEffectiveSize;
-    if (mode === "absolute") {
-      return {
-        ...nodeWithEffectiveSize,
-        children: nestedResolvedChildren
-      };
-    }
-    const containerWidth = effectiveSize.width;
-    const containerHeight = effectiveSize.height;
-    let totalContentSize = 0;
-    if (mode === "stack-v") {
-      totalContentSize = childrenSizes.reduce((acc, s) => acc + s.height, 0) + Math.max(0, childrenSizes.length - 1) * gap;
-    } else if (mode === "stack-h") {
-      totalContentSize = childrenSizes.reduce((acc, s) => acc + s.width, 0) + Math.max(0, childrenSizes.length - 1) * gap;
-    }
-    const justify = nodeWithEffectiveSize.layout?.justify || "start";
-    const align = nodeWithEffectiveSize.layout?.align || "start";
-    let cursor = padding;
-    let effectiveGap = gap;
-    if (justify === "center") {
-      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
-      cursor = padding + Math.max(0, (containerSize - 2 * padding - totalContentSize) / 2);
-    } else if (justify === "end") {
-      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
-      cursor = containerSize - padding - totalContentSize;
-    } else if (justify === "space-between" && nestedResolvedChildren.length > 1) {
-      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
-      const totalChildrenSize = childrenSizes.reduce((acc, s) => acc + (mode === "stack-v" ? s.height : s.width), 0);
-      effectiveGap = Math.max(0, (containerSize - 2 * padding - totalChildrenSize) / (nestedResolvedChildren.length - 1));
-      cursor = padding;
-    }
-    const stackedChildren = nestedResolvedChildren.map((child, index) => {
-      const size = childrenSizes[index];
-      if (!size) return child;
-      let resolvedPos = { x: 0, y: 0 };
-      const resolvedSize = { ...child.layout?.size || { width: size.width, height: size.height } };
-      let needsReResolve = false;
-      if (mode === "stack-v") {
-        let x = padding;
-        if (align === "center") x = padding + (containerWidth - 2 * padding - size.width) / 2;
-        else if (align === "end") x = containerWidth - padding - size.width;
-        else if (align === "stretch") {
-          x = padding;
-          resolvedSize.width = Math.max(0, containerWidth - 2 * padding);
-          if (resolvedSize.width !== size.width) needsReResolve = true;
-        }
-        resolvedPos = { x, y: cursor };
-        cursor += size.height + effectiveGap;
-      } else if (mode === "stack-h") {
-        let y = padding;
-        if (align === "center") y = padding + (containerHeight - 2 * padding - size.height) / 2;
-        else if (align === "end") y = containerHeight - padding - size.height;
-        else if (align === "stretch") {
-          y = padding;
-          resolvedSize.height = Math.max(0, containerHeight - 2 * padding);
-          if (resolvedSize.height !== size.height) needsReResolve = true;
-        }
-        resolvedPos = { x: cursor, y };
-        cursor += size.width + effectiveGap;
-      }
-      let finalChild = child;
-      if (needsReResolve && child.children && child.children.length > 0) {
-        finalChild = resolveLayout(child, resolvedSize);
-      }
-      return {
-        ...finalChild,
-        layout: {
-          ...finalChild.layout,
-          pos: resolvedPos,
-          size: resolvedSize
-        }
-      };
-    });
-    return {
-      ...nodeWithEffectiveSize,
-      children: stackedChildren
-    };
-  }
-
-  // src/Renderers/ManifestRenderer.ts
-  var ManifestRenderer2 = class {
-    /**
-     * Render a complete module panel from its manifest.
-     * Returns an HTML string ready for innerHTML injection.
-     */
-    static renderModulePanel(manifest, forceUpper = false) {
-      if (!manifest) return "";
-      const hp = manifest?.rack?.hp || manifest?.metadata?.hp || manifest?.hp || 8;
-      const widthPx = Math.max(hp * 15, 120);
-      const title = (manifest.name || manifest.id || "MODULE").toUpperCase();
-      const slot = manifest?.rack?.slot || manifest?.slot || "";
-      const isUpper = forceUpper || slot === "upper" || title.includes("MIDI") || title.includes("MONITOR") || title.includes("TRIGGER");
-      const heightPx = isUpper ? 144 : 436;
-      const knobSize = 32;
-      const jackSize = 22;
-      const tree = manifest.ui?.tree;
-      if (tree) {
-        const html = this.renderNode(tree, manifest, 0);
-        return `
-        <div class="omega-module-chassis ${isUpper ? "chassis-1u" : "chassis-3u"}" style="
-          width: ${widthPx}px;
-          height: ${heightPx}px;
-          position: relative;
-          background: linear-gradient(180deg, #1e2638 0%, #0d121d 100%);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 0;
-          overflow: hidden;
-          box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.45);
-        ">
-          ${html}
-        </div>
-      `.trim();
-      }
-      const controls = manifest?.controls || manifest?.ui?.controls || [];
-      const jacks = manifest?.jacks || manifest?.ui?.jacks || [];
-      let controlsHTML = "";
-      controls.forEach((c) => {
-        controlsHTML += `
-        <div style="display:flex; flex-direction:column; align-items:center; width:${knobSize + 12}px; gap:3px;">
-          <div style="width:${knobSize}px; height:${knobSize}px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #475569, #0f172a); border:2px solid #64748b; box-shadow:0 3px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2); position:relative;">
-            <div style="position:absolute; top:3px; left:${Math.floor(knobSize / 2) - 1}px; width:3px; height:${Math.floor(knobSize / 3)}px; background:var(--neon-cyan, #00f2ff); border-radius:1px;"></div>
-          </div>
-          <span style="font-size:8px; font-family:monospace; color:#cbd5e1; text-transform:uppercase; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%; font-weight:bold;">${c.name || c.id}</span>
-        </div>
-      `;
-      });
-      let jacksHTML = "";
-      jacks.forEach((j) => {
-        const color = j.dataType === "midi" ? "#a855f7" : j.dataType === "audio" ? "#10b981" : "#06b6d4";
-        jacksHTML += `
-        <div class="module-jack" data-jack-id="${j.id}" data-jack-type="${j.dataType || "cv"}" data-jack-direction="${j.direction || "input"}" style="display:flex; flex-direction:column; align-items:center; width:${jackSize + 10}px; gap:3px;">
-          <div class="port-socket size-A color-cyan" data-source="${j.id}" style="width:${jackSize}px; height:${jackSize}px; border-radius:50%; background:#090d16; border:2px solid ${color}; box-shadow:0 0 6px ${color}40, inset 0 0 4px #000; position:relative; display:flex; align-items:center; justify-content:center;">
-            <div class="port-inner" style="width:8px; height:8px; border-radius:50%; background:#000; border:1px solid #334155;"></div>
-          </div>
-          <span style="font-size:8px; font-family:monospace; color:${color}; font-weight:bold; text-transform:uppercase; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%;">${j.name || j.id}</span>
-        </div>
-      `;
-      });
-      return `
-      <div class="omega-module-chassis ${isUpper ? "chassis-1u" : "chassis-3u"}" style="
-        width: ${widthPx}px;
-        height: ${heightPx}px;
-        position: relative;
-        background: linear-gradient(180deg, #1e2638 0%, #0d121d 100%);
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 0;
-        padding: 8px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.45);
-      ">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:4px; margin-bottom:4px;">
-          <span style="font-family:'Outfit',monospace; font-size:10px; font-weight:900; color:var(--neon-cyan); letter-spacing:1px; text-transform:uppercase;">${title}</span>
-          <span style="font-size:8px; font-family:monospace; color:#64748b; background:#090d16; padding:1px 5px; border-radius:3px; border:1px solid rgba(255,255,255,0.05);">${hp} HP</span>
-        </div>
-        
-        <div style="display:flex; flex-wrap:wrap; gap:${isUpper ? "6px" : "16px"}; justify-content:center; align-items:center; flex-grow:1; padding:${isUpper ? "2px 0" : "10px 0"};">
-          ${controlsHTML || '<div style="font-size:9px; color:#64748b; font-family:monospace;">DSP CORE</div>'}
-        </div>
-
-        <div style="display:flex; flex-wrap:wrap; gap:${isUpper ? "4px" : "10px"}; justify-content:center; align-items:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:${isUpper ? "4px" : "8px"}; margin-top:4px;">
-          ${jacksHTML}
-        </div>
-      </div>
-    `.trim();
-    }
-    /**
-     * Recursively render a single OmegaNode and its children.
-     */
-    static renderNode(rawNode, manifest, depth) {
-      const semanticNode = resolveNodeSemantics(rawNode, { catalog: manifest.moduleTemplates || {} });
-      const node = resolveLayout(semanticNode);
-      if (node.visible === false) return "";
-      const posX = node.layout?.pos?.x || 0;
-      const posY = node.layout?.pos?.y || 0;
-      const width = node.layout?.size?.width;
-      const height = node.layout?.size?.height;
-      if (node.kind === "rack" || node.kind === "face" || node.kind === "container" || node.kind === "group") {
-        const childrenHtml = (node.children || []).map((child) => this.renderNode(child, manifest, depth + 1)).join("");
-        return `
-        <div class="omega-node-${node.kind}" style="
-          position: absolute;
-          left: ${posX}px;
-          top: ${posY}px;
-          ${width ? `width: ${width}px;` : ""}
-          ${height ? `height: ${height}px;` : ""}
-        ">
-          ${childrenHtml}
-        </div>
-      `;
-      }
-      const cellOptions = {
-        isMain: node.kind === "main_display" || node.kind === "potentiometer",
-        isSelected: false,
-        value: 0.5
-      };
-      return CellRenderer.renderCellHTML(node, cellOptions);
-    }
-  };
-  if (typeof window !== "undefined") {
-    window.ManifestRenderer = ManifestRenderer2;
-  }
-
   // src/Catalog/AcemmCatalog.ts
   var ACEMM_CATALOG = {
     "midi_in": {
@@ -4576,7 +4580,7 @@ var Omega = (() => {
         const cardWidth = Math.max(hp * 15, 60);
         const getFn = window.getOrFetchManifest || getOrFetchManifest;
         const resolveFn = window.resolveRackTarget || resolveRackTarget;
-        const renderer = window.ManifestRenderer || ManifestRenderer2;
+        const renderer = window.ManifestRenderer || ManifestRenderer;
         let renderedHTML = "";
         let manifest = null;
         try {
@@ -5895,11 +5899,11 @@ var Omega = (() => {
         this.disposeRepulsion = null;
       }
       if (this.disposeDragToPatch) {
-        this.disposeDragToPatch();
+        this.disposeDragToPatch.dispose();
         this.disposeDragToPatch = null;
       }
       if (this.disposeCableTooltip) {
-        this.disposeCableTooltip();
+        this.disposeCableTooltip.dispose();
         this.disposeCableTooltip = null;
       }
       this.removeAllCables();
@@ -6322,7 +6326,7 @@ var Omega = (() => {
       if (j.backend) OmegaLog.debug("DIAG", "__JUCE__.backend keys:", Object.keys(j.backend));
     }
     if (window.juce) OmegaLog.debug("DIAG", "juce found:", Object.keys(window.juce));
-    const buildId = window.OMEGA_BUILD_ID || "DEV";
+    const buildId = 720;
     OmegaLog.info("BOOT", `Booting Era 7 Aseptic UI [BUILD #${buildId}]`);
     try {
       Preferences.init();

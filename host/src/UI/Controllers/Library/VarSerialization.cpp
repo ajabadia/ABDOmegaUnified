@@ -58,6 +58,16 @@ namespace VarSerialization {
         }
         obj->setProperty("connections", conns);
 
+        juce::Array<juce::var> fxParams;
+        for (auto& p : doc.globalFxParams) {
+            juce::DynamicObject::Ptr fo = new juce::DynamicObject();
+            fo->setProperty("id", (int)p.id);
+            fo->setProperty("value", p.value);
+            fo->setProperty("modulationBindingId", (int)p.modulationBindingId);
+            fxParams.add(juce::var(fo.get()));
+        }
+        obj->setProperty("globalFxParams", fxParams);
+
         juce::Array<juce::var> matrixArr;
         for (auto& s : doc.patchbayMatrix) {
             juce::DynamicObject::Ptr so = new juce::DynamicObject();
@@ -66,6 +76,7 @@ namespace VarSerialization {
             so->setProperty("amount", s.amount);
             so->setProperty("via", juce::String(s.via));
             so->setProperty("viaAmount", s.viaAmount);
+            so->setProperty("color", juce::String(s.color));
             so->setProperty("active", s.active);
             matrixArr.add(juce::var(so.get()));
         }
@@ -139,6 +150,19 @@ namespace VarSerialization {
                 pc.targetPortId = (uint16_t)(int)co->getProperty("targetPortId");
                 pc.type = (Core::Model::ConnectionType)(int)co->getProperty("type");
                 doc.connections.push_back(pc);
+            }
+        }
+
+        auto fxArr = obj->getProperty("globalFxParams");
+        if (auto* fa = fxArr.getArray()) {
+            for (auto& fv : *fa) {
+                auto* fo = fv.getDynamicObject();
+                if (!fo) continue;
+                Core::Model::ParamValue pv;
+                pv.id = (Core::Model::ParamId)(int)fo->getProperty("id");
+                pv.value = (float)fo->getProperty("value");
+                pv.modulationBindingId = (uint32_t)(int)fo->getProperty("modulationBindingId");
+                doc.globalFxParams.push_back(pv);
             }
         }
 

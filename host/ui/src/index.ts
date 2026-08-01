@@ -11,6 +11,7 @@ import { Preferences } from './Logic/preferences.js';
 import { ServiceMode } from './Logic/service.js';
 import { PresetBrowser } from './Components/PresetBrowser.js';
 import { ModuleRenderer } from './Renderers/ModuleRenderer.js';
+import { ManifestRenderer } from './Renderers/ManifestRenderer.js';
 import { ModulePatchbayMatrix } from './Components/ModulePatchbayMatrix.js';
 import { ModulePatchModal } from './Components/ModulePatchModal.js';
 import { ModuleBrowser } from './Components/ModuleBrowser.js';

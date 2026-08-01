@@ -5,6 +5,8 @@
 #include <map>
 #include <string>
 
+#include "SettingsRepository.h"
+
 namespace Omega::Core::Service {
 
     /**
@@ -40,9 +42,7 @@ namespace Omega::Core::Service {
         const std::map<std::string, SettingDef>& getAllSettings() const { return mDefs; }
         std::map<std::string, float> getCurrentValues() const { return mValues; }
 
-        // --- Persistencia ---
-        void load();
-        void save();
+        // --- Persistencia (delegada a SettingsRepository) ---
         void resetToDefaults();
 
         // --- Helpers de Acceso Rápido ---
@@ -51,9 +51,8 @@ namespace Omega::Core::Service {
     private:
         std::map<std::string, SettingDef> mDefs;
         std::map<std::string, float> mValues;
-        
-        juce::File getSettingsFile();
-        void initializeDefaults();
+
+        SettingsRepository mRepository;
     };
 
 } // namespace Omega::Core::Service

@@ -3,6 +3,10 @@
 #include "../Model/AceTypes.h"
 #include <juce_core/juce_core.h>
 
+#include "ManifestSourceAcePack.h"
+#include "ManifestSourceDir.h"
+#include "ManifestSourceZip.h"
+
 namespace Omega {
 namespace Core {
 namespace Ace {
@@ -10,7 +14,9 @@ namespace Ace {
     class AceCatalog;
 
     /**
-     * @brief Utility for loading ACE components from various sources.
+     * @brief Orquestador de carga de componentes ACE desde distintas fuentes.
+     * [Fase 5.6]: delega en ManifestSourceDir (directorios de módulos),
+     * ManifestSourceAcePack (acepack) y ManifestSourceZip (entrada de archivo).
      */
     class AcePackLoader {
     public:
@@ -34,6 +40,9 @@ namespace Ace {
 
     private:
         AceCatalog& mCatalog;
+        ManifestSourceDir mDir;
+        ManifestSourceAcePack mAcePack;
+        ManifestSourceZip mZip;
     };
 
 } // namespace Ace

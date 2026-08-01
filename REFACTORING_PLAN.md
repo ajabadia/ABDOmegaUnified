@@ -238,10 +238,10 @@ Core/Ace/Parser/
 - [x] 5.2 `AceManifestParser.cpp` → YAML + JSON + helpers puros; mover side-effect de telemetría al loader
 - [x] 5.3 `OmegaAudioProcessor.cpp` → extraer `ParameterLayoutBuilder.cpp`
 - [x] 5.4 `AceContractExporter.cpp` → builders por sección
-- [ ] 5.5 `SystemSettingsManager.cpp` → lógica + repository + defaults
-- [ ] 5.6 `AcePackLoader.cpp` → orquestador + fuentes por formato
-- [ ] Actualizar `CMakeLists.txt` con los nuevos `.cpp` tras cada extracción
-- [x] Validar: build CMake (exit 0) + tests Catch2: `omega_core_tests` 30/30 (217 assertions), `omega_ui_tests` 10/10 (61 assertions), `omega_plugin_tests` 2/2 (34 assertions) — en `host/build`, config Release
+- [x] 5.5 `SystemSettingsManager.cpp` → lógica + repository + defaults
+- [x] 5.6 `AcePackLoader.cpp` → orquestador + fuentes por formato
+- [x] Actualizar `CMakeLists.txt` con los nuevos `.cpp` tras cada extracción (no necesario: `file(GLOB_RECURSE … CONFIGURE_DEPENDS)` en `Core/CMakeLists.txt`)
+- [x] Validar: build CMake (exit 0) + tests Catch2: `omega_core_tests` ✅, `omega_plugin_tests` ✅, `omega_ui_tests` 9/10 (1 fallo **preexistente** en `VarSerialization.test.cpp:164` — color de `patchbayMatrix`, sin diff en `host/src/UI` ni `host/src/Tests`, ajeno a 5.5/5.6) — en `host/build`, config Release
 
 ---
 

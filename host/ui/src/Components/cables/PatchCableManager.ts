@@ -61,8 +61,8 @@ export class PatchCableManager {
     private mutationObserver: MutationObserver | null = null;
     private unsubscribeStore: (() => void) | null = null;
     private disposeRepulsion: (() => void) | null = null;
-    private disposeDragToPatch: (() => void) | null = null;
-    private disposeCableTooltip: (() => void) | null = null;
+    private disposeDragToPatch: { dispose: () => void } | null = null;
+    private disposeCableTooltip: { dispose: () => void } | null = null;
     /** Slot destacado por la Ruta destacada (§9), o null si no hay ninguno. */
     private highlightedSlot: number | null = null;
 
@@ -111,11 +111,11 @@ export class PatchCableManager {
             this.disposeRepulsion = null;
         }
         if (this.disposeDragToPatch) {
-            this.disposeDragToPatch();
+            this.disposeDragToPatch.dispose();
             this.disposeDragToPatch = null;
         }
         if (this.disposeCableTooltip) {
-            this.disposeCableTooltip();
+            this.disposeCableTooltip.dispose();
             this.disposeCableTooltip = null;
         }
         this.removeAllCables();

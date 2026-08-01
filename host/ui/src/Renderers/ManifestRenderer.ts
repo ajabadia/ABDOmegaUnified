@@ -143,9 +143,13 @@ export class ManifestRenderer {
     }
 
     const cellOptions: CellOptions = {
-      isMain: node.kind === 'main_display' || node.kind === 'potentiometer',
+      skin: manifest.ui?.skin || 'industrial',
+      zoom: manifest.ui?.layout?.zoom || 1,
+      runtimeValue: 0.5,
+      steps: 100,
       isSelected: false,
-      value: 0.5,
+      isLiveMode: true,
+      manifest,
     };
 
     return CellRenderer.renderCellHTML(node, cellOptions);

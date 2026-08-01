@@ -122,11 +122,13 @@ TEST_CASE("patchDocumentToVar round-trips a full PatchDocument", "[serialization
     slot.source = "osc1.freq";
     slot.target = "flt.cutoff";
     slot.amount = 0.25f;
-    slot.via = "";
-    slot.viaAmount = 0.0f;
+    slot.via = "lfo1.rate";
+    slot.viaAmount = 0.5f;
     slot.color = "#ff8800";
     slot.active = true;
     doc.patchbayMatrix.push_back(slot);
+
+    doc.globalFxParams.push_back({ ParamId::Mix, 0.6f, 3 });
 
     auto var = VarSerialization::patchDocumentToVar(doc);
     auto restored = VarSerialization::varToPatchDocument(var);
@@ -161,8 +163,35 @@ TEST_CASE("patchDocumentToVar round-trips a full PatchDocument", "[serialization
     REQUIRE(restored.patchbayMatrix[0].source == "osc1.freq");
     REQUIRE(restored.patchbayMatrix[0].target == "flt.cutoff");
     REQUIRE(restored.patchbayMatrix[0].amount == Catch::Approx(0.25f));
+    REQUIRE(restored.patchbayMatrix[0].via == "lfo1.rate");
+    REQUIRE(restored.patchbayMatrix[0].viaAmount == Catch::Approx(0.5f));
     REQUIRE(restored.patchbayMatrix[0].color == "#ff8800");
     REQUIRE(restored.patchbayMatrix[0].active == true);
+
+    REQUIRE(restored.globalFxParams.size() == 1);
+    REQUIRE(restored.globalFxParams[0].id == ParamId::Mix);
+    REQUIRE(restored.globalFxParams[0].value == Catch::Approx(0.6f));
+    REQUIRE(restored.globalFxParams[0].modulationBindingId == 3);
+}
+
+TEST_CASE("patchDocumentToVar round-trips a default-valued matrix slot preserving defaults", "[serialization][roundtrip]") {
+    PatchDocument doc;
+
+    // Slot con todos los campos por defecto (via="", viaAmount=0, active=false, color="")
+    PatchbayMatrixSlot slot;
+    doc.patchbayMatrix.push_back(slot);
+
+    auto var = VarSerialization::patchDocumentToVar(doc);
+    auto restored = VarSerialization::varToPatchDocument(var);
+
+    REQUIRE(restored.patchbayMatrix.size() == 1);
+    REQUIRE(restored.patchbayMatrix[0].source.empty());
+    REQUIRE(restored.patchbayMatrix[0].target.empty());
+    REQUIRE(restored.patchbayMatrix[0].amount == Catch::Approx(0.0f));
+    REQUIRE(restored.patchbayMatrix[0].via.empty());
+    REQUIRE(restored.patchbayMatrix[0].viaAmount == Catch::Approx(0.0f));
+    REQUIRE(restored.patchbayMatrix[0].color.empty());
+    REQUIRE(restored.patchbayMatrix[0].active == false);
 }
 
 TEST_CASE("varToPatchDocument returns empty doc for a non-object var", "[serialization][roundtrip]") {
@@ -198,6 +227,7 @@ TEST_CASE("varToPatchDocument handles a partial object with missing array keys",
     REQUIRE(restored.modules.empty());
     REQUIRE(restored.connections.empty());
     REQUIRE(restored.patchbayMatrix.empty());
+    REQUIRE(restored.globalFxParams.empty());
 }
 
 TEST_CASE("varToPatchDocument tolerates unexpected field types", "[serialization][roundtrip][partial]") {
@@ -223,6 +253,7 @@ TEST_CASE("varToPatchDocument tolerates unexpected field types", "[serialization
     REQUIRE(restored.metadata.uuid.empty());   // metadata skipped (wrong type)
     REQUIRE(restored.modules.empty());         // modules skipped (wrong type)
     REQUIRE(restored.patchbayMatrix.empty());
+    REQUIRE(restored.globalFxParams.empty());
 
     // Invalid elements skipped, valid object parsed
     REQUIRE(restored.connections.size() == 1);
