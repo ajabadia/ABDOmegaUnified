@@ -1,0 +1,17 @@
+{
+  "id": "standard_vcf",
+  "label": "Industrial VCF",
+  "kind": "group",
+  "pos": { "x": 0, "y": 0 },
+  "children": [
+    {
+      "id": "cutoff_cell",
+      "type": "knob",
+      "label": "Cutoff",
+      "pos": { "x": 10, "y": 10 },
+      "size": { "width": 60, "height": 60 },
+      "style": { "variant": "A_cyan", "color": "#00f2ff" },
+      "bind": { "target": "cutoff_binding" }
+    }
+  ]
+}

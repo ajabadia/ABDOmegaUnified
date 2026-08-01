@@ -1,0 +1,46 @@
+{
+  "version": "7.0",
+  "id": "omega_lab_monitor",
+  "name": "OMEGA LAB MONITOR",
+  "parameters": [
+    {
+      "id": "zoom",
+      "label": "Zoom",
+      "min": 0.1,
+      "max": 10,
+      "default": 1,
+      "unit": "x"
+    },
+    {
+      "id": "filter",
+      "label": "Filter",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": "bin"
+    },
+    {
+      "id": "clear",
+      "label": "Clear",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": "bin"
+    }
+  ],
+  "ports": [
+    {
+      "id": "audio_in",
+      "label": "Audio In",
+      "direction": "input",
+      "type": "audio"
+    },
+    {
+      "id": "midi_events",
+      "label": "MIDI events",
+      "direction": "input",
+      "type": "midi"
+    }
+  ],
+  "family": "utility"
+}

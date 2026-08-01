@@ -1,0 +1,59 @@
+/* OMEGA INDUSTRIAL KNOBS (Era 7.2.3 — High Fidelity) */
+/* Aligned with ABDSynthsWeb Standards */
+
+.theme-industrial .knob-container {
+    background: #111 !important;
+    border: 2px solid #333 !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s;
+}
+
+.theme-industrial .knob-container:hover {
+    border-color: #444 !important;
+}
+
+.theme-industrial .knob-cap {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%) !important;
+}
+
+/* VARIANT A: MASTER KNOB (32px) */
+.theme-industrial .knob-container.size-A {
+    width: 32px !important;
+    height: 32px !important;
+}
+
+/* VARIANT B: STANDARD KNOB (24px) */
+.theme-industrial .knob-container.size-B {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* VARIANT C: SMALL KNOB (16px) */
+.theme-industrial .knob-container.size-C {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* VARIANT D: MINI KNOB (12px) */
+.theme-industrial .knob-container.size-D {
+    width: 12px !important;
+    height: 12px !important;
+}
+
+/* POINTER / MARKER SYSTEM */
+.theme-industrial .knob-marker {
+    width: 2px !important;
+    height: 40% !important;
+    border-radius: 1px !important;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important;
+}
+
+/* COLOR VARIANTS */
+.theme-industrial .knob-container.color-cyan .knob-marker { background: var(--wb-primary) !important; box-shadow: 0 0 8px var(--wb-primary); }
+.theme-industrial .knob-container.color-red .knob-marker { background: #ff4444 !important; box-shadow: 0 0 8px #ff4444; }
+.theme-industrial .knob-container.color-orange .knob-marker { background: var(--wb-accent) !important; box-shadow: 0 0 8px var(--wb-accent); }
+.theme-industrial .knob-container.color-green .knob-marker { background: #00ff88 !important; box-shadow: 0 0 8px #00ff88; }
+.theme-industrial .knob-container.color-white .knob-marker { background: #ffffff !important; box-shadow: 0 0 8px #ffffff; }

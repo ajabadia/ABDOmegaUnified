@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMEGA Modular Synth</title>
+    <style>
+        /* Immediate black background to prevent white flash */
+        html, body {
+            background-color: #000 !important;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            color: #fff;
+            font-family: sans-serif;
+        }
+        #debug-console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: rgba(0,0,0,0.9);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 11px;
+            overflow-y: auto;
+            z-index: 10000;
+            border-top: 2px solid #333;
+            pointer-events: auto;
+            display: block;
+        }
+    </style>
+    <script>
+        window.onerror = function(msg, url, line) {
+            const contentEl = document.getElementById('debug-console-content');
+            if (contentEl) {
+                const div = document.createElement('div');
+                div.innerText = "ERROR: " + msg + " at " + url + ":" + line;
+                div.style.color = "#ff5555";
+                contentEl.appendChild(div);
+                contentEl.scrollTop = contentEl.scrollHeight;
+            }
+            const consoleEl = document.getElementById('debug-console');
+            if (consoleEl) consoleEl.style.display = 'block';
+        };
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+
+        function appendToConsole(type, ...args) {
+            const div = document.createElement('div');
+            div.className = `log-entry log-${type}`;
+            div.innerText = `[${type.toUpperCase()}] ` + args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
+            
+            const contentEl = document.getElementById('debug-console-content');
+            if (contentEl) {
+                contentEl.appendChild(div);
+                contentEl.scrollTop = contentEl.scrollHeight;
+            }
+        }
+
+        console.log = (...args) => { originalLog.apply(console, args); appendToConsole('log', ...args); };
+        console.warn = (...args) => { originalWarn.apply(console, args); appendToConsole('warn', ...args); };
+        console.error = (...args) => { originalError.apply(console, args); appendToConsole('error', ...args); };
+
+        // Standalone Web Failsafe: Dismiss Splash Screen & Show Rack
+        setTimeout(function() {
+            var splash = document.getElementById('splash-screen');
+            var rack = document.getElementById('omega-rack');
+            if (splash && splash.style.display !== 'none') {
+                splash.style.opacity = '0';
+                splash.style.pointerEvents = 'none';
+                setTimeout(function() { splash.style.display = 'none'; }, 600);
+            }
+            if (rack) {
+                rack.style.display = 'flex';
+                rack.style.opacity = '1';
+                rack.style.pointerEvents = 'auto';
+                rack.classList.add('visible');
+            }
+        }, 1500);
+    </script>
+    <!-- OMEGA ERA 7.2.3 — UNIFIED DESIGN SYSTEM (omega-ui-core) -->
+    <!-- OMEGA UI CORE: Industrial Primitives & Centralized Typography -->
+    <link rel="stylesheet" href="./omega-ui-core/index.css">
+    <link rel="stylesheet" href="./omega-ui-core/typography/fonts.css">
+    
+    <!-- OMEGA Base Styles & Effects -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/effects.css">
+    <link rel="stylesheet" href="css/telemetry.css">
+    <link rel="stylesheet" href="css/modules.css">
+    
+    <!-- Specialized Component Styles -->
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/preferences.css">
+    <link rel="stylesheet" href="css/matrix_overlay.css">
+    <link rel="stylesheet" href="css/module_browser.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/performance.css">
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="css/about.css">
+    <link rel="stylesheet" href="css/keyboard.css">
+    <link rel="stylesheet" href="css/engine.css">
+</head>
+<body class="rack-bg">
+    <div class="crt-screen"></div>
+    <nav class="top-menu">
+        <div class="menu-item">
+            FILE
+            <div class="dropdown">
+                <a data-action="new_preset">New Preset</a>
+                <a data-action="save_preset">Save</a>
+                <a id="menu-exit" data-action="exit">Exit</a>
+            </div>
+        </div>
+        <div class="menu-item">
+            EDIT
+            <div class="dropdown">
+                <a data-action="undo">Undo</a>
+                <a data-action="redo">Redo</a>
+                <hr style="border-top:1px solid #333; margin:5px 0;">
+                <a id="menu-add-module" data-action="toggle_module_browser">Add Module...</a>
+                <a id="menu-clear-rack" data-action="clear_rack">Clear Rack / Init</a>
+                <a id="menu-matrix" data-action="toggle_matrix">Patchbay Matrix...</a>
+                <a id="menu-presets" data-action="toggle_presets_modal">Presets...</a>
+                <a id="menu-preferences" data-action="toggle_preferences_modal">Preferences...</a>
+            </div>
+        </div>
+        <div class="menu-item" id="btn-global-matrix" style="color: var(--neon-cyan); font-weight: 900; cursor: pointer;">
+            MATRIX
+        </div>
+        <div class="menu-item">
+            HELP
+            <div class="dropdown">
+                <a id="menu-about" data-action="about">About OMEGA...</a>
+                <a id="menu-console" data-action="toggle_console">Console</a>
+            </div>
+        </div>
+        <div class="menu-status-tray" style="margin-left: auto; display: flex; align-items: center; padding: 0 15px; gap: 8px;">
+            <div id="bridge-health-led" class="led led-cyan" style="width: 8px; height: 8px; margin: 0; background-color: #331111; cursor: help;" title="Aseptic Bridge Status"></div>
+            <span style="font-size: 9px; font-weight: 900; letter-spacing: 1px; color: #555; text-transform: uppercase;">ASEPTIC LINK</span>
+            <!-- Cable tension (§9): slider global, de "espagueti" a "tenso" -->
+            <div class="cable-tension" title="Tensión del cable: espagueti (0) → tenso (100)">
+                <label for="cable-tension">CABLE</label>
+                <input type="range" id="cable-tension" min="0" max="100" step="1" value="0">
+            </div>
+            <!-- Solo cables (§9): oculta los módulos y deja el esquema de conexionado -->
+            <button id="cable-solo-toggle" class="cable-solo-toggle" title="Modo solo-cables: oculta los módulos y muestra solo cables + jacks (tecla S)">SCHEMATIC</button>
+            <div class="top-bar-version" id="top-bar-version" style="margin-left: 10px; opacity: 0.4;">OMEGA Era 7.2.3 [ASEPTIC MODULAR]</div>
+        </div>
+    </nav>
+
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1 class="splash-logo">OMEGA</h1>
+            <div class="splash-version">Version 1.0.0 - Build 2026.03.22</div>
+            <div class="splash-credit">Powered by ABD-SynthEngine</div>
+            <div class="splash-loading-bar"><div class="loading-progress"></div></div>
+        </div>
+    </div>
+
+    <div id="omega-rack" class="rack-container" style="display: flex; flex-direction: column !important; opacity: 0; pointer-events: none;">
+        <div id="upper-rack" class="rack-row upper">
+            <div class="power-bus-container">
+                <div class="power-bus-board"></div>
+                <div class="power-bus-board"></div>
+                <div class="power-bus-board"></div>
+            </div>
+            <!-- Monitoring modules injected here -->
+        </div>
+        <div id="lower-rack" class="rack-row lower">
+            <div class="power-bus-container">
+                <div class="power-bus-board"></div>
+                <div class="power-bus-board"></div>
+                <div class="power-bus-board"></div>
+            </div>
+            <!-- Core modules injected here -->
+        </div>
+
+        <!-- Patch cable overlay (SVG). Fase 1: se inserta vacío;
+             PatchCableManager lo usa como capa de dibujo para los cables. -->
+        <svg id="patch-cables-overlay"
+             xmlns="http://www.w3.org/2000/svg"
+             class="patch-cables-overlay">
+            <defs>
+                <filter id="cable-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.4"/>
+                </filter>
+            </defs>
+        </svg>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal">
+        <div class="modal-content" style="max-width: 480px; width: 90%; text-align: center; position: relative;">
+            <span class="close-btn" onclick="document.getElementById('about-modal').style.display='none'" style="position:absolute; top:12px; right:16px; cursor:pointer; font-size:20px; color:#aaa;">&times;</span>
+            <h2 class="modal-title" style="color:var(--neon-cyan, #00f2ff); margin-top:10px;">OMEGA MODULAR SYNTH</h2>
+            <p class="modal-slogan" style="color:#94a3b8; font-size:12px; margin-bottom:15px;">Advanced Binary-Dynamics Generation</p>
+            <div class="modal-info" style="font-family:monospace; font-size:11px; background:#070a12; padding:12px; border-radius:6px; border:1px solid rgba(255,255,255,0.08); margin:15px 0; text-align:left;">
+                <p style="margin:4px 0;">Version: <span id="about-version" style="color:#00f2ff;">7.2.3</span></p>
+                <p style="margin:4px 0;">Build: <span id="about-build" style="color:#00f2ff;">2026.03.22</span></p>
+                <p style="margin:4px 0;">Architecture: <span style="color:#22c55e;">ASEPTIC UCA ENGINE</span></p>
+            </div>
+            <div class="modal-credits" style="font-size:10px; color:#64748b; margin-bottom:15px;">
+                <p style="margin:2px 0;">Design & Engineering: ABD-Team</p>
+                <p style="margin:2px 0;">Engine: OMEGA SynthEngine (High Fidelity)</p>
+            </div>
+            <button class="modal-ok-btn" onclick="document.getElementById('about-modal').style.display='none'" style="padding:8px 24px; background:var(--neon-cyan, #00f2ff); color:#000; font-weight:bold; font-family:monospace; border:none; border-radius:4px; cursor:pointer;">OK</button>
+        </div>
+    </div>
+
+
+    <!-- Presets Modal -->
+
+    <div id="presets-modal" class="modal">
+        <div class="modal-content presets-modal-content">
+            <span class="close-btn" onclick="document.getElementById('presets-modal').style.display='none'">&times;</span>
+            <h2 class="modal-title">PRESET MANAGEMENT</h2>
+            <div class="presets-container">
+                <div id="preset-browser-container">
+                    <div class="browser-column">
+                        <h4>CATEGORY</h4>
+                        <ul id="cat-list" class="preset-list"></ul>
+                    </div>
+                    <div class="browser-column">
+                        <h4>BANK</h4>
+                        <ul id="lib-list" class="preset-list"></ul>
+                    </div>
+                    <div class="browser-column">
+                        <h4>PATCH</h4>
+                        <input type="text" id="browser-search" placeholder="Search...">
+                        <ul id="preset-list" class="preset-list"></ul>
+                    </div>
+                </div>
+                <div id="version-control-container"></div>
+            </div>
+            <button class="modal-ok-btn" onclick="document.getElementById('presets-modal').style.display='none'">DONE</button>
+        </div>
+    </div>
+
+    <!-- [Hyper-ACE] Patchbay-Matrix Modal -->
+    <div id="modulation-modal" class="modal">
+        <div class="modal-content modulation-modal-content">
+            <span class="close-btn" onclick="document.getElementById('modulation-modal').style.display='none'">&times;</span>
+            <h2 class="modal-title">
+                PATCHBAY HUB 
+                <span id="matrix-active-count" class="status-count">00</span>
+                <div id="matrix-activity-led" class="activity-led"></div>
+            </h2>
+            <div id="modulation-workspace" class="modulation-workspace">
+                <div id="matrix-grid-container" class="matrix-grid-container">
+                    <!-- 8x4 Grid injected here -->
+                </div>
+                <div id="matrix-inspector-container" class="matrix-inspector-container">
+                    <!-- Inspector injected here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="aseptic-btn modal-ok-btn" onclick="document.getElementById('modulation-modal').style.display='none'">DONE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preferences Modal -->
+    <div id="preferences-modal" class="modal">
+        <div class="modal-content modal-preferences-content">
+            <div class="preferences-tabs">
+                <div class="pref-tab active">General</div>
+                <div class="pref-tab">Engine</div>
+                <div class="pref-tab">MIDI</div>
+                <div class="pref-tab">Physics</div>
+            </div>
+            <div id="preferences-body" class="preferences-body">
+                <!-- Settings rendered by preferences.js -->
+            </div>
+            <div class="pref-footer">
+                <button class="pref-done-btn" onclick="document.getElementById('preferences-modal').style.display='none'">DONE</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Unified Module Patching Modal (Patching Sanctuary) -->
+    <div id="module-patch-modal" class="modal">
+        <div class="modal-content era5-modal-content aseptic-panel">
+            <div class="era5-modal-header">
+                <div class="header-left">
+                    <h2 class="modal-title" id="patch-modal-title">MODULE CONFIG</h2>
+                    <p class="era5-modal-subtitle" id="patch-modal-subtitle">OMEGA Core | Absolute Aseptic Contract</p>
+                </div>
+                <div id="patch-tabs-container" class="era5-modal-tabs">
+                    <!-- Dynamic tabs (GENERAL, etc.) + fixed PATCHING sanctuary injected here -->
+                </div>
+                <span class="close-btn" onclick="document.getElementById('module-patch-modal').style.display='none'">&times;</span>
+            </div>
+            
+            <div id="patch-tab-viewport" class="era5-tab-viewport">
+                <!-- Active tab content injected here -->
+            </div>
+
+            <div class="era5-modal-footer">
+                <div class="matrix-usage-container">
+                    <label>TELEMETRY LINK</label>
+                    <div class="matrix-usage-bar"><div id="patch-telemetry-fill" class="usage-fill" style="width: 100%;"></div></div>
+                    <span id="patch-telemetry-text">ACTIVE</span>
+                </div>
+                <button class="modal-ok-btn" onclick="document.getElementById('module-patch-modal').style.display='none'">DONE</button>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- Module Browser Modal -->
+    <div id="module-browser-modal" class="modal">
+        <div class="modal-content module-browser-content">
+            <span class="close-btn" onclick="document.getElementById('module-browser-modal').style.display='none'">&times;</span>
+            <h2 class="modal-title">MODULE REGISTRY</h2>
+            <div class="browser-layout">
+                <!-- Sidebar: Categories & Search -->
+                <div class="browser-sidebar">
+                    <div class="search-box">
+                        <input type="text" id="module-search" placeholder="Filter Registry...">
+                    </div>
+                    <div class="category-list" id="module-category-list">
+                        <!-- Families: OSC, FLT, ENV, etc. -->
+                    </div>
+                </div>
+                
+                <!-- Main: Module Grid -->
+                <div class="browser-main">
+                    <div class="module-grid" id="module-registry-grid">
+                        <!-- Modules injected here -->
+                    </div>
+                </div>
+
+                <!-- Detail Panel (Metadata) -->
+                <div class="browser-preview" id="module-detail-panel">
+                    <div class="preview-placeholder">SELECT A MODULE</div>
+                </div>
+
+                <!-- Gallery Strip (Images) -->
+                <div class="browser-gallery" id="module-gallery-strip">
+                    <!-- Gallery items injected here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-ok-btn" onclick="document.getElementById('module-browser-modal').style.display='none'">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="debug-console" style="display: none;">
+        <div class="debug-console-header">
+            <span>CONSOLE</span>
+            <div class="debug-console-controls">
+                <button id="toggle-telemetry" title="Toggle Telemetry (T)" class="icon-btn" style="background: #331111; color: #555;">T</button>
+                <button id="copy-console" title="Copy (C)" class="icon-btn">C</button>
+                <button id="clear-console" title="Clear (L)" class="icon-btn">L</button>
+                <button id="close-console" title="Close (X)" class="icon-btn">X</button>
+            </div>
+        </div>
+        <div id="debug-console-content"></div>
+    </div>
+    <!-- OMEGA Unified Entry Point (Industrial Era 7.2.3 - Self-Contained Bundle) -->
+    <script src="bundle.js"></script>
+</body>
+</html>

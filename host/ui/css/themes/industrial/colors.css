@@ -1,0 +1,19 @@
+/* OMEGA INDUSTRIAL COLORS (Aligned with abd-ia_synths) */
+.theme-industrial {
+    --module-bg: #1a1a1a;
+    --module-header-bg: #111;
+    --module-border: 1px solid #333;
+    --module-label-color: rgba(255, 255, 255, 0.4);
+    --module-display-bg: #000;
+    --module-display-color: var(--omega-cyan);
+    --module-accent: var(--omega-cyan);
+    --module-font-main: "Fragment Mono", monospace;
+    --module-font-mono: "Fragment Mono", monospace;
+    --module-glow: 0 0 15px rgba(0, 242, 255, 0.2);
+    
+    /* Industrial Density */
+    --knob-size: 24px;
+    --cell-padding: 6px;
+    --module-knob-bg: #111;
+    --module-knob-border: #333;
+}

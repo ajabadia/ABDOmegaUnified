@@ -1,0 +1,94 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-06-25 12:16:04
+   ================================================================= */
+
+/* OMEGA INDUSTRIAL CELLS & ATTACHMENTS (Era 7.2.3) */
+/* Anchor-Center Model: Ensures component stays at exact X/Y regardless of labels */
+
+.control-cell {
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.cell-main {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    z-index: 5;
+    /* transform: translate(-50%, -50%) is applied via JS for offsets */
+}
+
+.attachment-stack {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Precise attachment offsets from center (Edge-Anchored) */
+.stack-top {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(calc(-1 * var(--comp-radius, 12px) - 8px));
+    flex-direction: column-reverse; /* Grow upwards from the bottom edge */
+    align-items: center;
+}
+
+.stack-bottom {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(calc(var(--comp-radius, 12px) + 8px));
+    flex-direction: column; /* Grow downwards from the top edge */
+    align-items: center;
+}
+
+.stack-left {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%) translateX(calc(-1 * var(--comp-radius, 12px) - 8px));
+    flex-direction: row-reverse; /* Grow leftwards from the right edge */
+    align-items: center;
+}
+
+.stack-right {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) translateX(calc(var(--comp-radius, 12px) + 8px));
+    flex-direction: row; /* Grow rightwards from the left edge */
+    align-items: center;
+}
+
+.stack-center {
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    z-index: 15; /* Above component, below overlays */
+}
+
+.cell-row-middle {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+/* Keyboard focus ring (Phase 6.1) */
+.uca-cell:focus-visible {
+    outline: 2px solid #00f0ff !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.5) !important;
+}

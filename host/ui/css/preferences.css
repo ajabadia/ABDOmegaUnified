@@ -1,0 +1,173 @@
+/* preferences.css - Premium OMEGA Preferences Styling */
+
+.modal-preferences-content {
+    background: rgba(15, 15, 20, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 162, 255, 0.2);
+    width: 600px;
+    max-width: 90vw;
+    border-radius: 12px;
+    overflow: hidden;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+}
+
+.preferences-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pref-tab {
+    padding: 15px 30px;
+    cursor: pointer;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: #888;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+    text-transform: uppercase;
+}
+
+.pref-tab:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.pref-tab.active {
+    color: #00a2ff;
+    border-bottom-color: #00a2ff;
+    background: rgba(0, 162, 255, 0.05);
+}
+
+.preferences-body {
+    padding: 25px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.pref-section-header {
+    font-size: 11px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pref-section-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.pref-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    transition: background 0.2s ease;
+}
+
+.pref-row:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.pref-info {
+    flex: 1;
+}
+
+.pref-label {
+    display: block;
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.pref-tooltip {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.pref-row:hover .pref-tooltip {
+    max-height: 50px;
+    opacity: 1;
+    margin-top: 5px;
+    color: #aaa;
+}
+
+.pref-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 200px;
+    justify-content: flex-end;
+}
+
+.pref-select {
+    background: #0a0a0c;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+}
+
+.pref-select:focus {
+    border-color: #00a2ff;
+}
+
+.pref-reset-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #666;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pref-reset-btn:hover {
+    border-color: #ff3c3c;
+    color: #ff3c3c;
+    background: rgba(255, 60, 60, 0.05);
+}
+
+.pref-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.pref-done-btn {
+    background: linear-gradient(to bottom, #00a2ff, #007acc);
+    border: none;
+    color: #fff;
+    padding: 10px 30px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 162, 255, 0.3);
+    transition: transform 0.1s;
+}
+
+.pref-done-btn:active {
+    transform: scale(0.95);
+}

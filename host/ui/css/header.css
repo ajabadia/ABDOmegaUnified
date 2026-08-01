@@ -1,0 +1,86 @@
+/* ═══════════════════════════════════════════════
+   OMEGA ERA 7.2.3 — TOP MENU & NAVIGATION
+   ═══════════════════════════════════════════════ */
+
+.top-menu {
+    height: 34px;
+    background: linear-gradient(180deg, #242c3d 0%, #121722 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #cbd5e1;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 20000;
+}
+
+.menu-item {
+    padding: 0 16px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.menu-item:hover {
+    background: rgba(0, 242, 255, 0.12);
+    color: var(--neon-cyan, #00f2ff);
+    text-shadow: 0 0 8px rgba(0, 242, 255, 0.4);
+}
+
+.menu-item:hover .dropdown {
+    display: flex !important;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    top: 34px;
+    left: 0;
+    background: #141a26;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0 0 6px 6px;
+    flex-direction: column !important;
+    min-width: 200px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.85);
+    z-index: 20001;
+    overflow: hidden;
+}
+
+.dropdown a {
+    display: block !important;
+    padding: 11px 16px;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dropdown a:hover {
+    background: linear-gradient(90deg, rgba(0, 242, 255, 0.15) 0%, transparent 100%);
+    color: var(--neon-cyan, #00f2ff);
+}
+
+.menu-status-tray {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.top-bar-version {
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    color: #555;
+}

@@ -1,0 +1,42 @@
+/* OMEGA INDUSTRIAL SLIDERS (Era 7.2.3 — High Fidelity) */
+/* Aligned with ABDSynthsWeb Standards */
+
+.theme-industrial .slider-wrapper {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid var(--wb-outline) !important;
+    border-radius: 20px !important;
+    padding: 2px !important;
+    position: relative;
+    cursor: crosshair;
+}
+
+.theme-industrial .slider-rail-active {
+    position: absolute;
+    background: rgba(0, 240, 255, 0.1) !important;
+    border-radius: 20px !important;
+    pointer-events: none;
+}
+
+.theme-industrial .slider-cap {
+    position: absolute;
+    border-radius: 1px !important;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.4) !important;
+    z-index: 10;
+    pointer-events: none;
+    background: var(--wb-primary);
+}
+
+/* SIZES (Height for V, Width for H) */
+.theme-industrial .slider-wrapper.size-A { --slider-dim: 80px; }
+.theme-industrial .slider-wrapper.size-B { --slider-dim: 60px; }
+.theme-industrial .slider-wrapper.size-C { --slider-dim: 40px; }
+.theme-industrial .slider-wrapper.size-D { --slider-dim: 30px; }
+
+/* HORIZONTAL / VERTICAL SPECIFIC */
+.theme-industrial .slider-v { width: 12px !important; height: var(--slider-dim) !important; }
+.theme-industrial .slider-h { height: 12px !important; width: var(--slider-dim) !important; }
+
+/* COLOR VARIANTS */
+.theme-industrial .slider-wrapper.color-cyan .slider-cap { background: var(--wb-primary); box-shadow: 0 0 10px var(--wb-primary); }
+.theme-industrial .slider-wrapper.color-orange .slider-cap { background: var(--wb-accent); box-shadow: 0 0 10px var(--wb-accent); }
+.theme-industrial .slider-wrapper.color-red .slider-cap { background: #ff4444; box-shadow: 0 0 10px #ff4444; }

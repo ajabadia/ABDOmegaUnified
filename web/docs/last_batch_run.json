@@ -1,0 +1,59 @@
+{
+  "timestampStart": "2026-06-20T22:29:06.525Z",
+  "timestampEnd": "2026-06-20T22:29:06.558Z",
+  "totalElapsedSeconds": 0.03,
+  "fileCount": 7,
+  "averageSecondsPerFile": 0,
+  "mode": "STALE",
+  "files": [
+    {
+      "file": "src/features/manifest-editor/components/viewport/ViewWrapper.tsx",
+      "mode": "STALE",
+      "duration": 0.01,
+      "details": "Upgrade - No LLM",
+      "status": "Upgraded JSDoc fingerprint"
+    },
+    {
+      "file": "src/features/manifest-editor/hooks/inspector/useLiveInspectorItem.ts",
+      "mode": "STALE",
+      "duration": 0,
+      "details": "Upgrade - No LLM",
+      "status": "Upgraded JSDoc fingerprint"
+    },
+    {
+      "file": "src/features/manifest-editor/hooks/rack/useRackGhostPreview.ts",
+      "mode": "STALE",
+      "duration": 0.01,
+      "details": "Upgrade - No LLM",
+      "status": "Upgraded JSDoc fingerprint"
+    },
+    {
+      "file": "src/features/manifest-editor/utils/rackUtils.ts",
+      "mode": "STALE",
+      "duration": 0,
+      "details": "Upgrade - No LLM",
+      "status": "Upgraded JSDoc fingerprint"
+    },
+    {
+      "file": "src/features/manifest-editor/utils/viewportUtils.ts",
+      "mode": "STALE",
+      "duration": 0.01,
+      "details": "Upgrade - No LLM",
+      "status": "Upgraded JSDoc fingerprint"
+    },
+    {
+      "file": "src/omega-ui-core/renderers/hooks/useKnobInteraction.ts",
+      "mode": "STALE",
+      "duration": 0,
+      "details": "Upgrade - No LLM",
+      "status": "Upgraded JSDoc fingerprint"
+    },
+    {
+      "file": "src/omega-ui-core/renderers/utils/cellNodeUtils.ts",
+      "mode": "STALE",
+      "duration": 0,
+      "details": "Upgrade - No LLM",
+      "status": "Upgraded JSDoc fingerprint"
+    }
+  ]
+}

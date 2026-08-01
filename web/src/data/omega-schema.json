@@ -1,0 +1,176 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://omega-synth.dev/schema/module-schema-6.3.json",
+  "title": "OMEGA Module Schema (Era 6.3 Aseptic Industrial)",
+  "type": "object",
+  "required": ["id", "name", "version", "family", "registry"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "Unique identifier for the module type (snake_case)."
+    },
+    "name": {
+      "type": "string",
+      "description": "User-friendly name of the module."
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the module manifest."
+    },
+    "family": {
+      "type": "string",
+      "enum": ["osc", "filter", "env", "io", "fx", "lfo", "mixer", "utility", "clock", "midi", "sequencer"],
+      "description": "Functional category of the module."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["stable", "beta", "experimental", "deprecated"]
+    },
+    "description": {
+      "type": "string"
+    },
+    "registry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "roles"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.]+$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["int", "float", "bool", "string", "list", "audio", "cv", "midi"]
+          },
+            "roles": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": ["control", "stream", "input", "output", "mod_source", "mod_target", "telemetry", "expert", "system"]
+              }
+            },
+          "range": {
+            "type": "object",
+            "properties": {
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "default": { "type": "number" }
+            }
+          },
+          "precision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ui_precision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          },
+          "stream": {
+            "type": "boolean",
+            "default": false
+          },
+          "lookup": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["value", "label"],
+                  "properties": {
+                    "value": { "type": ["string", "number"] },
+                    "label": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["internal", "input", "output"],
+            "deprecated": true,
+            "description": "Legacy direction marker. Use 'input' or 'output' roles instead."
+          },
+          "presentation": {
+            "type": "object",
+            "properties": {
+              "tab": {
+                "type": "string",
+                "enum": ["MAIN", "PATCHING", "SETUP", "MIDI", "ADVANCED"],
+                "default": "MAIN"
+              },
+              "group": { "type": "string" },
+              "order": { "type": "integer" },
+              "ui": {
+                "type": "object",
+                "properties": {
+                  "component": {
+                    "type": "string",
+                    "enum": ["knob", "slider_h", "slider_v", "switch", "toggle", "display", "led", "port", "hidden"]
+                  },
+                  "variant": { "type": "string" },
+                  "disabled": { "type": "boolean", "default": false },
+                  "readOnly": { "type": "boolean", "default": false }
+                }
+              },
+              "attachments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["type", "position"],
+                  "properties": {
+                    "type": { "type": "string", "enum": ["label", "display", "led"] },
+                    "position": { "type": "string", "enum": ["top", "bottom", "left", "right"] },
+                    "role": { "type": "string" },
+                    "format": {
+                      "type": "object",
+                      "properties": {
+                        "decimals": { "type": "integer" },
+                        "prefix": { "type": "string" },
+                        "suffix": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Extended metadata for future-proofing and designer-specific hints (VEM-1612)."
+          }
+        }
+      }
+    },
+    "engine": { 
+      "type": "string", 
+      "deprecated": true,
+      "description": "Legacy engine selector. Transition to family-based routing."
+    },
+    "layout": {
+      "type": "object",
+      "deprecated": true,
+      "properties": {
+        "hp": { "type": "integer" },
+        "rack": { "type": "string" },
+        "columns": { "type": "integer" }
+      }
+    },
+    "blueprint": {
+      "type": "string",
+      "description": "ID of the .acell layout blueprint to use for this module (Era 6.3 Visual Spec)."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,35 @@
+{
+  "junio601": {
+    "tagline": "Emulación Auténtica de VCF/VCA 80017A",
+    "description": "La restauración definitiva de la leyenda de 1984. Modelado meticulosamente circuito por circuito, con la lógica única de HPF de 4 pasos y chorus BBD de modo dual con siseo auténtico."
+  },
+  "omega": {
+    "tagline": "Plataforma de Ejecución de Contratos Asépticos",
+    "description": "Motor de síntesis hiper-modular para la Era 6. Con la Matriz Patchbay 2.0 y la arquitectura de UI aséptica, Omega ofrece síntesis espectral con integridad de acoplamiento cero."
+  },
+  "neuronik": {
+    "tagline": "Motor Híbrido Aditivo de 64 Parciales",
+    "description": "Escultura de materia sónica mediante síntesis de inspiración neural. NEURONiK utiliza un resonador aditivo de 64 parciales para mezclar modelos armónicos y manipular el timbre."
+  },
+  "groups": {
+    "synthesis": "Motor de Síntesis",
+    "performance": "Rendimiento",
+    "modular": "Arquitectura Modular",
+    "dsp": "Base de DSP",
+    "neural": "Síntesis Neural",
+    "control": "Sistema de Control"
+  },
+  "audio": {
+    "telemetry": "Módulo de Análisis Acústico",
+    "title1": "Pruebas",
+    "title2": "Sónicas",
+    "sampleRate": "Frecuencia de Muestreo",
+    "bitDepth": "Profundidad de Bits",
+    "mastering": "Masterización",
+    "playlist": "Demos Disponibles",
+    "streamStatus": "Estado del Stream",
+    "streaming": "Transmitiendo",
+    "standby": "En Espera",
+    "initializing": "Listo para Cargar"
+  }
+}

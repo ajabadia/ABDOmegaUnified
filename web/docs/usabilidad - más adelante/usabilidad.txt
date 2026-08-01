@@ -1,0 +1,425 @@
+Sí, y además eso ya se puede ver desde el estado actual del código: hay señales de degradación de usabilidad mezcladas con capas muy potentes, y la forma correcta de afrontarlo es auditar la interfaz viva, no solo leer la arquitectura.
+
+Cómo puedo “ver cómo está ahora”
+La mejor forma es que me des uno de estos tres materiales:
+
+un walkthrough.md o delta report actualizado,
+
+capturas de pantalla o vídeo corto de los flujos principales,
+
+o el árbol de archivos con los componentes de UI críticos para revisarlos uno por uno.
+
+Con eso puedo detectar si el problema es visual, de interacción, de jerarquía o de deuda de consistencia entre componentes.
+
+Señales de degradación ya visibles
+En los archivos que sí aparecen en el bundle hay indicios claros de usabilidad a revisar: paneles con jerarquía muy densa, botones pequeños, muchos elementos con transition-all, y una estética que puede empujar la legibilidad o el foco visual si se sigue acumulando complejidad.
+
+También hay componentes como HistoryPanel e InspectorHeader que sugieren una UI muy operativa, pero aún no necesariamente optimizada para claridad, accesibilidad y carga cognitiva.
+
+Qué necesito de ti
+Si quieres que lo evalúe de verdad, pásame una de estas dos cosas:
+
+el walkthrough.md actual de la interfaz, o
+
+3–5 capturas del flujo principal: home, inspector, historial, exportación y cualquier pantalla donde notes la degradación.
+
+Próximo paso útil
+Con eso puedo hacerte una auditoría de usabilidad con foco en:
+
+jerarquía visual,
+
+densidad de información,
+
+affordances,
+
+consistencia de controles,
+
+y fricciones reales de uso.
+
+Si me compartes ese material, te devuelvo un diagnóstico directo y una lista priorizada de correcciones.
+
+te paso capturas de la página principal
+
+5 adjuntos
+
+Sí, con estas capturas ya se ve bastante bien dónde está el problema. La sensación general es de un sistema potente pero sobrecargado: mucha densidad, jerarquía visual irregular y poca respiración entre modos, paneles y estados.
+
+Lo que está degradando
+La interfaz ha pasado de “tool premium” a “tool demasiado cargada”, sobre todo por la acumulación de paneles persistentes, labels pequeños y bloques con funciones muy distintas compitiendo por atención.
+
+En la vista principal, el área central queda demasiado vacía en algunos modos y demasiado rígida en otros, mientras el inspector derecho consume mucho peso visual constante sin ofrecer una progresión clara de importancia.
+
+El historial y los menús superiores muestran un patrón de micro-interacción correcto, pero la composición global sugiere que la UX se ha optimizado por partes y no como un flujo continuo.
+
+Qué sí funciona
+La identidad visual sigue siendo sólida: el modo oscuro, el cian técnico y la estructura de paneles transmiten bien la idea de instrumento industrial.
+
+También se nota intención de gobernanza visual: tabs, módulos, estados y secciones están bien nombrados y hay una base de sistema bastante madura.
+
+El problema no es falta de calidad, sino exceso de capas y falta de priorización perceptiva.
+
+Diagnóstico UX
+Veo tres fricciones principales:
+
+Densidad excesiva en el inspector y en algunos paneles laterales.
+
+Contraste jerárquico insuficiente entre estado principal, navegación secundaria y utilidades.
+
+Espaciado y tamaño de controles demasiado conservadores para una herramienta que quiere sentirse rápida y precisa.
+
+En otras palabras, la base está bien, pero ahora mismo hay más “superficie de control” que “claridad operativa”.
+
+Cómo seguir
+Si quieres, el siguiente paso correcto no es tocar código todavía, sino hacer una auditoría visual de usabilidad en tres capas:
+
+navegación y estados,
+
+inspector y edición,
+
+densidad informativa y ritmo visual.
+
+Puedo convertir estas capturas en un informe de usabilidad con prioridades tipo crítico / alto / medio, y de ahí sacar un plan de refactor UI muy concreto.
+
+
+Informe de usabilidad
+La interfaz conserva una identidad potente y coherente, pero la experiencia ha degradado por exceso de densidad, paneles persistentes muy pesados y una prioridad visual poco clara entre navegación, contenido y herramientas. En términos de usabilidad, el sistema hoy parece más un laboratorio de control que una estación de trabajo rápida.
+
+Resumen ejecutivo
+El problema principal no es visual “feo”, sino una sobrecarga estructural: demasiadas capas compiten por atención y la interfaz pierde respiración, jerarquía y velocidad de lectura. La base sigue siendo sólida, pero la composición global está pidiendo una simplificación clara.
+
+Hallazgos críticos
+El inspector derecho domina demasiado la pantalla y acumula demasiadas decisiones en una sola columna.
+
+El área central oscila entre vacío y rigidez según el modo, lo que rompe continuidad operativa.
+
+La navegación superior es funcional, pero no establece una jerarquía suficientemente fuerte entre modos principales y utilidades secundarias.
+
+Los controles y listas tienen buen control visual, pero su densidad reduce la escaneabilidad y la rapidez de uso.
+
+Problemas por zona
+Zona	Severidad	Diagnóstico
+Composición global	Alta	Exceso de paneles persistentes y poco aire visual. 
+Inspector	Alta	Mucha carga informativa en una sola columna, con jerarquía interna débil. 
+Centro de trabajo	Alta	Cambia entre vacío y bloqueado, sin una presencia operativa estable. 
+Controles	Alta	Densidad alta con espaciado conservador; la interacción se siente más compacta de lo necesario. 
+Navegación	Media	Clara, pero no suficientemente priorizada en la jerarquía general. 
+Historial	Media	Funcional, pero repetitivo y con poca variación visual. 
+Tipografía	Media	Textos pequeños en zonas densas reducen velocidad de lectura. 
+Qué sí funciona
+La identidad visual sigue siendo fuerte: el modo oscuro, el cian técnico y la estructura por paneles transmiten bien la idea de una herramienta industrial premium. También se nota una base de sistema madura, con tabs, módulos y estados bien nombrados.
+
+Recomendaciones
+Reducir la densidad del inspector y dividirlo en progresión por niveles: esencial, avanzado, diagnóstico.
+
+Dar más peso visual al área central para que siempre tenga un rol claro, incluso en estados vacíos.
+
+Simplificar la navegación superior, dejando el resto de utilidades en segundo plano o dentro de grupos colapsables.
+
+Aumentar espaciado, tamaño de targets y contraste de jerarquía en bloques densos.
+
+Revisar tipografía auxiliar y microcopy para que la lectura sea más rápida en paneles complejos.
+
+Prioridad de acción
+Crítico: composición global, inspector, centro de trabajo.
+
+Alto: controles, densidad de interacción.
+
+Medio: navegación, historial, tipografía.
+
+Cierre
+La interfaz no necesita un rediseño total; necesita respirar mejor y mostrar con más claridad qué es principal, qué es secundario y qué es diagnóstico. El siguiente paso lógico es convertir este informe en un plan de refactor UX priorizado por impacto y esfuerzo.
+
+
+# Plan de refactor UX priorizado por impacto
+
+## Objetivo
+Recuperar claridad, respiración y velocidad de uso sin perder la identidad técnica del sistema. La prioridad no es “hacerlo más bonito”, sino hacerlo más rápido de entender y más cómodo de operar. [file:685][file:686][file:687][file:688][file:689]
+
+## Principio de priorización
+Ordeno el trabajo por impacto sobre la usabilidad real: primero composición y jerarquía, después densidad de interacción, y al final refinado visual y microcopy. Este orden reduce la carga cognitiva antes de tocar detalles cosméticos. [file:685][file:686][file:687][file:688][file:689]
+
+## Fase 1: Alto impacto
+### 1. Reducir peso del inspector
+Objetivo: convertir el inspector derecho en una superficie progresiva, no en una pared de decisiones. Dividirlo en niveles “esencial / avanzado / diagnóstico” y ocultar por defecto lo que no sea necesario para la tarea inmediata. [file:685][file:686][file:688][file:689]
+
+### 2. Reequilibrar la composición global
+Objetivo: que el centro de trabajo vuelva a ser el protagonista. Hay que evitar que la pantalla se lea como tres paneles compitiendo y pasar a una estructura donde el contenido principal siempre tenga mayor peso visual que las utilidades laterales. [file:685][file:686][file:687][file:688][file:689]
+
+### 3. Dar un rol estable al área central
+Objetivo: que el canvas o workspace no parezca vacío cuando no hay contenido, ni rígido cuando sí lo hay. Debe tener un estado base reconocible, con presencia mínima pero clara, incluso en pantallas de edición, historial o blueprints. [file:687][file:688][file:689]
+
+## Fase 2: Impacto medio-alto
+### 4. Simplificar navegación superior
+Objetivo: reducir la cantidad de señales simultáneas en la barra superior. Los modos principales deben ser obvios al primer vistazo, y las utilidades secundarias deberían agruparse o desplazarse a un segundo nivel de acceso. [file:685][file:686][file:687][file:688][file:689]
+
+### 5. Aumentar respiración entre bloques
+Objetivo: mejorar escaneabilidad y ritmo visual. Esto implica más separación entre secciones, mejor alineación interna y menos acumulación de cajas, bordes y subtítulos compitiendo en el mismo plano. [file:685][file:686][file:688][file:689]
+
+### 6. Revisar densidad de controles
+Objetivo: subir un poco el tamaño útil de targets, aumentar espaciado y reducir la sensación de “panel técnico comprimido”. La interfaz debe seguir siendo precisa, pero no claustrofóbica. [file:685][file:686][file:688]
+
+## Fase 3: Impacto medio
+### 7. Ajustar tipografía auxiliar
+Objetivo: mejorar lectura rápida en zonas densas. Subir legibilidad de labels secundarios, timestamps, microcopy y estados de apoyo para que el usuario entienda sin esfuerzo dónde mirar primero. [file:685][file:686][file:688][file:689]
+
+### 8. Reforzar jerarquía del historial
+Objetivo: que el timeline no se vea como una lista repetitiva de items con el mismo peso. Conviene introducir más estructura visual por tipo de acción, estado y relevancia temporal. [file:685][file:686]
+
+### 9. Normalizar estados vacíos
+Objetivo: que pantallas como blueprints o ciertas vistas del workspace no se sientan “vacías” sino “en espera”. Los empty states deben guiar y no desorientar. [file:687][file:689]
+
+## Fase 4: Ajuste fino
+### 10. Refinar microinteracciones
+Objetivo: conservar la sensación premium sin añadir ruido. Pequeñas mejoras en hover, foco, transición y feedback pueden subir mucho la percepción de calidad, siempre que no aumenten la carga visual. [file:685][file:686][file:687][file:688][file:689]
+
+### 11. Unificar lenguaje visual entre modos
+Objetivo: que ORBITAL, RACK, SOURCE, HISTORY y BLUEPRINTS parezcan variantes del mismo sistema, no pantallas de distinta familia. Debe haber consistencia de jerarquía, espaciado y comportamiento. [file:685][file:686][file:687][file:688][file:689]
+
+## Criterios de aceptación
+- El inspector deja de dominar la pantalla y pasa a ser una herramienta contextual. [file:685][file:686][file:688][file:689]
+- El centro de trabajo siempre tiene protagonismo visual claro. [file:687][file:688][file:689]
+- La navegación se entiende en menos tiempo y con menos lectura. [file:685][file:686][file:687][file:688][file:689]
+- Los controles se sienten más cómodos sin perder precisión. [file:685][file:686][file:688]
+- Los estados vacíos pasan a ser instructivos, no neutros. [file:687][file:689]
+
+## Recomendación operativa
+Sí, pásame más pantallas: cuanto más variedad tenga entre vistas, mejor podré distinguir qué problemas son globales y cuáles son específicos de cada modo. Idealmente envíame una captura de cada flujo crítico: home, editor principal, inspector, historial, blueprints y cualquier pantalla vacía o en estado intermedio. [file:685][file:686][file:687][file:688][file:689]
+
+
+
+
+# UX Refactor Plan Prioritized by Impact
+
+## Objective
+Improve clarity, breathing room, and task speed without losing the technical identity of the system. The goal is to make the interface easier to understand and faster to operate, not to dilute its character. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+## Priority model
+I am prioritizing changes by real usability impact: composition first, interaction density second, visual polish third. That sequence lowers cognitive load before spending time on details that only affect perception. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+## Phase 1: Highest impact
+### 1. Reduce inspector dominance
+Turn the right inspector into a progressive surface instead of a wall of decisions. Split it into essential, advanced, and diagnostic layers, and hide non-critical controls by default. [file:685][file:686][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+### 2. Rebalance the global composition
+Make the center workspace the clear protagonist again. The screen should not read like three equally loud panels fighting for attention; the main content must win visually. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+### 3. Give the center stage a stable role
+The canvas or main workspace should never feel empty, rigid, or accidental. It needs a consistent base state that feels intentional even when no major content is loaded. [file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+## Phase 2: High impact
+### 4. Simplify top navigation
+Reduce the number of simultaneous signals in the top bar. Main modes should be immediately obvious, while secondary utilities should be grouped or pushed into a second tier. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+### 5. Increase breathing room between blocks
+Improve scanability and rhythm by adding space between sections, reducing stacked boxes, and making internal hierarchy easier to read. This will help across both dark and light variants. [file:685][file:686][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+### 6. Loosen control density
+Slightly increase target size and spacing so the interface feels precise without becoming cramped. The aim is to keep it technical while making it less fatiguing. [file:685][file:686][file:688][file:692][file:693][file:694][file:695][file:696][file:697]
+
+## Phase 3: Medium impact
+### 7. Improve auxiliary typography
+Raise the legibility of labels, timestamps, helper text, and status copy in dense areas. Small text is fine for a technical product, but the current balance slows scanning. [file:685][file:686][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+### 8. Rework the history hierarchy
+The timeline should stop feeling like a repeated list of equal-weight items. Add clearer visual differentiation for action type, recency, and importance. [file:685][file:686][file:692][file:693][file:694][file:695][file:696][file:697]
+
+### 9. Normalize empty states
+Screens that are empty or partially filled should feel guided rather than unfinished. Better empty states will prevent the interface from looking inert in low-content modes. [file:687][file:689][file:692][file:694][file:696][file:697]
+
+## Phase 4: Fine tuning
+### 10. Refine microinteractions
+Keep premium feedback, but make sure hover, focus, and transitions stay subtle and purposeful. Small gains here can raise perceived quality without adding noise. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+### 11. Unify visual language across modes
+Make ORBITAL, RACK, SOURCE, HISTORY, and BLUEPRINTS feel like variations of one system rather than separate products. Consistency in spacing, hierarchy, and control behavior matters more than isolated polish. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+## Screen-specific notes
+### Global governance modal
+This area looks structured, but it carries too much vertical density and too many small decision points. It needs clearer section separation and a stronger sense of progression from overview to detail. [file:692][file:693][file:694][file:695]
+
+### Typography and palette modals
+These screens are cleaner and more legible than the main editor, but they still show room for simplification in control groups and spacing. Their strength is system clarity; their weakness is that they can still feel heavier than necessary. [file:694][file:695]
+
+### Inspection report
+This screen is strong in hierarchy and storytelling, but it also shows how dense the system can become when too many diagnostics are placed on one canvas. It is a good model for structure, but not for everyday operational speed. [file:697]
+
+## Acceptance criteria
+- The inspector stops dominating the layout and becomes contextual. [file:685][file:686][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+- The center workspace always feels like the main task area. [file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+- Navigation can be understood faster with less reading. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+- Controls feel less cramped while preserving precision. [file:685][file:686][file:688][file:692][file:693][file:694][file:695][file:696][file:697]
+- Empty states feel deliberate and informative. [file:687][file:689][file:692][file:694][file:696][file:697]
+
+## Next step
+Yes, send the rest of the screens. The more complete the set is, the better I can separate global UX problems from issues that only appear in specific views or state combinations. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697]
+
+Perfecto, esto ayuda mucho porque ya no estamos viendo solo “pantallas problemáticas”, sino también pantallas que representan estados más sanos y sirven como referencia de diseño. Con este segundo bloque se refuerza la idea de que la UX no está rota, sino descompensada entre vistas: algunas están muy bien resueltas y otras se han quedado demasiado pesadas o demasiado rígidas.
+
+Lo que aportan estas pantallas
+La vista de Universal Cell Studio muestra mejor jerarquía que varias de las pantallas anteriores, pero también deja ver un patrón muy claro: el sistema sabe hacer módulos muy buenos, aunque a veces los satura con demasiadas zonas de decisión.
+
+La galería de blueprints está bastante más limpia y respirada, así que sirve como referencia de “densidad sana” dentro del mismo producto.
+
+La pantalla de historial y la consola de ingeniería, en cambio, vuelven a mostrar el problema de fondo: mucha información viva en poco espacio y una lectura que depende demasiado del usuario.
+
+Lectura UX
+Estas pantallas confirman que el problema no es una estética inconsistente, sino un balance inestable entre claridad y potencia.
+
+Hay componentes donde la jerarquía, el espaciado y el silencio visual están muy logrados, y otros donde la interfaz parece querer demostrar demasiado de golpe.
+
+Eso me dice que el refactor no debe ser uniforme a ciegas: debe distinguir entre vistas que necesitan simplificación y vistas que solo necesitan refinado.
+
+Qué veo ahora
+Universal Cell Studio: buen control de secciones, pero todavía con tendencia a densidad técnica alta.
+
+Blueprint Gallery: de las más sanas; tiene una composición mucho más fácil de escanear.
+
+History / Engineering Console: útiles, pero con exceso de texto pequeño y carga simultánea de estado.
+
+Overall: hay una base buena, pero el sistema necesita una política explícita de densidad por pantalla.
+
+Siguiente lectura
+Cuando me pases más pantallas, ya podré cerrar una matriz más exacta de:
+
+pantallas patrón,
+
+pantallas degradadas,
+
+pantallas de referencia,
+
+y pantallas que deberían redefinir el estándar visual del sistema.
+
+Sí, pásame todas las que quieras; cuanto más completo sea el set, más precisa será la priorización del refactor.
+
+
+erfecto. Esta última tanda refuerza algo importante: hay pantallas que están casi a nivel de producto final, pero aun así arrastran una cierta rigidez de sistema que conviene suavizar antes de seguir creciendo. En especial, la combinación entre modales de configuración, documentación y vistas operativas muestra que el producto ya tiene buen esqueleto, pero necesita una política más clara de densidad y jerarquía por tipo de pantalla.
+
+Lo que aportan estas pantallas
+La pantalla de Omega Engineering Suite transmite muy bien el tono premium y el estado de infraestructura, pero también muestra que los modales del sistema pueden volverse muy cerrados y poco respirables si concentran demasiada información.
+
+Las pantallas de documentación técnica están mejor resueltas en jerarquía que otras vistas anteriores, aunque todavía tienden a una lectura pesada por la acumulación de secciones y subtítulos.
+
+La pantalla de gobernanza y la de edición muestran buena disciplina visual, pero también dejan ver que el sistema puede endurecerse demasiado si no se reserva espacio para la orientación del usuario.
+
+Lectura UX
+Lo que veo ya no es un problema de calidad base, sino de control de complejidad.
+
+Hay pantallas excelentes como referencia de estilo, pero incluso esas necesitan pequeñas correcciones para no convertir la precisión en rigidez.
+
+Esto me confirma que el refactor UX debe ser selectivo: algunas vistas necesitan simplificación fuerte, otras solo necesitan respiración, y otras apenas un pulido de jerarquía.
+
+Qué considero ahora
+Modales de configuración: muy sólidos en identidad, pero con margen para mejorar el ritmo vertical y la progresión de secciones.
+
+Documentación / ayuda: buen nivel de estructura, aunque todavía algo pesada para consulta rápida.
+
+Vistas operativas: necesitan más flexibilidad y menos sensación de “panel cerrado”.
+
+Conjunto general: el producto ya tiene lenguaje propio; lo que falta es una política coherente de confort de uso por contexto.
+
+Estado del diagnóstico
+Con todo lo que me has pasado ya puedo hacer una matriz bastante fiable de:
+
+pantallas modelo,
+
+pantallas demasiado densas,
+
+pantallas demasiado rígidas,
+
+y pantallas que deberían marcar el estándar de referencia.
+
+Sigue pasándome pantallas; con este volumen ya estamos muy cerca de poder cerrar un informe de UX serio y priorizado de verdad.
+
+
+Sí, con esto ya casi está el mapa completo. Lo que me has pasado ahora es especialmente útil porque enseña los microestados internos del inspector, y ahí se ve que el producto tiene una lógica muy potente, pero también que la experiencia depende demasiado de la profundidad del panel y del contexto que el usuario ya conozca.
+
+Lo que aportan estas vistas
+Estas pantallas confirman que el inspector funciona bien como sistema, pero necesita una política de densidad más estricta para no sentirse interminable o demasiado técnico en estados avanzados.
+
+La pantalla de Entity Inspector con los tabs de Core, Design y Logic muestra una buena idea de arquitectura mental, pero también evidencia que la navegación interna puede volverse muy vertical y exigir demasiada memoria de trabajo.
+
+La vista de Blueprints y las secciones de assets refuerzan algo importante: la biblioteca visual está bien encaminada, pero todavía necesita una priorización más clara entre exploración, edición y acciones finales.
+
+Diagnóstico UX
+Aquí el problema ya no es solo “mucho contenido”, sino profundidad acumulada.
+
+Cuando el usuario entra en Core, Design o Logic, la UI pasa a pedirle decisiones secuenciales muy finas y eso puede ser excelente para un power user, pero demasiado pesado para una interacción repetida o rápida.
+
+Esto me hace pensar que el refactor debe incluir no solo layout, sino también gradación de complejidad: qué se enseña primero, qué se oculta y qué se revela solo bajo demanda.
+
+Qué veo ahora
+Inspector avanzado: muy valioso, pero con tendencia a convertirse en un túnel de configuración.
+
+Core / Design / Logic: buena estructura conceptual, aunque demasiado dependiente de scroll y profundidad.
+
+Blueprints: bien orientado a exploración, pero todavía puede separar mejor descubrimiento y edición.
+
+Estados con preview oculto: útiles, pero deberían ser más explícitos para no generar duda o sensación de “falta algo”.
+
+Conclusión provisional
+Ahora sí tengo suficiente para cerrar una lectura bastante completa del producto: el sistema es fuerte, coherente y ambicioso, pero la UX se está endureciendo por acumulación de especialización.
+
+Lo que falta ya no es solo pulir pantallas aisladas, sino definir una política de complejidad por nivel de usuario y por tipo de tarea.
+
+Si quieres, el siguiente paso ya puede ser que te devuelva un informe maestro de UX con:
+
+problemas globales,
+
+problemas por pantalla,
+
+prioridades por impacto,
+
+y un plan de refactor ordenado por fases.
+
+
+# Informe maestro de UX
+
+## Diagnóstico general
+La interfaz tiene una base muy fuerte: identidad visual coherente, lenguaje técnico claro y una arquitectura de producto que transmite ambición real. El problema no es de concepto, sino de **crecimiento desigual**: algunas pantallas están muy bien resueltas y otras se han ido endureciendo por acumulación de capas, densidad y profundidad de configuración. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697][file:698][file:699][file:700][file:701][file:702][file:703][file:704][file:705][file:706][file:707][file:708][file:709][file:710][file:711][file:712][file:713][file:714]
+
+## Lo que funciona
+La identidad técnica y tech-noir está muy conseguida, y eso es importante porque la UI no parece genérica ni intercambiable. También hay una buena base de jerarquía en pantallas como la galería de blueprints, la documentación técnica y varias áreas del inspector cuando están bien contenidas. [file:702][file:705][file:706][file:697][file:704][file:707][file:708][file:709][file:710][file:711][file:712][file:713][file:714]
+
+## Problemas globales
+El patrón más repetido es el exceso de densidad informativa en superficies que deberían ser más progresivas. El inspector, los modales de gobernanza y algunas vistas de documentación concentran demasiadas decisiones en un solo plano, y eso aumenta la carga cognitiva. [file:685][file:686][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697][file:704][file:707][file:708][file:709][file:710][file:711][file:712][file:713][file:714]
+
+El segundo patrón es la falta de respiración en varios puntos clave. Hay zonas donde la interfaz debería guiar más y mostrar menos, especialmente en estados avanzados, para que el usuario no dependa tanto de memoria previa o exploración constante. [file:685][file:686][file:687][file:688][file:689][file:698][file:699][file:700][file:701][file:703][file:709][file:710][file:711][file:712][file:713][file:714]
+
+El tercer patrón es la jerarquía variable entre vistas. Algunas pantallas priorizan bien el objetivo principal, pero otras mezclan exploración, edición y diagnóstico sin una separación suficiente, y eso ralentiza la operación. [file:692][file:693][file:694][file:695][file:696][file:697][file:704][file:705][file:706][file:707][file:708][file:709][file:710][file:711][file:712][file:713][file:714]
+
+## Mapa por tipo de pantalla
+### Pantallas sanas
+La blueprint gallery es la vista más equilibrada de todas las que has pasado; tiene mejor aire, mejor scanability y una densidad bastante razonable. Algunas pantallas de documentación también están bien estructuradas y sirven como buena referencia de orden, aunque aún pueden aligerarse. [file:702][file:705][file:706]
+
+### Pantallas rígidas
+Los modales de configuración global y algunos estados de gobernanza visual son potentes, pero tienden a cerrarse demasiado sobre sí mismos. El resultado es una sensación de precisión muy alta, aunque a costa de comodidad y velocidad de lectura. [file:692][file:693][file:694][file:695][file:704][file:707][file:708]
+
+### Pantallas profundas
+El inspector avanzado y sus tabs internos muestran una arquitectura mental sólida, pero exigen demasiada navegación vertical y demasiada familiaridad previa. Son útiles para power users, pero necesitan una progresión más amable si se usan a menudo. [file:709][file:710][file:711][file:712][file:713][file:714]
+
+### Pantallas densas
+El historial, la consola de ingeniería y algunos paneles de auditoría combinan buena intención técnica con exceso de información simultánea. Ahí el usuario entiende que “pasa mucho”, pero no siempre entiende qué es lo primero que debe hacer. [file:703][file:697]
+
+## Prioridades de refactor
+### Prioridad 1
+Reducir la dominancia del inspector y convertirlo en una superficie progresiva, con niveles claros de esencial, avanzado y diagnóstico. Esto impacta directamente en la velocidad de uso y en la legibilidad del sistema entero. [file:685][file:686][file:688][file:689][file:709][file:710][file:711][file:712][file:713][file:714]
+
+### Prioridad 2
+Reequilibrar la composición global de las vistas principales para que el centro de trabajo recupere peso visual. El usuario debe identificar en segundos qué está editando y qué es accesorio. [file:685][file:686][file:687][file:688][file:689][file:698][file:699][file:700][file:701]
+
+### Prioridad 3
+Definir una política clara de densidad por tipo de pantalla. No todas deben respirar igual, pero todas deben ser intencionales: exploración, edición, documentación y diagnóstico no deben verse ni comportarse igual. [file:692][file:693][file:694][file:695][file:696][file:697][file:704][file:705][file:706][file:707][file:708][file:709][file:710][file:711][file:712][file:713][file:714]
+
+### Prioridad 4
+Mejorar estados vacíos, vistas intermedias y previews ocultos. Cuando el contenido no está presente, la pantalla debe seguir orientando al usuario y no parecer detenida. [file:687][file:689][file:698][file:699][file:700][file:701][file:709][file:711][file:712][file:713][file:714]
+
+## Recomendaciones concretas
+- Separar claramente navegación, edición y diagnóstico en el inspector. [file:709][file:710][file:711][file:712][file:713][file:714]
+- Reducir la cantidad de decisiones visibles al mismo tiempo en modales y paneles largos. [file:692][file:693][file:694][file:695][file:704][file:707][file:708]
+- Dar más aire visual a las pantallas operativas sin debilitar la identidad industrial. [file:685][file:686][file:687][file:688][file:689][file:698][file:699][file:700][file:701]
+- Reforzar jerarquía tipográfica y espacial en documentación y consola. [file:703][file:705][file:706]
+- Mantener la blueprint gallery como referencia de equilibrio y escaneabilidad. [file:702]
+
+## Conclusión
+La UI está en una fase muy típica de sistemas potentes: ya no falla por falta de dirección, sino por exceso de expansión. Si se refactoriza con una política explícita de jerarquía y densidad, el producto puede recuperar la sensación de precisión premium que ya tenía en sus mejores pantallas. [file:685][file:686][file:687][file:688][file:689][file:692][file:693][file:694][file:695][file:696][file:697][file:698][file:699][file:700][file:701][file:702][file:703][file:704][file:705][file:706][file:707][file:708][file:709][file:710][file:711][file:712][file:713][file:714]
+

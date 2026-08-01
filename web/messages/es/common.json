@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "back": "Volver al Motor",
+    "status": "Estado",
+    "online": "En Línea",
+    "download": "Descargar",
+    "downloads": "Centro de Descargas",
+    "contact": "Contacto"
+  },
+  "buttons": {
+    "manual": "Manual de Usuario",
+    "learnMore": "Saber Más",
+    "viewDetail": "Ver Detalles",
+    "downloadNow": "Descargar Ahora",
+    "contactLab": "Contactar al Laboratorio",
+    "manifestEditor": "Editor de Manifiestos",
+    "macOS": "Descargar para macOS",
+    "windows": "Descargar para Windows"
+  },
+  "downloads": {
+    "repo": "Repositorio de Versiones",
+    "description": "Acceda a las últimas versiones alfa y beta de nuestros motores de síntesis experimentales. Todos los instrumentos son gratuitos durante la fase de investigación.",
+    "certified": "Certificado Alfa",
+    "requirements": "Requisitos del Sistema",
+    "requirements_desc": "Windows 10+ (64 bits) o macOS 12.0+ (Universal Binary). Se recomienda un mínimo de 8 GB de RAM.",
+    "formats": "Formatos de Plugin",
+    "formats_desc": "VST3, AU (Audio Units) y AAX (Pro Tools). Versiones independientes incluidas en cada instalador.",
+    "notice": "Aviso de Versión Alfa",
+    "notice_desc": "Estas son versiones experimentales. Por favor, haga una copia de seguridad de sus proyectos antes de usar estas versiones en producción."
+  },
+  "footer": {
+    "tagline": "Laboratorio de Investigación de Síntesis Aséptica",
+    "matrix": "Matriz Digital Global"
+  }
+}

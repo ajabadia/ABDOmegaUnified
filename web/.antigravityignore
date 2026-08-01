@@ -1,0 +1,27 @@
+# Dependencias y paquetes
+node_modules/
+.npm/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Carpetas de compilación (Output) y caché Next.js
+.next/
+dist/
+build/
+out/
+
+# Archivos temporales y caché de TypeScript
+.tsbuildinfo
+tsconfig.tsbuildinfo
+**/*.js.map
+
+# Logs de errores y auditorías
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+omega-audit-results.log
+docs/arch-audit-report.json
+docs/arch-audit-report.csv

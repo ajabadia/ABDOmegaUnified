@@ -1,0 +1,25 @@
+{
+  "id": "stereo_io",
+  "label": "Stereo I/O Block",
+  "pos": { "x": 0, "y": 0 },
+  "children": [
+    {
+      "id": "in_l_cell",
+      "type": "port",
+      "label": "Input L",
+      "pos": { "x": 0, "y": 0 },
+      "size": { "width": 30, "height": 30 },
+      "style": { "orientation": "left", "polarity": "unipolar" },
+      "bind": { "target": "in_l" }
+    },
+    {
+      "id": "in_r_cell",
+      "type": "port",
+      "label": "Input R",
+      "pos": { "x": 40, "y": 0 },
+      "size": { "width": 30, "height": 30 },
+      "style": { "orientation": "left", "polarity": "unipolar" },
+      "bind": { "target": "in_r" }
+    }
+  ]
+}

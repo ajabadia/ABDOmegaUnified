@@ -1,0 +1,35 @@
+{
+  "junio601": {
+    "tagline": "Authentic 80017A VCF/VCA Emulation",
+    "description": "The definitive restoration of the 1984 legend. Meticulously modeled circuit-by-circuit, featuring the unique 4-step HPF logic and dual-mode BBD chorus with authentic background hiss."
+  },
+  "omega": {
+    "tagline": "Aseptic Contract Runtime Platform",
+    "description": "Hyper-modular synthesis engine for Era 6. Featuring the Patchbay Matrix 2.0 and the Aseptic UI architecture, Omega delivers spectral synthesis with zero-coupling integrity."
+  },
+  "neuronik": {
+    "tagline": "64-Partial Additive Hybrid Engine",
+    "description": "Sonic matter sculpting through neural-inspired synthesis. NEURONiK uses a 64-partial additive resonator to blend harmonic models and manipulate timbre through inharmonicity and entropy."
+  },
+  "groups": {
+    "synthesis": "Synthesis Engine",
+    "performance": "Performance",
+    "modular": "Modular Architecture",
+    "dsp": "DSP Foundation",
+    "neural": "Neural Synthesis",
+    "control": "Control System"
+  },
+  "audio": {
+    "telemetry": "Acoustic Analysis Module",
+    "title1": "Sonic",
+    "title2": "Artifacts",
+    "sampleRate": "Sample Rate",
+    "bitDepth": "Bit Depth",
+    "mastering": "Mastering",
+    "playlist": "Available Demos",
+    "streamStatus": "Stream Status",
+    "streaming": "Streaming",
+    "standby": "Standby",
+    "initializing": "Ready to Load"
+  }
+}

@@ -1,0 +1,16 @@
+/* OMEGA CLASSIC COLORS (Blue Identity) */
+.theme-classic {
+  --module-bg: #1a1c20;
+  --module-header-bg: #2d323a;
+  --module-border: 1px solid #4d94ff;
+  --module-label-color: #4d94ff;
+  --module-display-bg: #000;
+  --module-display-color: #4d94ff;
+  --module-accent: #4d94ff;
+  --module-font-main: "Inter", sans-serif;
+  --module-font-mono: "Consolas", monospace;
+  --module-glow: 0 0 10px rgba(77, 148, 255, 0.3);
+  
+  --module-knob-bg: #222;
+  --module-knob-border: #444;
+}

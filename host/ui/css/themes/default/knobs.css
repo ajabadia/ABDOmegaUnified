@@ -1,0 +1,26 @@
+/* OMEGA DEFAULT KNOBS */
+
+/* Variation A: Large with Neon Arc */
+.theme-default .knob.variant-A {
+    width: 54px;
+    height: 54px;
+    background: var(--module-knob-bg);
+    border: 3px solid var(--module-accent);
+    box-shadow: var(--module-glow);
+}
+
+/* Variation B: Medium Standard */
+.theme-default .knob.variant-B {
+    width: 38px;
+    height: 38px;
+    background: var(--module-knob-bg);
+    border: 1px solid var(--module-knob-border);
+}
+
+/* Variation C: Mini */
+.theme-default .knob.variant-C {
+    width: 24px;
+    height: 24px;
+    background: #111;
+    border: 1px solid #333;
+}

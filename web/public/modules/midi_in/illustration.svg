@@ -1,0 +1,12 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- MIDI DIN-5 Minimalist Icon -->
+  <circle cx="100" cy="110" r="40" fill="none" stroke="white" stroke-width="2" opacity="0.8"/>
+  <circle cx="100" cy="85" r="3" fill="white" opacity="0.6"/>
+  <circle cx="80" cy="100" r="3" fill="white" opacity="0.6"/>
+  <circle cx="120" cy="100" r="3" fill="white" opacity="0.6"/>
+  <circle cx="75" cy="125" r="3" fill="white" opacity="0.6"/>
+  <circle cx="125" cy="125" r="3" fill="white" opacity="0.6"/>
+  
+  <!-- Arrow In -->
+  <path d="M100 20 L100 60 M90 50 L100 60 L110 50" fill="none" stroke="cyan" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

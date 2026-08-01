@@ -1,0 +1,3608 @@
+La forma de no “encadenarte” al Juno‑106 ya la tienes medio diseñada: OMEGA como motor multi‑engine modular.
+​
+
+Idea general
+En vez de “un plugin Juno 106 con extras”, piénsalo como:
+
+Un motor multi‑engine donde cada engine es un paquete autocontenido: VA tipo Juno, MS‑20‑style, ~~Prophecy‑MOSS‑style~~ [SUPERADO POR ACE], ~~JP‑8080‑supersaw~~, etc. [SUPERADO POR SPRINT 6]
+​
+
+Un sistema de voces y modulaciones común (ModulationGraph + VoiceFactory) al que todos los engines se enchufan.
+​
+
+Unos “model packs” por sintetizador (Korg, Roland…) que definen osciladores, filtros, waveshapers y presets característicos.
+
+El Juno pasa a ser solo el Engine A de muchos.
+​
+
+Cómo encajar más síntesis
+Aprovechando tu diseño OMEGA:
+
+Mantienes el interface ISynthesisEngine y la VoiceArchitecture componible. Cada nuevo “sinte” es:
+
+Nuevos tipos de oscilador/filtro/FX (por ejemplo, Ms20Filter, ~~JpSuperSawOscillator~~, ~~MossPMOscillator~~). [IMPLEMENTADO/REFINANDO]
+
+Un Engine que combina esos bloques: Ms20Engine, ~~ProphecyEngine~~, ~~Jp8080Engine~~, etc. [SUPERADO POR ACE]
+​
+
+El router de engine (ya esbozado en OMEGA) permite cambiar de motor por patch o por capa (layer/split) con crossfade.
+​
+
+El ModulationGraph y el FXRack no cambian: cada engine expone targets de modulación y slots FX específicos, pero la infraestructura es común.
+
+Ejemplo: un preset ~~“Lead Trance JP‑8080”~~ sería simplemente un VoiceArchitecture con un SuperSawOscillator + filtro VA típico Roland + unison en VoiceFactory. [HECHO]
+​
+
+Ejemplos concretos por sinte
+Korg MS‑20:
+
+Implementas un filtro Sallen‑Key / OTA con topología MS‑20 (LP+HP en serie, resonancia “agresiva”, auto‑oscilación).
+
+Lo montas en un Engine VA substractivo usando tus osciladores genéricos, pero con saturación y comportamiento de entrada “ahoga la resonancia” como en el MS‑20.
+​
+​
+
+~~Korg Prophecy (MOSS):~~ [EN PROCESO - SPRINT 7]
+
+~~Añades modelos de oscilador: PM/VPM, waveshaping, noise+comb, brass/reed/pluck como modelos de physical modeling ligeros.~~ [REFINANDO OSC-PM-XXX]
+
+~~Reusas tu Engine E (Physical Modeling) y Engine F (Neural) como “backends” para esos modelos, orquestados desde un MossLikeEngine.~~ [SUPERADO POR ACE]
+​
+
+Roland JP‑8080 / Jupiter:
+
+~~Creas un SuperSawOscillator de 7 sierras detunadas con curva de detune logarítmica y mezcla central/detune.~~ [SUPERADO: CURVA POLINÓMICA SZABO EN SPRINT 6]
+
+~~Para Jupiter classic VA, usas tu Engine A VA pero con tablas de calibración/fidelidad diferentes (drift, respuesta de filtro, etc.).~~ [EN PROGRESO]
+​
+
+Todo esto cuelga de la misma VoiceFactory (composición de processors) y del mismo sistema de presets Git‑for‑Sounds.
+
+Plan de trabajo práctico
+Yo lo haría así, encima de lo que ya tienes:
+
+Refactor mínimo
+
+Cambiar nombres “JUNiO” por “VirtualAnalogEngineA” y dejar cualquier cosa Juno‑específica encapsulada como “model Juno‑106” dentro de ese engine.
+​
+
+Capa de “Modelos” por marca/sinte
+
+~~OmegaDSP::Models::Korg::Ms20Filter, OmegaDSP::Models::Roland::SuperSaw, etc.~~, cada uno con comentarios Fidelity/Innovation como en rules.md. [HECHO]
+​
+
+Engines especializados ligeros
+
+Ms20Engine (VA con filtros/drive MS‑20),
+
+~~MossEngine (orquesta PM/VPM/Waveshape/Comb usando tus bloques PM+Wavetable+Physical Modeling)~~, [SUPERADO POR ACE]
+
+~~JpEngine (VA + supersaw + unison avanzado).~~ [SUPERADO POR ACE]
+​
+
+UI orientada a “personalidades”
+
+Pestañas o “skins” de panel: vista Juno, vista MS‑20, vista Prophecy, ~~vista JP‑8080~~, pero todas hablan con el mismo Core (APVTS, ModGraph, Engines). [EN PROCESO]
+
+Presets y capas híbridas
+
+Permitir patches híbridos: capa baja con Engine MS‑20, ~~capa alta con Engine JP‑8080~~, todo en el mismo preset versionado. [HECHO]
+​
+
+Qué decidir ahora
+La única decisión gorda que falta es: ¿quieres que cada “sinte” sea un engine dedicado (Ms20Engine, ~~JpEngine~~…) o que sean solo configuraciones de un engine genérico VA/PM con distintos bloques activados? [DECIDIDO: ACE + COMPONENTES]
+
+Engine dedicado: más claro y fiel, más código, pero arquitectónicamente limpio.
+
+Configuración de un engine genérico: menos código, pero más complejidad en ese engine y algo menos de fidelidad “documentable”.
+​
+
+Yo, con tu nivel de obsesión arquitectónica, tiraría por engines dedicados muy pequeños que reutilizan bloques comunes de OmegaDSP::Models.
+
+
+
+
+
+
+-------------------------
+
+
+Excelente dirección. Vamos a diseñar una arquitectura modular de emulación que permita incorporar componentes de cualquier sintetizador clásico, no limitados al Juno-106. Esto es lo que llamaré "Arquitectura de Componentes Emulados" (ACE).
+🏛️ ARQUITECTURA ACE (Architecture of Emulated Components)
+Filosofía central
+En lugar de emular sintetizadores completos, emulamos componentes individuales (osciladores, filtros, envelopes, sequencers, etc.) que el usuario puede combinar libremente en una "consola virtual".
+Esto permite:
+Oscilador del MS-20 + Filter del Jupiter-8 + Envelope del Prophet-5
+Secuenciador del TR-808 congrolando un engine FM estilo DX7
+Modulación del Prophecy aplicada a cualquier combinación
+1. CATÁLOGO DE COMPONENTES EMULABLES
+1.1 Taxonomía por función
+plain
+Copy
+┌─────────────────────────────────────────────────────────────────┐
+│                    COMPONENT CATEGORIES                         │
+├─────────────────────────────────────────────────────────────────┤
+│ OSCILLATORS (OSC)                                               │
+│ ├── ~~OSC-VA-001: Roland DCO (Juno-106, JX-3P)~~ [HECHO]        │
+│ ├── OSC-VA-002: Korg VCO (MS-20, PS-3100) - saw instability     │
+│ ├── OSC-VA-003: Sequential VCO (Prophet-5, Pro-One)             │
+│ ├── ~~OSC-VA-004: Roland Supersaw (JP-8000, JP-8080)~~ [HECHO]  │
+│ ├── OSC-WT-001: PPG Wave 2.2/2.3 wavetable                      │
+│ ├── OSC-WT-002: Waldorf Microwave/XT                            │
+│ ├── OSC-FM-001: Yamaha DX7 operator (6-op algorithm)            │
+│ ├── OSC-FM-002: Yamaha FS1R formant synthesis                   │
+│ ├── OSC-PD-001: Korg Prophecy physical model (reed, brass, etc) │
+│ ├── OSC-GR-001: Waldorf Streichfett string ensemble             │
+│ └── OSC-AD-001: NEURONiK 256-partial additive                   │
+├─────────────────────────────────────────────────────────────────┤
+│ FILTERS (FLT)                                                   │
+│ ├── ~~FLT-VA-001: Roland IR3109 (Juno-106, Jupiter-6)~~ [HECHO] │
+│ ├── FLT-VA-002: Roland IR3509 (Jupiter-4, Promars)              │
+│ ├── ~~FLT-VA-003: Korg KORG35 (MS-20, MS-10)~~ [HECHO]          │
+│ ├── FLT-VA-004: Korg OTA (PolySix, Mono/Poly)                   │
+│ ├── FLT-VA-005: Sequential CEM3320 (Prophet-5, Pro-One)         │
+│ ├── FLT-VA-006: Oberheim CEM3374 (OB-X, OB-Xa)                  │
+│ ├── FLT-VA-007: Moog transistor ladder (Minimoog, Voyager)      │
+│ ├── FLT-SV-001: Oberheim SEM state-variable                     │
+│ ├── FLT-COM-001: Roland Jupiter-8 multimode (LP/BP/HP)          │
+│ └── FLT-RES-001: Korg Prophecy resonant filter bank             │
+├─────────────────────────────────────────────────────────────────┤
+│ ENVELOPES (ENV)                                                 │
+│ ├── ENV-ADSR-001: Roland DADSR (Juno-106, con delay)            │
+│ ├── ENV-ADSR-002: Korg MS-20 (hold, delay, variable slope)      │
+│ ├── ENV-ADSR-003: Sequential P5 (curva exponencial única)       │
+│ ├── ENV-ADSR-004: Yamaha DX7 (rate/level, 4 segmentos)          │
+│ ├── ENV-MULTI-001: Korg Prophecy (5 envs con loop, sync)        │
+│ └── ENV-FREE-001: Buchla 281e (quadrature, complex)             │
+├─────────────────────────────────────────────────────────────────┤
+│ LFOs & MODULATION (LFO/MOD)                                     │
+│ ├── LFO-001: Roland (Juno-106: rate, delay, trigger modes)      │
+│ ├── LFO-002: Korg MS-20 (sample & hold con noise)               │
+│ ├── LFO-003: Sequential (polyphonic per-voice LFOs)             │
+│ ├── LFO-004: Yamaha DX7 (pitch/env LFO con delay)               │
+│ ├── MOD-PROP-001: Korg Prophecy motion control (vector, ribbon) │
+│ └── MOD-MATRIX-001: Oberheim Xpander (37 sources, 32 dests)     │
+├─────────────────────────────────────────────────────────────────┤
+│ SEQUENCERS & ARPEGGIATORS (SEQ/ARP)                             │
+│ ├── SEQ-001: Roland TR-808/909 step sequencer                   │
+│ ├── SEQ-002: Korg Electribe/Ea-1 motion sequencing              │
+│ ├── ARP-001: Roland (Juno-106, JP-8: up/down/up-down/random)    │
+│ ├── ARP-002: Yamaha (CS-80, DX7: assignable, polyphonic)        │
+│ └── ARP-003: Oberheim (matrix patterns, accent)                 │
+├─────────────────────────────────────────────────────────────────┤
+│ EFFECTS (FX)                                                    │
+│ ├── FX-CH-001: Roland Juno-106 BBD chorus (MN3009)              │
+│ ├── FX-CH-002: Roland Dimension D (SDD-320)                     │
+│ ├── FX-DL-001: Korg SDD-3000 (12-bit digital delay)             │
+│ ├── FX-DL-002: Roland RE-201 Space Echo (tape, spring)          │
+│ ├── FX-RV-001: Yamaha REX50/RSP20 (early digital algorithms)    │
+
+
+----------------------
+
+
+Perfecto, retomamos ACE y lo terminamos bien.
+
+0. Idea de ACE encajada en OMEGA
+ACE vive sobre OMEGA así:
+
+OMEGA define el motor genérico: VoiceArchitecture, ModulationGraph, FXRack, Engines VA/WT/FM/etc.
+​
+
+ACE define un catálogo de componentes emulados (OSC/FILT/ENV/LFO/FX…) identificados por id (OSC-VA-001, FLT-VA-003, etc.) y mapeados a implementaciones concretas de OmegaDSP.
+​
+
+Cada “preset” puede elegir qué componente usar en cada slot de la voz (osc1=OSC-VA-002 MS‑20, filter1=FLT-VA-001 Juno, env1=ENV-ADSR-003 Prophet, FX1=FX-CH-001 Juno chorus…).
+​
+
+La gracia: el motor es uno, pero las “piezas” son intercambiables.
+
+1. Catálogo ACE (lo que ya empezaste)
+La tabla que pones es exactamente el nivel lógico / de usuario del catálogo ACE. Cada entrada:
+
+Tiene un ID estable (OSC-VA-004),
+
+Un origen (JP‑8000/8080),
+
+Un tipo DSP (VA, WT, FM, PD, etc.),
+
+Y metadatos: descripción, rango típico, uso, tags.
+
+Ejemplo interno:
+
+cpp
+struct AceComponentInfo
+{
+    juce::String id;        // "OSC-VA-004"
+    juce::String name;      // "Roland Supersaw"
+    juce::String family;    // "OSC"
+    juce::String origin;    // ~~"Roland JP-8000 / JP-8080"~~ [HECHO]
+    juce::String engine;    // "VirtualAnalog"
+    std::vector<juce::String> tags; // { "supersaw", "trance", "unison" }
+};
+Este catálogo se puede exponer a la UI y al sistema de presets, igual que ya haces con Git‑for‑Sounds.
+​
+
+2. Capa de mapeo ACE → implementación DSP
+Debajo del catálogo lógico, necesitas una capa que traduzca:
+
+“Quiero OSC-VA-004 en Oscillator slot 1”
+→ “Instancia una clase SuperSawOscillator configurada con el modelo JP‑8000”.
+
+Propuesta:
+
+cpp
+namespace OmegaDSP::Ace
+{
+    enum class ComponentType { Oscillator, Filter, Envelope, LFO, FX };
+
+    struct ComponentSpec
+    {
+        ComponentType type;
+        juce::String  id;        // "OSC-VA-004"
+        juce::String  model;     // "RolandJP8000"
+    };
+
+    // Fábrica genérica
+    class ComponentFactory
+    {
+    public:
+        static std::unique_ptr<IOscillator> createOscillator(const ComponentSpec& spec);
+        static std::unique_ptr<IFilter>     createFilter(const ComponentSpec& spec);
+        static std::unique_ptr<IEnvelope>   createEnvelope(const ComponentSpec& spec);
+        static std::unique_ptr<ILfo>        createLfo(const ComponentSpec& spec);
+        static std::unique_ptr<IFxModule>   createFx(const ComponentSpec& spec);
+    };
+}
+Y la implementación hace el switch por id:
+
+cpp
+std::unique_ptr<IOscillator> ComponentFactory::createOscillator(const ComponentSpec& spec)
+{
+    if (spec.id == "OSC-VA-001")      return std::make_unique<RolandDcoJuno106>();
+    if (spec.id == "OSC-VA-002")      return std::make_unique<KorgMs20Vco>();
+    if (spec.id == "OSC-VA-004")      return std::make_unique<~~RolandSuperSawJP8000~~>(); [HECHO]
+    if (spec.id == "OSC-AD-001")      return std::make_unique<Additive256Oscillator>(); // NEURONiK
+    // ...
+    jassertfalse;
+    return {};
+}
+Así no “ensucias” el core de OMEGA: ACE es solo una fábrica de modelos por id.
+
+3. Integración con VoiceArchitecture
+Tu VoiceArchitecture ya admite composición de processors. ACE solo tiene que definir el tipo de cada slot con un ComponentSpec.
+
+Ejemplo de extensión minimal:
+
+cpp
+namespace OmegaVoice
+{
+    struct OscillatorSlot
+    {
+        OmegaDSP::Ace::ComponentSpec component;  // qué modelo
+        // más parámetros genéricos: afinación, mix, etc.
+    };
+
+    struct FilterSlot
+    {
+        OmegaDSP::Ace::ComponentSpec component;
+    };
+
+    struct VoiceArchitecture
+    {
+        std::array<OscillatorSlot, 4> oscillators;
+        std::array<FilterSlot, 2>     filters;
+        // envelopes, LFOs, FX, etc.
+    };
+}
+La VoiceFactory, cuando construye una voz, llama a ComponentFactory::create... por cada slot y monta la cadena DSP.
+​
+
+Eso te permite:
+
+Un preset “MS‑20 style” con:
+
+osc1 = OSC-VA-002 (Korg VCO)
+
+filter1 = FLT-VA-003 (KORG35)
+
+env1 = ENV-ADSR-002 (MS‑20)
+
+Otro “JP‑8080 supersaw + Juno chorus”:
+
+~~osc1 = OSC-VA-004~~ [HECHO]
+
+filter1 = FLT-VA-001
+
+fx1 = FX-CH-001
+
+Todo sobre el mismo engine VA de OMEGA.
+
+4. Relación con engines (VA, Wavetable, FM, PM…)
+ACE no sustituye tus Engines A…F, los usa:
+
+OSC-VA‑xxx, FLT‑VA‑xxx → Engine VA.
+​
+
+OSC-WT‑xxx → Engine Wavetable.
+​
+
+OSC-FM‑xxx → Engine FM (puede ser una variante de tu Engine Spectral o un engine FM dedicado).
+​
+
+OSC-PD‑001 (Prophecy physical model), OSC-GR‑001, etc. → Engines Physical Modeling / Granular / Neural.
+​
+
+Dos enfoques válidos:
+
+Mantener un Engine VA genérico, y dentro usar ACE para elegir qué modelo VA concreto pones en cada slot.
+
+Hacer engines “temáticos” (Ms20Engine, JpEngine…) pero cada uno de ellos también usa ACE internamente para construirse.
+
+Con tu arquitectura actual, diría:
+
+Corto plazo: Engine VA genérico + ACE para elegir modelos; genial para prototipar.
+​
+
+Si luego quieres fidelidades muy profundas (emulación completa de un sinte concreto), haces un engine específico que aun así usa los mismos componentes ACE.
+​
+
+5. Presets, Git‑for‑Sounds y ACE
+En tu sistema Git‑for‑Sounds, el preset ya serializa parámetros y metadatos.
+​
+
+Solo hay que añadir la identidad de los componentes ACE:
+
+text
+engine: "VirtualAnalog"
+voiceArchitecture:
+  oscillators:
+    - id: "OSC-VA-004"
+      model: "RolandJP8000"
+      tune: 0.0
+      detune: 0.35
+      mix: 1.0
+    - id: "OSC-VA-001"
+      model: "RolandJuno106"
+      tune: -12.0
+      mix: 0.3
+  filters:
+    - id: "FLT-VA-003"
+      model: "KorgMS20"
+      mode: "HP+LP series"
+  envelopes:
+    - id: "ENV-ADSR-003"
+      model: "SequentialP5"
+Así:
+
+Git‑for‑Sounds ve el preset como siempre.
+
+ACE asegura que, si en el futuro cambias la implementación de KorgMs20Filter, los presets siguen apuntando al mismo id (FLT‑VA‑003) y reproducen la nueva versión.
+​
+
+6. UI “consola de componentes”
+Encima, puedes diseñar una UI que refleje ACE:
+
+Panel de voz donde cada slot de Osc/Filter/Env/LFO tiene un “selector de modelo” basado en el catálogo ACE.
+
+Vista “sincronizada por sinte” (skin):
+
+Botón “MS‑20 view” que fija una combinación típica de componentes y reordena la UI para parecerse al panel real, pero por debajo sigue siendo ACE+OMEGA.
+
+Tooltips que muestran origen y notas de fidelidad (“Fidelity: basado en MS‑20 rev.1 KORG35, saturación de entrada modelada”).
+​
+
+7. Siguiente paso concreto
+Para hacerlo accionable, el siguiente bloque que te puedo escribir es:
+
+La definición completa de ComponentSpec, AceComponentInfo y ComponentFactory.
+
+Un ejemplo de RolandSuperSawJP8000 y KorgMs20Filter como clases DSP que respetan tus reglas (no alloc, no locks, naming, namespaces OmegaDSP, etc.).
+​
+
+Un ejemplo de cómo se vería un VoiceArchitecture con ACE y cómo la VoiceFactory lo instancia.
+
+
+
+
+
+
+A nivel de infraestructura, ACE encaja muy bien si lo piensas como tres capas nuevas sobre lo que ya tienes en OMEGA.
+
+1. Capas lógicas que añade ACE
+Sobre OMEGA (Engines, Voices, Modulation, FX, Presets) añades:
+
+Capa “Catálogo” (meta‑modelo)
+
+Base de datos de componentes: tabla de OSC/FILT/ENV/LFO/FX con ids estables y metadatos.
+​
+
+No sabe nada de DSP, solo “OSC-VA-004 = Supersaw JP‑8000, tipo VA, familia OSC, origen Roland…”.
+
+Capa “Binding” (mapeo catálogo → implementación)
+
+Sabe que OSC-VA-004 se implementa con una clase interna RolandSuperSaw y que necesita Engine VA.
+​
+
+Es donde ocurres cambios futuros de implementación sin romper presets.
+
+Capa “Instanciación” dentro de VoiceArchitecture
+
+Cada slot de la voz referencia componentes por id (no por clase).
+​
+
+VoiceFactory consulta el Binding y construye la cadena DSP.
+
+Así mantienes OMEGA limpio y ACE como “sistema de tipos emulados” encima.
+
+2. Dónde vive cada cosa en tu estructura
+Tomando tu estructura propuesta de OMEGA:
+
+Source/Core
+
+Añadir un módulo AceRegistry o similar para:
+
+Catálogo de componentes (AceComponentInfo).
+
+Binding id → engine/tipo DSP.
+
+Source/DSP
+
+Common: implementaciones concretas de modelos (filtros MS‑20, supersaw, envelopes…).
+
+Engines: no se enteran de ACE, solo trabajan con interfaces genéricas (IOscillator, IFilter…).
+​
+
+Source/Voices
+
+Extender VoiceArchitecture para que sus slots apunten a ids ACE en vez de tipos rígidos.
+​
+
+VoiceFactory delega en ACE para crear los bloques correctos según esos ids.
+
+Source/UI
+
+Paneles usan el catálogo para rellenar menús desplegables y mostrar texto/imágenes de origen.
+
+Source/Core/Presets
+
+Guardan ids ACE y parámetros genéricos; Git‑for‑Sounds versiona eso.
+​
+
+Importante: ACE no toca el audio thread directamente; se limita a definir qué bloques se instancian.
+​
+
+3. Flujos principales de infraestructura
+3.1 Carga de plugin / inicialización
+Al arrancar el plugin, OMEGA inicializa: Engines, ModulationGraph, etc.
+​
+
+ACE carga su catálogo: puede ser estático en código o leído de un YAML/JSON de recursos.
+
+ACE registra bindings por plataforma (por ejemplo, algunas implementaciones especializadas SIMD/GPU si están disponibles).
+​
+
+Con esto tienes un “registro global” de componentes disponibles, con sus ids y capacidades, antes de que existan voces.
+
+3.2 Crear/editar un preset
+Cuando el usuario diseña un patch:
+
+La UI pregunta al catálogo ACE: “dame todos los OSC‑VA disponibles”.
+
+El usuario selecciona OSC-VA-002 (Korg VCO) en un slot.
+
+El preset guarda en VoiceArchitecture de ese slot el id ACE, no clases ni rutas concretas.
+​
+
+Git‑for‑Sounds versiona ese preset incluyendo los ids ACE.
+​
+
+Esto te da estabilidad en el tiempo: el id es la API pública; la implementación puede cambiar.
+
+3.3 Construcción de voces
+Al cambiar de preset (o al crear la voz pool):
+
+VoiceFactory recorre VoiceArchitecture:
+
+Para cada OscillatorSlot: “tengo un id: OSC-VA-004”.
+
+Llama al Binding: “dame una instancia del modelo asociado al id OSC-VA-004”.
+
+El Binding decide qué engine/tipo de clase y qué variante (por ejemplo, versión AVX2 vs scalar) y devuelve el objeto correspondiente.
+
+VoiceFactory interconecta esos objetos en la cadena definida por VoiceArchitecture.
+
+Clave de infraestructura: toda la decisión de “qué modelo es qué” está concentrada en ACE Binding, no dispersa por el código.
+
+4. Relación con los Engines de OMEGA
+En tu diseño, ya tienes 6 engines: VA, Spectral, Wavetable, Granular, Physical Modeling, Neural.
+​
+
+ACE se sienta “por encima” de esa capa:
+
+Cada componente del catálogo declara en qué tipo de engine puede vivir:
+
+OSC-VA-xxx → solo Engine VA.
+
+OSC-WT-xxx → Engine Wavetable.
+
+OSC-FM-xxx → Engine FM (si lo modelas como motor aparte o como parte de Spectral).
+
+La VoiceArchitecture siempre va asociada a un engine base, pero los componentes se eligen vía ACE:
+
+VoiceArchitectureVA + componentes VA.
+
+VoiceArchitectureWT + componentes WT.
+
+Infraestructuralmente, implica:
+
+Un mapa ACE engine type → Omega Engine (VA, WT, etc.).
+
+Validación en background/UI: no permites escoger un OSC-WT en una voz que use Engine VA, o haces un fallback.
+​
+
+5. Infraestructura de datos: cómo representarlo
+Para que sea escalable, te conviene separar:
+
+Esquema de catálogo (como “schema registry”):
+
+Definiciones en un formato de datos (YAML/JSON) con id, familia, engine, tags, etc.
+
+Cargado una vez, fácil de extender sin recompilar toda la app.
+
+Esquema de preset (donde se usan los ids ACE):
+​
+
+Los presets almacenan solo ids ACE y parámetros genéricos (cutoff, decay, etc.).
+
+El significado de esos parámetros puede depender del componente (por ejemplo, un envelope DX7 tiene rate/level, no ADSR clásico).
+
+Para esto puedes:
+
+Definir un modelo de parámetros “shape-aware” por componente en el catálogo (por ejemplo: slider1 = “Attack (ms)”, slider2 = “Decay (ms)”, o “Rate1”, “Level1”…).
+
+La UI se renderiza en función del catálogo: misma infra, distinto layout por componente.
+
+6. Gestión de versiones y compatibilidad
+Como ya tienes Git‑for‑Sounds, ACE se encaja muy bien si:
+
+Cada componente tiene un campo de versión interna (version: 1, 2, etc.).
+
+Si cambias radicalmente la implementación (por ejemplo, un nuevo modelo de filtro MS‑20) y quieres mantener compatibilidad, puedes:
+
+Crear FLT-VA-003‑v2 como id nuevo,
+
+O mantener FLT-VA-003 pero añadir parámetros por defecto y transformación de presets en background.
+
+Infraestructuralmente, esto implica:
+
+Un lugar central (ACE Registry) donde se mantiene un changelog o metadatos de migración.
+
+Tooling interno (CLI o util interno) para migrar bancos de presets cuando cambies modelos.
+
+7. Integración con ModulationGraph y FXRack
+ACE no cambia tu ModulationGraph ni el FXRack, pero sí su configuración:
+
+ACE puede definir qué destinos de modulación expone cada componente (por ejemplo, FLT-VA-003 expone cutoff, resonance, drive).
+​
+
+El ModulationGraph puede descubrir esos destinos dinámicamente a través del catálogo y ofrecerlos en la UI.
+​
+
+Para FX: igual, un slot FX tiene un id ACE (FX-CH-001 Juno chorus, FX-DL-002 RE‑201…).
+​
+
+Infraestructuralmente:
+
+Cada componente en el catálogo debería listar:
+
+Destinos de modulación (“cutoff”, “resonance”, “feedback”…).
+
+Rangos y curvas sugeridas.
+
+ModulationGraph y FXRack usan esa info para exponer “targets” sin conocer la implementación interna.
+​
+
+8. Qué diseñar ahora (sin código, pero con estructura)
+Antes de meterte en C++ te conviene dejar claros:
+
+Modelo de datos del catálogo ACE
+
+Campos obligatorios por componente (id, familia, engine, origen, versión, targets, parámetros…).
+
+Cómo lo serializas (YAML/JSON incrustado como recurso o hardcodeado en C++ al principio).
+
+Contratos entre capas
+
+Qué recibe VoiceArchitecture de ACE (ids + metadata).
+
+Qué API ofrece el Binding a VoiceFactory.
+
+Cómo consulta la UI el catálogo y cómo se sincroniza con presets.
+
+Reglas de compatibilidad
+
+Política de cambio: cuándo se crea un id nuevo vs. cuándo se cambia la implementación de uno existente.
+
+Cómo se migra un preset antiguo si retiras un componente o cambias su firma.
+
+Estrategia de validación
+
+Dónde se comprueba que una combinación de componentes es válida para un engine dada.
+
+Cómo se reportan errores a la UI (por ejemplo, warnings de componentes no soportados en esta plataforma).
+
+
+
+
+
+Perfecto. Vamos a definir el esquema de datos del catálogo ACE y un ejemplo concreto.
+
+1. Esquema lógico del catálogo ACE (YAML)
+Piensa el catálogo como un único documento con varias secciones por familia:
+
+text
+version: 1
+~~ace_catalog:
+  oscillators:
+    - id: "OSC-VA-001"
+      name: "Roland DCO"
+      origin: "Roland Juno-106 / JX-3P"
+      engine: "VirtualAnalog"
+      family: "Oscillator"
+      model_id: "RolandJunoDco"
+      tags: [ "va", "dco", "roland", "juno", "poly" ]
+      parameters:
+        - name: "tune"
+          label: "Tune"
+          unit: "semitones"
+          min: -24
+          max: 24
+          default: 0
+        - name: "pulse_width"
+          label: "Pulse Width"
+          unit: "ratio"
+          min: 0.1
+          max: 0.9
+          default: 0.5
+      modulation_targets:
+        - id: "pitch"
+          label: "Pitch"
+          unit: "semitones"
+        - id: "pulse_width"
+          label: "Pulse Width"
+          unit: "ratio"
+
+    - id: "OSC-VA-002"
+      name: "Korg VCO"
+      origin: "Korg MS-20 / MS-10"
+      engine: "VirtualAnalog"
+      family: "Oscillator"
+      model_id: "KorgMs20Vco"
+      tags: [ "va", "vco", "korg", "ms20", "aggressive" ]
+      parameters:
+        - name: "tune"
+          label: "Tune"
+          unit: "semitones"
+          min: -24
+          max: 24
+          default: 0
+        - name: "shape"
+          label: "Shape"
+          unit: "index"
+          min: 0
+          max: 2
+          default: 0
+      modulation_targets:
+        - id: "pitch"
+          label: "Pitch"
+          unit: "semitones"
+
+    - ~~id: "OSC-VA-004"~~ [HECHO]
+      ~~name: "Roland Supersaw"~~
+      ~~origin: "Roland JP-8000 / JP-8080"~~
+      ~~engine: "VirtualAnalog"~~
+      ~~family: "Oscillator"~~
+      ~~model_id: "RolandJpSuperSaw"~~
+      ~~tags: [ "va", "supersaw", "roland", "jp8000", "unison" ]~~
+      parameters:
+        - name: "detune"
+          label: "Detune"
+          unit: "normalized"
+          min: 0.0
+          max: 1.0
+          default: 0.35
+        - name: "spread"
+          label: "Stereo Spread"
+          unit: "normalized"
+          min: 0.0
+          max: 1.0
+          default: 0.5
+      modulation_targets:
+        - id: "detune"
+          label: "Detune"
+          unit: "normalized"
+
+  filters:
+    - id: "FLT-VA-001"
+      name: "Roland IR3109"
+      origin: "Roland Juno-106 / Jupiter-6"
+      engine: "VirtualAnalog"
+      family: "Filter"
+      model_id: "RolandIr3109"
+      mode: [ "LP24" ]
+      tags: [ "va", "lp24", "roland", "juno", "smooth" ]
+      parameters:
+        - name: "cutoff"
+          label: "Cutoff"
+          unit: "Hz"
+          min: 20
+          max: 20000
+          default: 1000
+        - name: "resonance"
+          label: "Resonance"
+          unit: "normalized"
+          min: 0.0
+          max: 1.0
+          default: 0.2
+      modulation_targets:
+        - id: "cutoff"
+          label: "Cutoff"
+          unit: "Hz"
+        - id: "resonance"
+          label: "Resonance"
+          unit: "normalized"
+
+    - id: "FLT-VA-003"
+      name: "KORG35 MS-20"
+      origin: "Korg MS-20 (rev.1)"
+      engine: "VirtualAnalog"
+      family: "Filter"
+      model_id: "KorgMs20Korg35"
+      mode: [ "HP12", "LP12", "HP+LP Series" ]
+      tags: [ "va", "korg", "ms20", "aggressive", "self-osc" ]
+      parameters:
+        - name: "cutoff"
+          label: "Cutoff"
+          unit: "Hz"
+          min: 20
+          max: 20000
+          default: 800
+        - name: "resonance"
+          label: "Peak"
+          unit: "normalized"
+          min: 0.0
+          max: 1.0
+          default: 0.5
+        - name: "drive"
+          label: "Input Drive"
+          unit: "dB"
+          min: -12
+          max: 24
+          default: 0
+      modulation_targets:
+        - id: "cutoff"
+          label: "Cutoff"
+          unit: "Hz"
+        - id: "resonance"
+          label: "Peak"
+          unit: "normalized"
+        - id: "drive"
+          label: "Drive"
+          unit: "dB"~~ [HECHO]
+
+  envelopes:
+    - id: "ENV-ADSR-003"
+      name: "Sequential P5 Envelope"
+      origin: "Sequential Prophet-5"
+      engine: "VirtualAnalog"
+      family: "Envelope"
+      model_id: "SequentialP5Envelope"
+      type: "ADSR"
+      tags: [ "env", "p5", "exponential" ]
+      parameters:
+        - name: "attack"
+          label: "Attack"
+          unit: "ms"
+        - name: "decay"
+          label: "Decay"
+          unit: "ms"
+        - name: "sustain"
+          label: "Sustain"
+          unit: "normalized"
+        - name: "release"
+          label: "Release"
+          unit: "ms"
+      modulation_targets: [ ]
+  fx:
+    - id: "FX-CH-001"
+      name: "Juno BBD Chorus"
+      origin: "Roland Juno-106"
+      engine: "FX"
+      family: "Chorus"
+      model_id: "RolandJunoChorus"
+      tags: [ "chorus", "bbd", "juno", "stereo" ]
+      parameters:
+        - name: "mix"
+          label: "Mix"
+          unit: "normalized"
+          min: 0.0
+          max: 1.0
+          default: 0.7
+      modulation_targets:
+        - id: "mix"
+          label: "Mix"
+          unit: "normalized"
+Este esquema te da:
+
+Identidad estable (id),
+
+Vínculo interno (model_id) que usará el Binding,
+
+Info para UI (name, origin, tags),
+
+Info para ModulationGraph (modulation_targets),
+
+Info para parámetros (parameters), que puedes mapear a APVTS/ValueTree.
+
+~~2. Contratos entre capas
+...
+no en process.~~ [HECHO / IMPLEMENTADO EN CORE/ACE Y CORE/PRESETS]
+
+5. Próximo paso de infraestructura
+Siguiente cosa útil sin meternos en código C++ todavía sería:
+
+Definir el modelo de VoiceArchitecture + preset donde se usan estos ids ACE (un ejemplo de YAML/JSON de preset con ACE).
+
+Definir, en texto, las reglas de validación: qué ocurre si un preset pide un componente que no está disponible (p.ej. en una build “lite” o en una plataforma sin ese engine).
+
+
+
+
+Genial, vamos con un ejemplo de preset completo usando ACE, pensado para OMEGA.
+
+1. Preset ACE a nivel lógico
+Preset “Hybrid MS20+JP Supersaw Pad”, con dos capas:
+
+Capa A: MS‑20 style (VCO + filtro KORG35).
+
+Capa B: JP‑8000 supersaw + filtro Juno + chorus BBD.
+
+text
+omegapresetversion: 1
+name: "Hybrid MS20 + JP Supersaw Pad"
+author: "abdeneurolab"
+engine: "VirtualAnalog"
+layers:
+  - id: "A"
+    name: "MS20 Grit"
+    voice_architecture:
+      polyphony: 8
+      unison:
+        voices: 1
+        detune: 0.0
+      oscillators:
+        - slot: 1
+          component_id: "OSC-VA-002"          # Korg VCO (MS-20)
+          enabled: true
+          params:
+            tune: 0.0
+            shape: 0                          # 0 = saw, 1 = square, etc.
+        - slot: 2
+          component_id: "OSC-VA-001"          # Juno DCO como refuerzo
+          enabled: true
+          params:
+            tune: -12.0
+            pulse_width: 0.5
+      filters:
+        - slot: 1
+          component_id: "FLT-VA-003"          # KORG35 MS-20
+          enabled: true
+          mode: "HP+LP Series"
+          params:
+            cutoff: 800.0
+            resonance: 0.6
+            drive: 3.0
+      envelopes:
+        - slot: 1
+          component_id: "ENV-ADSR-003"        # Prophet-5 envelope
+          role: "amp"
+          params:
+            attack: 10.0
+            decay: 120.0
+            sustain: 0.7
+            release: 300.0
+        - slot: 2
+          component_id: "ENV-ADSR-003"
+          role: "filter"
+          params:
+            attack: 5.0
+            decay: 200.0
+            sustain: 0.3
+            release: 250.0
+      lfos:
+        - slot: 1
+          component_id: "LFO-001"             # LFO Juno (hipotético en catálogo)
+          rate_hz: 0.4
+          shape: "triangle"
+      fx:
+        - slot: 1
+          component_id: "FX-CH-001"           # Chorus Juno
+          enabled: true
+          params:
+            mix: 0.4
+    modulation:
+      routes:
+        - source: "ENV2"                      # filter env
+          destination: "LayerA.Filter1.cutoff"
+          amount: 0.5
+          curve: "exponential"
+        - source: "LFO1"
+          destination: "LayerA.Osc1.pitch"
+          amount: 0.1
+          curve: "sine"
+
+  - id: "B"
+    name: "JP Supersaw Pad"
+    voice_architecture:
+      polyphony: 8
+      unison:
+        voices: 1
+        detune: 0.0
+      oscillators:
+        - slot: 1
+          component_id: "OSC-VA-004"          # Supersaw JP-8000
+          enabled: true
+          params:
+            detune: 0.4
+            spread: 0.6
+        - slot: 2
+          component_id: "OSC-VA-001"          # DCO Juno para cuerpo
+          enabled: true
+          params:
+            tune: 0.0
+            pulse_width: 0.5
+      filters:
+        - slot: 1
+          component_id: "FLT-VA-001"          # IR3109 Juno/Jupiter
+          enabled: true
+          mode: "LP24"
+          params:
+            cutoff: 3500.0
+            resonance: 0.2
+      envelopes:
+        - slot: 1
+          component_id: "ENV-ADSR-003"
+          role: "amp"
+          params:
+            attack: 80.0
+            decay: 400.0
+            sustain: 0.8
+            release: 800.0
+        - slot: 2
+          component_id: "ENV-ADSR-003"
+          role: "filter"
+          params:
+            attack: 50.0
+            decay: 600.0
+            sustain: 0.5
+            release: 700.0
+      lfos:
+        - slot: 1
+          component_id: "LFO-001"
+          rate_hz: 0.2
+          shape: "sine"
+      fx:
+        - slot: 1
+          component_id: "FX-CH-001"           # Chorus Juno
+          enabled: true
+          params:
+            mix: 0.8
+    modulation:
+      routes:
+        - source: "LFO1"
+          destination: "LayerB.Osc1.detune"
+          amount: 0.1
+          curve: "s-curve"
+        - source: "ENV2"
+          destination: "LayerB.Filter1.cutoff"
+          amount: 0.4
+          curve: "exponential"
+
+mix:
+  layers:
+    - id: "A"
+      level_db: -3.0
+      pan: -0.1
+    - id: "B"
+      level_db: 0.0
+      pan: 0.1
+metadata:
+  tags: [ "pad", "hybrid", "ms20", "jp8000", "juno", "chorus" ]
+  bpm: 128
+  key: "C minor"
+Puntos clave de infraestructura que se ven aquí:
+
+Todo apunta a ids ACE (component_id), no a clases internas.
+
+engine arriba indica que ambos layers usan el engine VA, pero con distintos componentes.
+​
+
+Los destinos de modulación usan nombres estructurados (LayerA.Filter1.cutoff), que se pueden derivar de los modulation_targets definidos en el catálogo.
+​
+
+2. Cómo lo usaría OMEGA internamente (a alto nivel)
+El preset se parsea a un objeto OmegaPreset.
+​
+
+Por cada layer:
+
+Se construye una VoiceArchitecture con los component_id y params de osciladores, filtros, envs, LFOs, FX.
+​
+
+VoiceFactory consulta ACE Binding para saber qué implementación concreta asignar a cada id.
+
+ModulationGraph se configura usando modulation.routes y el mapa de modulation_targets de ACE.
+​
+
+La sección mix configura los niveles y panes de cada layer antes del bus master.
+​
+
+3. Validación y compatibilidad que se desprenden de este modelo
+Con este esquema puedes definir reglas claras:
+
+En carga de preset:
+
+Si component_id no existe en el catálogo ACE actual, marcas el preset como “degradado” y haces fallback a un componente genérico (p.ej. un VA saw estándar).
+
+Si el engine indicado no soporta la familia/tipo (p.ej. un OSC-WT en engine VA), reportas error o vuelves a uno compatible.
+​
+
+Para Git‑for‑Sounds:
+
+Los diffs son legibles: cambios de component_id, cambios de parámetros, cambios de rutas de modulación.
+​
+
+Esto te permite evolucionar el catálogo (añadir Prophecy, Jupiter, DX7…) sin romper la infraestructura central.
+
+
+
+
+
+
+Voy a definir el “contrato” entre preset y ModulationGraph a nivel de infraestructura, sin código.
+
+1. Espacio de nombres de destinos
+Necesitas una convención estable de nombres de destino (targets) para que:
+
+El preset pueda decir “modula esto”.
+
+El ModulationGraph pueda resolver ese string a un puntero/índice real de parámetro en la voz.
+​
+
+Propuesta:
+
+Estructura general:
+Layer{Id}.{BloqueTipo}{Índice}.{TargetId}
+
+Ejemplos:
+
+LayerA.Osc1.pitch
+
+LayerA.Filter1.cutoff
+
+LayerB.Env2.level
+
+LayerB.Fx1.mix
+
+En el preset de ejemplo ya lo usamos (ej. LayerA.Filter1.cutoff).
+​
+
+Relación con ACE:
+
+Cada componente en el catálogo define sus modulation_targets (ej. cutoff, resonance).
+​
+
+El contrato es que esos id se usan como la parte final del nombre de destino.
+
+Así, si ACE dice que FLT-VA-003 tiene cutoff y resonance, sabes que hay destinos:
+
+LayerX.Filter1.cutoff
+
+LayerX.Filter1.resonance
+
+Siempre que exista ese slot en VoiceArchitecture.
+
+2. Qué contiene una ruta de modulación en el preset
+Cada ruta de modulación debe tener:
+
+source: nombre lógico de la fuente (ENV1, LFO1, KeyTrack, Velocity, MPE, etc.).
+​
+
+destination: nombre completo como arriba.
+​
+
+amount: intensidad (signo y rango estándar, p.ej. -1.0..1.0).
+
+curve: tipo de curva (linear, exponential, s-curve…), referenciado a las curvas definidas en OMEGA.
+​
+
+Opcional: bipolar (true/false), rate_scale, etc.
+
+Ejemplo (ya lo teníamos, formalizado):
+
+text
+modulation:
+  routes:
+    - source: "ENV2"                      # filter env
+      destination: "LayerA.Filter1.cutoff"
+      amount: 0.5
+      curve: "exponential"
+      bipolar: false
+    - source: "LFO1"
+      destination: "LayerB.Osc1.detune"
+      amount: 0.1
+      curve: "s-curve"
+      bipolar: true
+Infraestructura:
+
+El preset no conoce índices internos, solo estos nombres.
+
+El ModulationGraph, al compilar la voz/layer, resuelve nombres → índices/punteros y guarda una tabla rápida para el audio thread.
+
+3. Resolución de destinos (en qué capa ocurre qué)
+El flujo al cargar preset:
+
+Se construye la VoiceArchitecture de cada layer a partir de component_id y params.
+​
+
+ACE Binding crea los bloques DSP correspondientes.
+​
+
+ModulationGraph recibe la lista de routes del preset para esa layer.
+​
+
+Por cada destination:
+
+Parseas LayerX.{Tipo}{Índice}.{TargetId}.
+
+Verificas que la layer y el slot existen en VoiceArchitecture.
+​
+
+Preguntas al catálogo ACE del componente de ese slot si tiene ese TargetId en modulation_targets.
+​
+
+Si todo es válido, creas una entrada interna: Route{sourceIndex, destinationIndex, amount, curve}.
+
+El Graph genera una representación compacta (por ejemplo, índices de destino en arrays de parámetros) para uso en tiempo real, sin strings.
+
+Contrato claro:
+
+El preset tiene libertad para combinar fuentes y destinos mientras respete los nombres.
+
+El ModulationGraph garantiza que solo se usan destinos declarados por ACE y existentes en la arquitectura de voz.
+​
+
+4. Espacio de nombres de fuentes
+Igual conviene fijar un espacio de nombres de fuentes (sources) coherente:
+
+Locales a la layer: ENV1, ENV2, LFO1, LFO2, Random1, KeyTrack, Velocity, NoteExpressionX, etc.
+​
+
+Globales y de performance: ModWheel, PitchBend, Aftertouch, Macro1…
+​
+
+Contrato:
+
+La definición de fuentes vive en el propio ModulationGraph / motor de OMEGA (no hace falta que ACE las defina, salvo fuentes “exóticas” específicas de un modelo).
+​
+
+El preset solo usa nombres de una lista conocida; si llega uno desconocido, se ignora o se marca como inválido.
+
+Ejemplo:
+
+text
+modulation:
+  global_routes:
+    - source: "ModWheel"
+      destination: "LayerA.Filter1.cutoff"
+      amount: 0.7
+      curve: "linear"
+Esto obliga a tener:
+
+Un mapa sourceName -> ModSourceEnum en el Graph (similar a lo que ya haces en la ModMatrix extendida).
+​
+
+5. Validación y fallback a nivel de infraestructura
+Con estas convenciones, puedes definir reglas claras:
+
+Si destination no se puede resolver (layer, slot o target inexistente según ACE/VoiceArchitecture):
+
+Marca la ruta como inválida y no la incluyas en el Graph compilado.
+
+Opcional: añade una nota en metadatos de preset (“ruta rota”) para UI.
+
+Si source no existe en el Graph:
+
+Igual: ruta ignorada, warning opcional.
+
+Si el componente cambia (por ejemplo, sustituyes FLT-VA-003 por una v2 que no tiene drive):
+
+El Binding/ACE puede seguir exponiendo drive como target pero internamente hacer que sea no-op, o
+
+Bump de id (FLT-VA-003-v2) y dejar el viejo como deprecated pero soportado.
+​
+
+Nada de esto toca el audio thread; todo ocurre en preparación y carga.
+​
+
+6. Relación con ACE: quién define qué
+Resumiendo el reparto:
+
+ACE catálogo define:
+
+Qué modulation_targets tiene cada componente (cutoff, drive, detune, etc.).
+​
+
+Eso alimenta la construcción de nombres de destino (Filter1.cutoff).
+
+VoiceArchitecture define:
+
+La topología: cuántos Osc/Filters/Envs/LFOs/FX hay por layer y sus índices.
+​
+
+Preset define:
+
+Qué componentes se usan en cada slot (component_id).
+
+Qué rutas de modulación hay (source, destination, amount, curve).
+​
+
+ModulationGraph define:
+
+El conjunto de fuentes (ENV1, LFO1, ModWheel…) y su semántica.
+​
+
+La traducción nombres → índices internos; la ejecución en audio thread.
+
+Con esto, a nivel de infraestructura ya tienes un contrato estable que te permite:
+
+Añadir nuevos componentes ACE sin cambiar el preset schema.
+
+Añadir nuevas fuentes/mod targets sin romper presets existentes.
+
+Mantener la compatibilidad con Git‑for‑Sounds y tu arquitectura por capas.
+
+
+
+
+
+
+Vamos a definir las reglas de validación/fallback como una mini “especificación”, para que puedas implementarla igual en C++ o en tooling externo.
+
+1. Estados posibles al cargar un preset
+Cada preset/layer/componente puede quedar en uno de estos estados:
+
+OK: todo resuelto sin cambios.
+
+DEGRADED: se ha aplicado algún fallback, pero el preset es reproducible.
+
+INVALID: no se puede reproducir razonablemente (error duro).
+
+En la práctica, quieres que el 99% de casos acaben en OK o DEGRADED y que INVALID solo aparezca por corrupción de datos o engines inexistentes.
+
+2. Tabla de validación por nivel
+2.1 Nivel preset global
+Caso	Estado	Acción
+engine existe en OMEGA	OK	Continuar.
+engine no existe (p.ej. "Neural" ausente)	DEGRADED	Mapear a engine más cercano (p.ej. VA, Spectral) o marcar layer como mute.
+Archivo mal formado (YAML/JSON roto)	INVALID	Rechazar preset, mostrar error de carga.
+Regla: el engine puede tener una tabla de “compatibilidad de emergencia” (por ejemplo, si falta Neural, usar Spectral; si falta WT, usar VA).
+
+2.2 Nivel layer / VoiceArchitecture
+Caso	Estado	Acción
+polyphony y unison válidos	OK	Normalizar valores (clamp) si fuera de rango, sin cambiar estado.
+Engine de layer coincide con engine global	OK	Continuar.
+Engine de layer incompatible con componentes ACE	DEGRADED	Intentar remap a componentes compatibles o deshabilitar slots inválidos.
+Layer sin osciladores válidos tras validación	DEGRADED	Mantener layer pero mute (ganancia = -inf), flag de “layer vacía”.
+Layer con corrupción grave (datos incoherentes)	INVALID	Ignorar layer completa.
+Regla: una layer puede sobrevivir como DEGRADED, pero si tras validación no tiene osciladores ni fuentes de audio, se considera “silenciosa” aunque siga existiendo para no romper ruteos.
+
+2.3 Nivel componente (ACE)
+Casos típicos al resolver component_id:
+
+Caso	Estado	Acción
+component_id existe en catálogo ACE	OK	Usar model_id definido.
+component_id no existe	DEGRADED	Fallback a componente genérico por familia/engine (p.ej. “GenericVAFilter24dB”).
+component_id existe pero engine no soportado	DEGRADED	Igual que arriba: fallback genérico o componente ACE alternativo compatible, según tabla de compatibilidad.
+component_id marcado como deprecated	OK/DEGR.	Si hay replacement_id, usarlo y marcar preset como DEGRADED; si no, usarlo tal cual.
+Para implementar el fallback necesitas:
+
+Tabla por familia/engine:
+
+Oscillator/VA → OSC-VA-GENERIC
+
+Filter/VA → FLT-VA-GENERIC-LP24
+
+Envelope → ENV-ADSR-GENERIC
+
+FX/chorus → FX-CH-GENERIC
+
+Y opcionalmente una tabla por componente:
+
+text
+compatibility:
+  deprecated:
+    - id: "FLT-VA-003"
+      replacement_id: "FLT-VA-003-v2"
+  fallbacks:
+    Oscillator:
+      VirtualAnalog: "OSC-VA-GENERIC"
+      Wavetable:     "OSC-WT-GENERIC"
+    Filter:
+      VirtualAnalog: "FLT-VA-GENERIC-LP24"
+3. Validación de parámetros
+Para cada componente:
+
+Caso	Estado	Acción
+Parámetros en rango y nombres válidos	OK	Usar tal cual.
+Parámetros fuera de rango	OK	Clamp al rango definido en catálogo ACE (esto es normalización, no degrada).
+Parámetros faltantes	OK	Usar valores default del catálogo ACE.
+Parámetros extra (no definidos en catálogo)	DEGRADED	Ignorarlos; flag de “parámetros huérfanos” para UI/debug.
+Esto te permite evolucionar componentes añadiendo parámetros sin romper presets antiguos, y eliminar parámetros marcándolos como deprecated con un valor fijo.
+
+4. Validación de rutas de modulación
+Cada ruta source → destination:
+
+Caso	Estado ruta	Acción
+source válido, destination resuelto correctamente	OK	Añadir al ModulationGraph.
+source desconocido	DEGRADED	Omitir ruta; registrar warning.
+destination parsea pero componente no tiene ese target	DEGRADED	Omitir ruta; registrar warning.
+destination apunta a layer/slot inexistente	DEGRADED	Omitir ruta; registrar warning.
+A nivel de preset global:
+
+Si al menos una ruta ha sido omitida → preset pasa a estado DEGRADED (pero usable).
+
+Puedes exponer esto en UI como “Preset cargado con advertencias”.
+
+5. Reglas de combinación de estados
+Puedes definir una regla simple de agregación:
+
+Preset global:
+
+Si cualquier layer es INVALID → preset INVALID.
+
+Si ninguna layer es INVALID pero alguna es DEGRADED → preset DEGRADED.
+
+Si todas son OK → preset OK.
+
+Layer:
+
+Si componentes/engine/parámetros ok, pero alguna ruta de modulación se ha caído → layer DEGRADED.
+
+Si no hay osciladores válidos → layer DEGRADED pero marcada como “silent layer”.
+
+Esto permite a la UI mostrar:
+
+Icono verde (OK), amarillo (DEGRADED), rojo (INVALID) por preset/layer.
+
+6. Casos especiales: cambio de engine
+Si en una build futura eliminas o cambias engines:
+
+Cambio de engine por compatibilidad
+Caso	Estado	Acción
+Engine del preset no está disponible	DEGRADED	Mapear a engine alternativo definido en tabla (p.ej. Neural → Spectral).
+Engine del preset está disponible pero sin ciertas features	DEGRADED	Cargar engine pero ignorar opciones no soportadas; rutas afectadas pasan a DEGRADED.
+Ejemplo de tabla:
+
+text
+engine_compatibility:
+  Neural:
+    fallback: "Spectral"
+  Wavetable:
+    fallback: "VirtualAnalog"
+~~7. Dónde viven estas reglas
+Infraestructuralmente:
+
+Módulo PresetValidator en Source/Core que:
+
+Interpreta el preset YAML/JSON.
+
+Consulta ACE catálogo y tablas de compatibilidad.
+
+Devuelve un ValidationReport con:
+
+Estado global (OK/DEGRADED/INVALID).
+
+Lista de warnings/errores por layer/componente/ruta.
+
+El audio engine solo se construye si el resultado no es INVALID.
+
+Esto también te sirve para tooling offline (p.ej. “valida todos los presets de un banco después de cambiar el catálogo ACE”).~~ [HECHO / IMPLEMENTADO EN ACEVALIDATOR Y ENGINECORE]
+
+
+
+
+A nivel de infraestructura, puedes tratar el catálogo ACE casi como otro “repo” versionado, paralelo a tus presets.
+
+1. Cómo empaquetar el catálogo ACE
+Tienes dos ejes principales: por familia (osc/filter/env/FX…) y por marca/sinte (Roland, Korg, etc.).
+
+Opción práctica (mixta)
+Un fichero raíz de índice y varios ficheros de componentes:
+
+text
+Resources/
+  ace/
+    ace_index.yaml
+    ace_osc_roland.yaml
+    ace_osc_korg.yaml
+    ace_flt_roland.yaml
+    ace_flt_korg.yaml
+    ace_env_sequential.yaml
+    ace_fx_roland.yaml
+    ...
+ace_index.yaml podría contener:
+
+text
+version: 1
+files:
+  - "ace_osc_roland.yaml"
+  - "ace_osc_korg.yaml"
+  - "ace_flt_roland.yaml"
+  - "ace_flt_korg.yaml"
+  - "ace_env_sequential.yaml"
+  - "ace_fx_roland.yaml"
+compatibility:
+  deprecated:
+    - id: "FLT-VA-003"
+      replacement_id: "FLT-VA-003-v2"
+  fallbacks:
+    Oscillator:
+      VirtualAnalog: "OSC-VA-GENERIC"
+      Wavetable:     "OSC-WT-GENERIC"
+    Filter:
+      VirtualAnalog: "FLT-VA-GENERIC-LP24"
+Ventajas:
+
+Puedes añadir/quitar ficheros por marca/familia sin tocar el código.
+
+Puedes tener builds “lite” que simplemente no empaquetan ciertos ficheros ACE.
+
+En runtime:
+
+Al arrancar, lees ace_index.yaml, luego cada fichero listado, y construyes un catálogo en memoria.
+
+2. Versionado del catálogo ACE
+Aquí tienes dos niveles:
+
+2.1 Versión de esquema ACE
+Campo version a nivel de catálogo:
+
+text
+catalog_version: 1
+schema_version: 1
+Lo usas para cambios de estructura (nuevos campos, nombre de claves, etc.). Cuando cambias esquema:
+
+Incrementas schema_version y añades un migrador que convierta catálogos antiguos al formato nuevo.
+
+Igual que harías con una migración de base de datos.
+
+2.2 Versión de cada componente
+Cada componente puede llevar:
+
+text
+    - id: "FLT-VA-003"
+      version: 1
+      status: "active" # "deprecated", "experimental"
+      ...
+Reglas:
+
+Si cambia solo la implementación DSP pero mantienes el mismo comportamiento “intencional”, puedes subir version: 2 sin cambiar id.
+
+Es transparente para presets; opcionalmente guardas un changelog para documentación.
+
+Si cambias semántica (por ejemplo, quitas o renombras parámetros), mejor crear un nuevo id (FLT-VA-003-v2) y marcar el viejo como deprecated.
+
+Con esto, tu Validator puede aplicar reglas de compatibilidad: si se encuentra un id deprecated y hay replacement_id, lo sustituye y marca preset como DEGRADED.
+
+3. Integración con Git‑for‑Sounds
+3.1 Repos separados pero relacionados
+Lo más limpio es tener dos “repos conceptuales”:
+
+Repo de presets (lo que ya tienes): commits con cambios de parámetros, capas, rutas de modulación, etc.
+​
+
+Repo del catálogo ACE: cambios en definiciones de componentes (añadir nuevos, deprecate, ajustar rangos, etc.).
+
+Infraestructuralmente no necesitas Git real para ACE, pero sí un modelo similar:
+
+text
+ace_catalog_history:
+  - commit: "a1b2c3"
+    date: "2025-01-10"
+    message: "Añadidos filtros MS-20 y JP-8"
+  - commit: "d4e5f6"
+    date: "2025-02-01"
+    message: "FLT-VA-003 marcado deprecated, añadido FLT-VA-003-v2"
+Y en tu preset, opcionalmente:
+
+text
+requires_ace_catalog_commit: "d4e5f6"
+Esto permite:
+
+Saber si el preset fue creado contra una determinada “versión” del catálogo.
+
+Tooling offline para comprobar compatibilidad entre bancos de presets y una versión de catálogo ACE concreta.
+
+3.2 Differences / impacto
+Cuando cambias el catálogo:
+
+Puedes correr un “validator” que recorra todos los presets en un banco y genere un informe:
+
+Presets totalmente compatibles.
+
+Presets degradados (por componentes deprecated con replacement).
+
+Presets rotos (usan componentes eliminados sin fallback).
+
+Esto te da un flujo muy parecido a migraciones de esquemas en bases de datos.
+
+4. Builds y variantes (lite, demo, full)
+Gracias a ficheros ACE separados, puedes definir perfiles de build:
+
+Full: empaquetas todos los ficheros ACE → catálogo completo.
+
+Lite: solo algunos (por ejemplo, solo Juno + MS‑20).
+
+Brand packs: OMEGA base, y packs descargables tipo “Roland Pack”, “Korg Pack” que añaden ficheros ACE adicionales.
+
+Infraestructura:
+
+ace_index.yaml puede ser generado en build time en función de qué ficheros se incluyan.
+
+El Validator puede marcar componentes “no disponibles en esta build” y aplicar fallback (DEGRADED).
+
+5. Compatibilidad hacia adelante y hacia atrás
+Backward compatibility (catálogo nuevo, presets viejos)
+Si solo añades componentes nuevos → todo OK.
+
+Si marcas componentes viejos como deprecated pero los mantienes → presets viejos siguen funcionando.
+
+Si eliminas componentes viejos:
+
+Tienes que declarar fallback por familia/engine o replacement_id por componente, para que el Validator pueda degradar presets en lugar de romperlos.
+
+Forward compatibility (catálogo viejo, presets nuevos)
+Menos habitual en usuario final, pero sí en desarrollo:
+
+Si intentas abrir un preset que requiere componentes que tu catálogo no tiene:
+
+Validator devuelve DEGRADED con ficheros de error muy claros (qué id falta, en qué layer/slot).
+
+UI puede mostrar “Necesitas ACE Pack X.Y para este preset”.
+
+6. Resumen de decisiones de infraestructura
+En tu caso concreto, yo haría:
+
+Un índice ACE con:
+
+Lista de ficheros de catálogo.
+
+Mapa de deprecated/replacement.
+
+Tabla de fallbacks por familia/engine.
+
+Varios ficheros ACE modulares por marca/familia.
+
+Un módulo AceCatalog que:
+
+Carga todo esto a estructuras inmutables.
+
+Expone API de consulta (por id, por familia, por engine, por tags).
+
+Un módulo AceValidator que:
+
+Toma un preset + catálogo.
+
+Aplica las reglas de validación/fallback que hemos definido.
+
+Devuelve un reporte para UI/logs.
+
+Con esto, cuando quieras ya podríamos bajar al plano de “cómo se enchufa todo esto a tu APVTS y a la creación de VoiceArchitecture en C++”, pero ya tienes el diseño de infraestructura bastante sólido.
+
+
+
+
+Para mapear ACE y tu arquitectura a JUCE/APVTS y ValueTree, necesitas separar claramente “parámetros expuestos al host” de “modelo interno de voz/componente”.
+
+1. Principio base de infraestructura
+APVTS debe tener un conjunto estable de parámetros (ids fijos) para que los hosts no se rompan.
+
+ACE y VoiceArchitecture pueden ser mucho más dinámicos, pero su estado se serializa en el ValueTree interno, no como parámetros expuestos.
+
+Conclusión:
+
+Parámetros “macro” y de performance → APVTS.
+
+Configuración de componentes ACE y parámetros detallados de cada slot → ValueTree dentro del estado de APVTS.
+
+2. División de responsabilidades APVTS vs. ValueTree
+APVTS (parámetros host/UI)
+Gain/master, mix de layers, macros, cutoff “global”, env amount principal, etc.
+
+Algunos parámetros por slot, pero solo los que quieras automatable de forma estándar (p.ej. cutoff del filtro principal de la capa).
+
+Siempre con ids estáticos (no dependen de que uses MS‑20 o JP‑8).
+
+Ejemplo (esquemático):
+
+LAYER_A_MAIN_CUTOFF
+
+LAYER_A_MAIN_RES
+
+LAYER_B_MAIN_CUTOFF
+
+MASTER_GAIN
+
+MACRO1…
+
+ValueTree interno (modelo OMEGA/ACE)
+Aquí metes:
+
+VoiceArchitecture (qué slots hay, qué component_id ACE usa cada uno, topología de routing…).
+​
+
+Parámetros detallados por componente ACE (tune, shape, drive, etc.).
+​
+
+Rutas de modulación (source, destination, amount, curve).
+​
+
+Metadatos de preset (tags, key, bpm…), que no son parámetros de audio.
+
+Este ValueTree es donde serializas el YAML/JSON de preset que hemos ido diseñando.
+
+3. Contrato APVTS ↔ modelo interno
+Para que el audio thread no tenga que navegar ValueTrees, usas el patrón “settings struct + binding”:
+
+Struct(es) de settings por layer, con campos atómicos simples (float, int) que lee el DSP.
+
+Un ParameterBinding que escucha cambios de APVTS y del ValueTree interno y actualiza esos structs.
+​
+
+En tu caso:
+
+Los parámetros macro en APVTS se mapean directamente a campos del struct (ej. cutoff global).
+
+Los parámetros ACE/VoiceArchitecture se cargan desde ValueTree cuando cambias de preset, y se vuelcan al struct de voces/engines.
+
+Así respetas tus reglas:
+
+Nada de navegar ValueTrees en el audio callback.
+​
+
+Nada de strings mágicos en inner loops, solo índices/caches.
+​
+​
+
+4. Cómo se mapea ACE → APVTS/ValueTree en la práctica
+4.1 Estructura del estado
+Piensa el ValueTree de APVTS como:
+
+text
+STATE
+ ├─ GlobalParams (clave: APVTS)
+ ├─ Layers
+ │   ├─ LayerA
+ │   │   ├─ VoiceArchitecture   (ACE + topología)
+ │   │   ├─ Modulation          (routes)
+ │   │   └─ LayerParams         (macro params de la capa)
+ │   └─ LayerB
+ └─ Metadata
+GlobalParams y LayerParams contienen los valores espejo de APVTS.
+
+VoiceArchitecture y Modulation contienen el preset ACE (tal como lo diseñamos en YAML).
+​
+
+4.2 Flujo cuando cargas un preset
+Deserializas el YAML/JSON ACE a un ValueTree bajo VoiceArchitecture/Modulation.
+​
+​
+
+AceValidator valida y aplica fallbacks, actualizando el ValueTree si es necesario (por ejemplo, sustituyendo component_id deprecated por replacement_id).
+
+VoiceFactory lee solo una vez ese ValueTree (en background / prepare) y construye:
+
+Pool de voces físicas con los componentes concretos.
+​
+
+Tablas de destinos de modulación ya resueltas a índices.
+​
+
+APVTS mantiene sus parámetros host como siempre; algunos de ellos se inicializan a valores coherentes con el preset (ej. cutoff global = cutoff del filtro principal de la layer).
+​
+​
+
+5. Qué operaciones debe soportar AceCatalog / AceValidator
+AceCatalog (solo lectura)
+getComponentById(id) -> AceComponentInfo
+
+listComponents(family, engine) -> vector<AceComponentInfo>
+
+getFallbackFor(family, engine) -> id
+
+isDeprecated(id) -> bool / getReplacement(id) -> optional<id>
+
+Se alimenta exclusivamente del catálogo en recursos (YAML/JSON) que definimos.
+
+AceValidator
+Trabaja sobre un preset (ValueTree) + AceCatalog:
+
+ValidationReport validatePreset(tree presetState, const AceCatalog&)
+
+Internamente:
+
+Normaliza engines/layers.
+
+Para cada component_id resuelve o aplica fallback.
+
+Para cada parámetro clamp y defaults.
+
+Para cada ruta de modulación, resuelve destinos contra ACE y VoiceArchitecture.
+​
+
+El resultado:
+
+Marca preset/layers como OK/DEGRADED/INVALID.
+​
+
+Puede modificar el ValueTree (ej. sustituir ids, rellenar defaults) antes de que el engine lo use.
+
+6. Resumen de cómo todo encaja
+ACE + catálogo: definen “qué componentes hay” y cómo se llaman sus targets/params.
+​
+
+Preset (YAML/ValueTree): define “qué combinaciones concretas usa este sonido” usando ids ACE.
+​
+
+AceValidator: asegura que ese preset tiene sentido y aplica fallbacks.
+
+VoiceFactory + Engines: convierten ese modelo a voces reales y grafos de modulación eficientes.
+​
+
+APVTS: expone un subconjunto estable de parámetros al host y UI, y se sincroniza con el modelo vía structs de settings y ValueTree.
+
+Con esto, a nivel de infraestructura estás bastante cerrado: puedes crecer en número de sintes emulados sin tocar el API de parámetros del plugin, solo ampliando catálogo ACE y lógica de Binding/Validator.
+
+
+Te propongo el diseño de AceCatalog y AceValidator como módulos “de sistema”, con separación clara de hilos.
+
+1. Principios de threading
+AceCatalog: solo lectura, inmutable tras el arranque, compartido entre hilos.
+
+AceValidator: se ejecuta solo en message/background thread (o hilo de preset‑loading), nunca en audio thread.
+​
+
+Audio thread solo ve resultados ya validados (VoiceArchitecture concreta, ids resueltos, tablas de destinos).
+
+2. Módulo AceCatalog
+2.1 Responsabilidad
+Cargar todos los ficheros ACE (index + componentes).
+
+Unificar en una estructura inmutable en memoria.
+
+Proveer consultas rápidas por id, familia, engine, tags, fallback y deprecaciones.
+
+2.2 Interfaz pública (conceptual)
+cpp
+namespace OmegaACE
+{
+    struct AceComponentInfo
+    {
+        juce::String id;          // "FLT-VA-003"
+        juce::String name;
+        juce::String family;      // "Oscillator", "Filter", "Envelope", "FX", ...
+        juce::String engine;      // "VirtualAnalog", "Wavetable", ...
+        juce::String modelId;     // "KorgMs20Korg35"
+        juce::String origin;      // texto humano
+        juce::String status;      // "active", "deprecated", "experimental"
+        int          version;
+        juce::StringArray tags;
+        // parámetros y modulation_targets (según catálogo YAML)
+        // estructuras ya parseadas, listas para consulta/validación
+    };
+
+    struct AceFallbackInfo
+    {
+        juce::String family;
+        juce::String engine;
+        juce::String fallbackId;
+    };
+
+    class AceCatalog
+    {
+    public:
+        // Creación destruye y carga todo catálogo (solo message/background thread)
+        static std::unique_ptr<AceCatalog> createFromResources();
+
+        // Consultas
+        const AceComponentInfo* getComponent(const juce::String& id) const noexcept;
+        juce::Array<const AceComponentInfo*> listByFamilyEngine(
+            const juce::String& family,
+            const juce::String& engine) const;
+
+        const AceFallbackInfo* getFallback(
+            const juce::String& family,
+            const juce::String& engine) const noexcept;
+
+        bool isDeprecated(const juce::String& id) const noexcept;
+        juce::String getReplacementId(const juce::String& id) const noexcept;
+
+        // Metadatos globales (versiones)
+        int getCatalogVersion() const noexcept;
+        int getSchemaVersion() const noexcept;
+    };
+}
+2.3 Threading / ciclo de vida
+Se instancia una sola vez en el arranque del plugin (message thread):
+
+auto catalog = AceCatalog::createFromResources();
+
+Tras construirlo, se comparte como puntero const (por ejemplo, shared_ptr<const AceCatalog>) entre:
+
+AceValidator,
+
+sistemas de UI que necesiten listar componentes (menús, browsers).
+
+Audio thread nunca llama a AceCatalog; solo recibe resultados ya procesados (ids resueltos, etc.).
+​
+
+3. Módulo AceValidator
+3.1 Responsabilidad
+Tomar un preset (ValueTree / estructura equivalente) + AceCatalog.
+
+Validar engine/layers/componentes/params/modulation.
+
+Aplicar fallbacks in‑place sobre un árbol mutable.
+
+Devolver un informe de estado.
+
+3.2 Tipos de informe
+cpp
+namespace OmegaACE
+{
+    enum class ValidationStatus { Ok, Degraded, Invalid };
+
+    struct ValidationIssue
+    {
+        ValidationStatus severity;      // Degraded o Invalid
+        juce::String     scope;         // "Preset", "LayerA", "LayerB.Filter1", etc.
+        juce::String     code;          // "MissingComponent", "UnknownDestination", ...
+        juce::String     message;       // Texto humano
+    };
+
+    struct ValidationReport
+    {
+        ValidationStatus                     status; // global
+        juce::Array<ValidationIssue>         issues; // detallado
+    };
+}
+3.3 Interfaz pública
+cpp
+namespace OmegaACE
+{
+    class AceValidator
+    {
+    public:
+        explicit AceValidator(const AceCatalog& catalog) noexcept;
+
+        // Valida un preset completo; puede modificar presetState (aplicar fallbacks)
+        ValidationReport validatePreset(juce::ValueTree presetState);
+
+        // Opcional: validación por partes (por herramientas externas, tests)
+        ValidationReport validateLayer(juce::ValueTree layerState);
+        ValidationReport validateVoiceArchitecture(juce::ValueTree voiceArchState);
+        ValidationReport validateModulation(juce::ValueTree modulationState,
+                                            juce::ValueTree voiceArchState);
+    private:
+        const AceCatalog& m_catalog;
+    };
+}
+3.4 Threading / uso
+Se usa solo desde:
+
+Carga de preset,
+
+Importación de bancos,
+
+Herramientas de migración offline.
+
+Nunca desde audio thread.
+
+Flujo típico:
+
+Host pide cargar preset.
+
+En message/background thread:
+
+Se parsea el preset a ValueTree.
+​
+
+Se llama AceValidator::validatePreset(tree).
+
+Si status == Invalid, se rechaza preset y se informa a UI.
+
+Si status == Degraded, se acepta y se muestra aviso.
+
+Solo cuando el preset es válido/degradado, se notifica al engine para reconstruir voces y estructuras de modulación.
+
+4. Separación clara con el audio thread
+Para respetar tus reglas:
+​
+
+Audio thread no toca ValueTree ni AceCatalog ni AceValidator.
+
+Audio thread trabaja solo con:
+
+Pools de voces ya construidos (IVoice/VoiceArchitectureRuntime).
+​
+
+Tablas de parámetros/cache (atomics) y rutas de modulación precompiladas.
+​
+
+El puente:
+
+Algún tipo de EngineConfig/VoiceConfig que se construye en background usando:
+
+AceCatalog
+
+AceValidator
+
+VoiceFactory
+
+Y luego se intercambia con el engine de audio usando una técnica lock‑free (double buffering, swap atómico de punteros, etc.), coherente con OMEGA.
+
+5. Reparto por hilos resumido
+Message / background thread
+
+Carga recursos ACE (YAML/JSON).
+
+Inicializa AceCatalog.
+
+Maneja presets: carga, validación, migraciones.
+
+Construye configuraciones de engine/voz listas para usar.
+
+Audio thread
+
+Lee structs ya preparados.
+
+No conoce ACE ni ValueTree ni YAML.
+
+UI thread
+
+Lee AceCatalog para listas/browsers.
+
+Lee ValidationReport para mostrar warnings/errores.
+
+Edita el ValueTree de preset (que luego pasa por AceValidator antes de tocar el audio engine).
+
+Con este diseño, AceCatalog y AceValidator quedan bien encapsulados y alineados con tus reglas de OMEGA.
+
+
+
+Para cerrar el círculo ACE ↔ audio thread, definimos qué es ese EngineConfig/VoiceConfig runtime que viaja del mundo “lento” (validator/background) al mundo “rápido” (audio).
+
+1. Principio: snapshot inmutable para el audio
+El audio thread trabaja con un snapshot inmutable de configuración: sin ValueTree, sin strings, sin punteros a ACE.
+​
+
+Cuando cambias de preset, preparas un nuevo snapshot en background y haces un swap atómico de puntero/config en un punto seguro (inicio de bloque, por ejemplo).
+
+2. EngineConfig (por plugin / instancia)
+Información que afecta a toda la instancia:
+
+engineType (VA, WT, etc.).
+​
+
+Sample rate, block size objetivo (la parte que no te da directamente JUCE pero usas para configurar voces/engines).
+​
+
+Número máximo de voices por layer (y por engine).
+​
+
+Tabla global de fuentes de modulación (índices constantes para ENV1, LFO1, ModWheel, Velocity…).
+​
+
+Esencialmente, EngineConfig es el “contexto” que VoiceFactory y ModulationGraph necesitan para construir cosas coherentes.
+
+3. VoiceConfig / LayerConfig (runtime)
+Por cada layer:
+
+voiceCount: voces máximas.
+​
+
+unisonConfig: voz/unísono (véase tu diseño OMEGA).
+​
+
+voiceArchitectureRuntime: descripción ya resuelta de la cadena DSP de cada voz.
+​
+
+modulationRoutingRuntime: rutas de modulación compiladas (índices, no strings).
+​
+
+fxRackRuntime: lista de módulos FX por voz y master (orden, tipos, latencias).
+​
+
+3.1 VoiceArchitectureRuntime
+Derivada de VoiceArchitecture + ACE Binding:
+
+Lista de bloques DSP por voz, en orden de procesamiento:
+
+text
+VoiceArchitectureRuntime
+ ├─ oscillators: [OscInstance0, OscInstance1, ...]      // punteros/interfaces
+ ├─ filters:    [FilterInstance0, FilterInstance1, ...]
+ ├─ envelopes:  [EnvInstance0, EnvInstance1, ...]
+ ├─ lfos:       [LfoInstance0, LfoInstance1, ...]
+ └─ routing: estructura ligera que define cómo se conectan (ej. indices en buffers)
+Cada instancia ya es una implementación concreta (JunoDCO, Ms20Filter…), creada por ACE Binding.
+​
+
+No hay component_id ni model_id aquí; solo tipos concretos listos para procesar.
+​
+
+3.2 ModulationRoutingRuntime
+Derivada del bloque modulation.routes del preset + ACE catalog:
+
+Array de rutas:
+
+text
+ModulationRouteRuntime
+ ├─ sourceIndex       // índice en array de fuentes calculadas por voz/layer
+ ├─ destinationPtr    // puntero/índice a parámetro modulado (float o similar)
+ ├─ amount
+ ├─ curveLUTIndex     // referencia a curva precalculada
+destinationPtr se resuelve en background buscando en VoiceArchitectureRuntime y usando los modulation_targets del componente ACE.
+​
+
+El audio thread solo hace: leer valor fuente, aplicar curva/amount, sumar al destino.
+
+4. Flujo completo con estos configs
+Preset load / cambio de patch (message/background thread):
+
+Se carga el preset en ValueTree.
+​
+
+AceValidator valida y corrige.
+
+VoiceFactory y Binding + ACE crean para cada layer:
+
+VoiceArchitectureRuntime (instancias concretas).
+​
+
+ModulationRoutingRuntime.
+​
+
+Se construye un EngineConfig + LayerConfigs completos, inmutables.
+​
+
+Swap atómico (entre bloques):
+
+En la clase principal del engine mantienes:
+
+std::atomic<EngineConfig*> currentConfig;
+
+std::unique_ptr<EngineConfig> nextConfig; preparado en background.
+​
+
+En un punto seguro (no audio thread bloqueado), haces:
+
+currentConfig.store(nextConfig.release(), std::memory_order_release);
+
+Limpieza del antiguo config en background cuando sea seguro.
+
+Audio thread:
+
+Cada processBlock lee EngineConfig* config = currentConfig.load(std::memory_order_acquire);
+
+Usa directamente config->layers[...] para procesar voces, modulaciones y FX.
+
+5. Qué NO debe haber dentro de EngineConfig/VoiceConfig
+Para respetar tus reglas OMEGA:
+​
+
+No juce::ValueTree.
+
+No juce::String (idealmente; si hay alguno debe ser solo para debugging que no se toca en audio).
+
+No contenedores que alocan dinámicamente en audio (se construyen fuera).
+
+No punteros a AceCatalog ni a AceValidator.
+
+No estructuras que requieran locks para acceso.
+
+Solo:
+
+Punteros a bloques DSP ya construidos.
+
+Arrays/std::array/buffers pre‑alocados.
+
+Índices, atomics de parámetros y LUTs.
+
+6. Con esto, ACE queda perfectamente integrado
+Ahora tu pipeline queda:
+
+ACE / Catálogo / Validator → decide QUÉ hay.
+
+VoiceFactory / EngineConfig → decide CÓMO se implementa y conecta.
+
+Audio thread → solo ejecuta.
+
+Y sigues pudiendo añadir más sintes (MS‑20, Prophecy, Jupiter, JP‑8080) solo ampliando:
+
+Catálogo ACE.
+
+Binding (id → implementación).
+
+Tests/validación, sin tocar la interfaz global del plugin.
+
+
+
+
+Para un MVP realista, yo fijaría esta primera familia ACE y alcance mínimo.
+
+1. Alcance del MVP ACE
+Familia limitada pero jugosa:
+
+Osciladores
+
+OSC-VA-001: DCO Juno‑106 (tu JUNiO).
+​
+
+OSC-VA-002: VCO MS‑20 (simplificado).
+​
+
+OSC-VA-004: Supersaw JP‑8000/8080 (implementación inicial).
+​
+
+Filtros
+
+FLT-VA-001: IR3109 Juno/Jupiter (LP24).
+​
+
+FLT-VA-003: KORG35 MS‑20 (HP+LP series).
+​
+
+Envolventes
+
+ENV-ADSR-GEN: ADSR genérica (no hace falta todavía P5 específica).
+​
+
+LFO
+
+LFO-001: LFO genérico estilo Juno (rate, shape).
+​
+
+FX
+
+FX-CH-001: Chorus Juno‑106 BBD.
+​
+
+Con esto ya puedes hacer:
+
+Juno‑like pads/basses.
+
+MS‑20‑style leads/basses.
+
+JP‑8000 supersaw pads/leads con filtro Juno o MS‑20.
+
+2. MVP de infraestructura que implementaría
+AceCatalog cargando solo un catálogo pequeño (Roland+Korg VA) como el que ya esbozamos en YAML.
+
+AceValidator con reglas básicas:
+
+Validar component_id contra catálogo.
+
+Fallback genérico por familia/engine si falta algo.
+
+Binding mínimo:
+
+Mapear OSC-VA-001/002/004 → tus clases actuales o stub DSP.
+​
+
+Mapear FLT-VA-001/003 → implementaciones de filtro ladder/estado que ya tengas o simplified MS‑20/Juno.
+​
+
+EngineConfig/VoiceConfig solo para Engine VA y una o dos layers.
+​
+
+No tocar todavía Wavetable/Granular/Neural en el MVP.
+
+3. MVP de preset/flujo
+Soportar presets tipo el “Hybrid MS20 + JP Supersaw Pad” que ya definimos:
+
+Máx. 2 layers.
+
+Máx. 2 oscillators + 1 filter por layer.
+
+1 env amp + 1 env filter + 1 LFO.
+
+1 chorus FX.
+​
+
+ModulationGraph:
+
+Fuentes: ENV1, ENV2, LFO1, ModWheel.
+​
+
+Destinos: LayerX.OscY.pitch, LayerX.Filter1.cutoff, LayerX.Filter1.resonance, LayerX.Fx1.mix.
+​
+
+Con esto ya puedes validar todo el pipeline ACE ↔ Validator ↔ EngineConfig ↔ audio.
+
+4. Iteración siguiente
+Una vez estable:
+
+Añadir un segundo filtro (Moog ladder u Oberheim SEM) y un envelope P5 para ver cómo crece el catálogo sin romper nada.
+​
+
+Extender ModulationGraph con más fuentes/destinos usando el mismo esquema de nombres.
+​
+
+
+
+
+
+
+Entonces el plan quedaría así de compacto para que puedas implementarlo ya:
+
+1. MVP 0.1 ACE (funcionalidades)
+Catálogo ACE reducido con:
+
+OSC-VA-001 (DCO Juno), OSC-VA-002 (VCO MS‑20), OSC-VA-004 (Supersaw JP‑8000).
+​
+
+FLT-VA-001 (IR3109 Juno/Jupiter), FLT-VA-003 (KORG35 MS‑20).
+​
+
+ENV-ADSR-GEN, LFO-001 genérico, FX-CH-001 (chorus Juno).
+​
+
+Infraestructura:
+
+AceCatalog::createFromResources() cargando 2–3 YAML pequeños.
+
+AceValidator::validatePreset(ValueTree) con:
+
+Resolución de component_id contra catálogo.
+
+Fallback por familia/engine si falta algo.
+
+Validación básica de rutas de modulación (destinos existentes).
+​
+
+Runtime:
+
+EngineConfig para Engine VA: máximo 2 layers, cada una con hasta 2 osc + 1 filtro + 2 env + 1 LFO + 1 FX.
+​
+
+VoiceArchitectureRuntime y ModulationRoutingRuntime construidos en background y swappeados atómicamente.
+
+2. Primeros pasos concretos en tu repo
+Crear carpeta Resources/ace/ con:
+
+ace_index.yaml mínimo.
+
+ace_osc_va_roland_korg.yaml, ace_flt_va_roland_korg.yaml, ace_env_lfo_fx_basic.yaml.
+
+Implementar OmegaACE::AceCatalog solo con:
+
+createFromResources()
+
+getComponent(id)
+
+listByFamilyEngine(family, engine)
+
+getFallback(family, engine) (puede devolver null al principio).
+
+Implementar OmegaACE::AceValidator::validatePreset(ValueTree):
+
+Recorrer layers → VoiceArchitecture → comprobar component_id usando AceCatalog.
+​
+
+Sustituir ids faltantes por fallbacks genéricos.
+
+Marcar estado global OK/DEGRADED.
+
+Añadir un EngineConfig mínimo para VA y adaptar tu VoiceFactory para construir VoiceArchitectureRuntime desde:
+
+ValueTree validado,
+
+AceCatalog (Binding id → implementación concreta).
+​
+
+Con eso ya puedes cargar un preset tipo “Hybrid MS20 + JP Supersaw Pad” en formato YAML/ValueTree, validarlo con ACE y oírlo.
+
+
+
+
+
+Perfecto, aquí tienes el catálogo MVP listo para pegar (puedes ajustarlo a tu gusto).
+
+1. ace_index.yaml
+text
+catalog_version: 1
+schema_version: 1
+
+files:
+  - "ace_osc_va_roland_korg.yaml"
+  - "ace_flt_va_roland_korg.yaml"
+  - "ace_env_lfo_fx_basic.yaml"
+
+compatibility:
+  deprecated: [ ]
+
+  fallbacks:
+    Oscillator:
+      VirtualAnalog: "OSC-VA-GENERIC"
+    Filter:
+      VirtualAnalog: "FLT-VA-GENERIC-LP24"
+    Envelope:
+      VirtualAnalog: "ENV-ADSR-GEN"
+    LFO:
+      VirtualAnalog: "LFO-001"
+    FX:
+      FX: "FX-CH-GENERIC"
+2. ace_osc_va_roland_korg.yaml
+text
+catalog_version: 1
+schema_version: 1
+
+oscillators:
+  - id: "OSC-VA-001"
+    version: 1
+    status: "active"
+    name: "Roland DCO"
+    origin: "Roland Juno-106 / JX-3P"
+    engine: "VirtualAnalog"
+    family: "Oscillator"
+    model_id: "RolandJunoDco"
+    tags: [ "va", "dco", "roland", "juno", "poly" ]
+    parameters:
+      - name: "tune"
+        label: "Tune"
+        unit: "semitones"
+        min: -24.0
+        max: 24.0
+        default: 0.0
+      - name: "pulse_width"
+        label: "Pulse Width"
+        unit: "ratio"
+        min: 0.1
+        max: 0.9
+        default: 0.5
+      - name: "sub_level"
+        label: "Sub Level"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.5
+    modulation_targets:
+      - id: "pitch"
+        label: "Pitch"
+        unit: "semitones"
+      - id: "pulse_width"
+        label: "Pulse Width"
+        unit: "ratio"
+      - id: "sub_level"
+        label: "Sub Level"
+        unit: "normalized"
+
+  - id: "OSC-VA-002"
+    version: 1
+    status: "active"
+    name: "Korg VCO"
+    origin: "Korg MS-20 / MS-10"
+    engine: "VirtualAnalog"
+    family: "Oscillator"
+    model_id: "KorgMs20Vco"
+    tags: [ "va", "vco", "korg", "ms20", "aggressive" ]
+    parameters:
+      - name: "tune"
+        label: "Tune"
+        unit: "semitones"
+        min: -24.0
+        max: 24.0
+        default: 0.0
+      - name: "shape"
+        label: "Shape"
+        unit: "index"      # 0=saw,1=tri,2=pulse...
+        min: 0
+        max: 3
+        default: 0
+      - name: "fm_amount"
+        label: "FM Amount"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.0
+    modulation_targets:
+      - id: "pitch"
+        label: "Pitch"
+        unit: "semitones"
+      - id: "fm_amount"
+        label: "FM Amount"
+        unit: "normalized"
+
+  - id: "OSC-VA-004"
+    version: 1
+    status: "active"
+    name: "Roland Supersaw"
+    origin: "Roland JP-8000 / JP-8080"
+    engine: "VirtualAnalog"
+    family: "Oscillator"
+    model_id: "RolandJpSuperSaw"
+    tags: [ "va", "supersaw", "roland", "jp8000", "unison" ]
+    parameters:
+      - name: "detune"
+        label: "Detune"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.35
+      - name: "spread"
+        label: "Stereo Spread"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.5
+      - name: "brightness"
+        label: "Brightness"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.5
+    modulation_targets:
+      - id: "detune"
+        label: "Detune"
+        unit: "normalized"
+      - id: "spread"
+        label: "Stereo Spread"
+        unit: "normalized"
+      - id: "brightness"
+        label: "Brightness"
+        unit: "normalized"
+
+  # Oscilador genérico para fallbacks
+  - id: "OSC-VA-GENERIC"
+    version: 1
+    status: "active"
+    name: "Generic VA Oscillator"
+    origin: "OMEGA"
+    engine: "VirtualAnalog"
+    family: "Oscillator"
+    model_id: "GenericVaOsc"
+    tags: [ "va", "generic" ]
+    parameters:
+      - name: "tune"
+        label: "Tune"
+        unit: "semitones"
+        min: -24.0
+        max: 24.0
+        default: 0.0
+      - name: "shape"
+        label: "Shape"
+        unit: "index"
+        min: 0
+        max: 3
+        default: 0
+    modulation_targets:
+      - id: "pitch"
+        label: "Pitch"
+        unit: "semitones"
+      - id: "shape"
+        label: "Shape"
+        unit: "index"
+3. ace_flt_va_roland_korg.yaml
+text
+catalog_version: 1
+schema_version: 1
+
+filters:
+  - id: "FLT-VA-001"
+    version: 1
+    status: "active"
+    name: "Roland IR3109 LP24"
+    origin: "Roland Juno-106 / Jupiter-6"
+    engine: "VirtualAnalog"
+    family: "Filter"
+    model_id: "RolandIr3109Lp24"
+    mode: [ "LP24" ]
+    tags: [ "va", "lp24", "roland", "juno", "smooth" ]
+    parameters:
+      - name: "cutoff"
+        label: "Cutoff"
+        unit: "Hz"
+        min: 20.0
+        max: 20000.0
+        default: 1000.0
+      - name: "resonance"
+        label: "Resonance"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.2
+      - name: "drive"
+        label: "Drive"
+        unit: "dB"
+        min: -12.0
+        max: 24.0
+        default: 0.0
+    modulation_targets:
+      - id: "cutoff"
+        label: "Cutoff"
+        unit: "Hz"
+      - id: "resonance"
+        label: "Resonance"
+        unit: "normalized"
+      - id: "drive"
+        label: "Drive"
+        unit: "dB"
+
+  - id: "FLT-VA-003"
+    version: 1
+    status: "active"
+    name: "KORG35 MS-20"
+    origin: "Korg MS-20 (rev.1)"
+    engine: "VirtualAnalog"
+    family: "Filter"
+    model_id: "KorgMs20Korg35"
+    mode: [ "HP12", "LP12", "HP+LP Series" ]
+    tags: [ "va", "korg", "ms20", "aggressive", "self-osc" ]
+    parameters:
+      - name: "cutoff"
+        label: "Cutoff"
+        unit: "Hz"
+        min: 20.0
+        max: 20000.0
+        default: 800.0
+      - name: "resonance"
+        label: "Peak"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.5
+      - name: "drive"
+        label: "Input Drive"
+        unit: "dB"
+        min: -12.0
+        max: 24.0
+        default: 3.0
+    modulation_targets:
+      - id: "cutoff"
+        label: "Cutoff"
+        unit: "Hz"
+      - id: "resonance"
+        label: "Peak"
+        unit: "normalized"
+      - id: "drive"
+        label: "Input Drive"
+        unit: "dB"
+
+  # Filtro genérico LP24 para fallbacks
+  - id: "FLT-VA-GENERIC-LP24"
+    version: 1
+    status: "active"
+    name: "Generic VA LP24"
+    origin: "OMEGA"
+    engine: "VirtualAnalog"
+    family: "Filter"
+    model_id: "GenericVaLp24"
+    mode: [ "LP24" ]
+    tags: [ "va", "generic", "lp24" ]
+    parameters:
+      - name: "cutoff"
+        label: "Cutoff"
+        unit: "Hz"
+        min: 20.0
+        max: 20000.0
+        default: 1000.0
+      - name: "resonance"
+        label: "Resonance"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.2
+    modulation_targets:
+      - id: "cutoff"
+        label: "Cutoff"
+        unit: "Hz"
+      - id: "resonance"
+        label: "Resonance"
+        unit: "normalized"
+4. ace_env_lfo_fx_basic.yaml
+text
+catalog_version: 1
+schema_version: 1
+
+envelopes:
+  - id: "ENV-ADSR-GEN"
+    version: 1
+    status: "active"
+    name: "Generic ADSR"
+    origin: "OMEGA"
+    engine: "VirtualAnalog"
+    family: "Envelope"
+    model_id: "GenericAdsr"
+    type: "ADSR"
+    tags: [ "env", "generic" ]
+    parameters:
+      - name: "attack"
+        label: "Attack"
+        unit: "ms"
+        min: 0.1
+        max: 10000.0
+        default: 10.0
+      - name: "decay"
+        label: "Decay"
+        unit: "ms"
+        min: 0.1
+        max: 10000.0
+        default: 120.0
+      - name: "sustain"
+        label: "Sustain"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.7
+      - name: "release"
+        label: "Release"
+        unit: "ms"
+        min: 0.1
+        max: 10000.0
+        default: 300.0
+    modulation_targets: [ ]
+
+lfos:
+  - id: "LFO-001"
+    version: 1
+    status: "active"
+    name: "Generic LFO"
+    origin: "OMEGA (Juno-style)"
+    engine: "VirtualAnalog"
+    family: "LFO"
+    model_id: "GenericLfo"
+    tags: [ "lfo", "generic" ]
+    parameters:
+      - name: "rate"
+        label: "Rate"
+        unit: "Hz"
+        min: 0.01
+        max: 20.0
+        default: 0.5
+      - name: "shape"
+        label: "Shape"
+        unit: "enum"
+        enum_values: [ "sine", "triangle", "saw", "square", "random" ]
+        default: "triangle"
+      - name: "delay"
+        label: "Delay"
+        unit: "ms"
+        min: 0.0
+        max: 10000.0
+        default: 0.0
+    modulation_targets: [ ]   # el LFO es fuente, no destino
+
+fx:
+  - id: "FX-CH-001"
+    version: 1
+    status: "active"
+    name: "Juno BBD Chorus"
+    origin: "Roland Juno-106"
+    engine: "FX"
+    family: "Chorus"
+    model_id: "RolandJunoChorus"
+    tags: [ "chorus", "bbd", "juno", "stereo" ]
+    parameters:
+      - name: "mix"
+        label: "Mix"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.7
+      - name: "mode"
+        label: "Mode"
+        unit: "enum"
+        enum_values: [ "I", "II", "I+II" ]
+        default: "I+II"
+    modulation_targets:
+      - id: "mix"
+        label: "Mix"
+        unit: "normalized"
+
+  # FX genérico para fallback
+  - id: "FX-CH-GENERIC"
+    version: 1
+    status: "active"
+    name: "Generic Chorus"
+    origin: "OMEGA"
+    engine: "FX"
+    family: "Chorus"
+    model_id: "GenericChorus"
+    tags: [ "chorus", "generic" ]
+    parameters:
+      - name: "mix"
+        label: "Mix"
+        unit: "normalized"
+        min: 0.0
+        max: 1.0
+        default: 0.5
+    modulation_targets:
+      - id: "mix"
+        label: "Mix"
+        unit: "normalized"
+Con estos tres ficheros ya puedes:
+
+Implementar AceCatalog::createFromResources() leyendo ace_index.yaml y los otros.
+
+Usar getComponent(id) en AceValidator y en el Binding.
+
+Construir presets como el “Hybrid MS20 + JP Supersaw Pad” usando estos ids.
+
+
+
+
+
+Para que todo encaje con JUCE, te propongo este esquema de ValueTree de preset, alineado con ACE y EngineConfig.
+
+1. Árbol raíz del preset
+text
+OMEGA_PRESET
+ ├─ Global
+ ├─ Layers
+ │   ├─ LayerA
+ │   └─ LayerB
+ └─ Metadata
+Claves principales:
+
+OMEGA_PRESET (type): nodo raíz del estado.
+
+Props en raíz:
+
+engine (p.ej. "VirtualAnalog")
+
+catalogVersion (int, opcional)
+
+2. Nodo Global
+Parámetros macro (espejo de APVTS, si quieres):
+
+text
+Global
+ ├─ (props)
+Props típicas:
+
+masterGain
+
+macro1..macroN
+
+layerMixA, layerMixB (si lo quieres también aquí)
+
+Estos parámetros también existen como parámetros APVTS; el ValueTree es solo su copia serializada.
+​
+
+3. Nodo Layers
+text
+Layers
+ ├─ LayerA
+ └─ LayerB
+Cada LayerX tiene esta estructura:
+
+text
+LayerA
+ ├─ VoiceArchitecture
+ ├─ Modulation
+ └─ LayerParams
+Props en LayerA:
+
+id = "A"
+
+name = "MS20 Grit"
+
+polyphony (int)
+
+engine (de la layer, normalmente igual a global)
+
+3.1 VoiceArchitecture (JUCE)
+text
+VoiceArchitecture
+ ├─ Oscillators
+ ├─ Filters
+ ├─ Envelopes
+ ├─ Lfos
+ └─ Fx
+Oscillators
+text
+Oscillators
+ ├─ Osc1
+ └─ Osc2
+Osc1 props:
+
+slot (int)
+
+componentId = "OSC-VA-002" (ACE id)
+
+enabled (bool)
+
+Parámetros propios (mismas claves que en ACE):
+
+tune
+
+shape
+
+fm_amount
+
+…
+
+Idem para Osc2 con su componentId (por ejemplo, "OSC-VA-001").
+​
+
+Filters
+text
+Filters
+ └─ Filter1
+Filter1 props:
+
+slot (int)
+
+componentId = "FLT-VA-003"
+
+enabled (bool)
+
+mode = "HP+LP Series"
+
+Parámetros: cutoff, resonance, drive…
+
+Envelopes
+text
+Envelopes
+ ├─ Env1
+ └─ Env2
+Props:
+
+slot (int)
+
+componentId = "ENV-ADSR-GEN"
+
+role = "amp" / "filter"
+
+Parámetros: attack, decay, sustain, release…
+​
+
+LFOs
+text
+Lfos
+ └─ Lfo1
+Props:
+
+slot (int)
+
+componentId = "LFO-001"
+
+rate, shape, delay…
+​
+
+FX
+text
+Fx
+ └─ Fx1
+Props:
+
+slot (int)
+
+componentId = "FX-CH-001"
+
+enabled (bool)
+
+Parámetros: mix, mode…
+​
+
+3.2 Modulation
+text
+Modulation
+ ├─ LocalRoutes
+ └─ GlobalRoutes
+LocalRoutes
+text
+LocalRoutes
+ ├─ Route0
+ ├─ Route1
+ └─ ...
+RouteN props:
+
+source = "ENV2", "LFO1", "KeyTrack", etc.
+
+destination = "LayerA.Filter1.cutoff" (cadena según convención)
+​
+
+amount (float)
+
+curve (string: "linear", "exponential", "s-curve"…)
+
+bipolar (bool opcional)
+
+GlobalRoutes
+Rutas que usan fuentes globales (ModWheel, Aftertouch…) hacia la layer:
+
+text
+GlobalRoutes
+ └─ Route0 (ej. source="ModWheel", destination="LayerA.Filter1.cutoff", ...)
+3.3 LayerParams
+text
+LayerParams
+ └─ (props)
+Props típicas:
+
+levelDb (ganancia de la layer)
+
+pan
+
+mute / solo
+
+Estos pueden mapearse a parámetros APVTS si quieres (por ejemplo, LAYER_A_LEVEL, LAYER_A_PAN).
+
+4. Nodo Metadata
+text
+Metadata
+ └─ (props)
+Props:
+
+name
+
+author
+
+tags (quizá como string CSV o child nodes)
+
+bpm, key
+
+createdAt, updatedAt, etc.
+​
+
+5. Cómo encaja con ACE y Validator
+AceCatalog solo se preocupa de componentId y de los nombres de parámetros/targets que aparecen bajo cada OscX/FilterX/etc.
+
+AceValidator recorre:
+
+Layers/Layer*/VoiceArchitecture → valida componentId, rellena defaults, aplica fallbacks.
+
+Modulation → valida source y destination contra la arquitectura y ACE.
+​
+
+VoiceFactory usa VoiceArchitecture validado para construir VoiceArchitectureRuntime.
+​
+
+ModulationGraph usa Modulation validado para construir ModulationRoutingRuntime.
+​
+
+Todo esto ocurre fuera del audio thread; el engine solo ve los runtimes resultantes.
+​
+
+Con este esquema ya puedes:
+
+Serializar/deserializar presets OMEGA ↔ ValueTree de JUCE de forma directa.
+​
+
+Te dejo la traducción 1:1 del preset híbrido al esquema de ValueTree que acabamos de definir. Es pseudocódigo de estructura, no C++, para que veas tipos y keys.
+
+1. Raíz y nodos principales
+text
+ValueTree type: "OMEGA_PRESET"
+  properties:
+    engine = "VirtualAnalog"
+    catalogVersion = 1
+Hijos:
+
+text
+OMEGA_PRESET
+ ├─ Global        (type: "Global")
+ ├─ Layers        (type: "Layers")
+ └─ Metadata      (type: "Metadata")
+2. Nodo Global
+text
+Global (type: "Global")
+  properties:
+    masterGain = 0.0          // dB
+    macro1 = 0.0
+    macro2 = 0.0
+    // etc, los que quieras
+3. Nodo Layers
+text
+Layers (type: "Layers")
+  children:
+    LayerA (type: "Layer")
+    LayerB (type: "Layer")
+3.1 LayerA
+text
+LayerA (type: "Layer")
+  properties:
+    id = "A"
+    name = "MS20 Grit"
+    polyphony = 8
+    engine = "VirtualAnalog"
+
+  children:
+    VoiceArchitecture (type: "VoiceArchitecture")
+    Modulation        (type: "Modulation")
+    LayerParams       (type: "LayerParams")
+3.1.1 LayerA.VoiceArchitecture
+text
+VoiceArchitecture (type: "VoiceArchitecture")
+  children:
+    Oscillators (type: "Oscillators")
+    Filters     (type: "Filters")
+    Envelopes   (type: "Envelopes")
+    Lfos        (type: "Lfos")
+    Fx          (type: "Fx")
+Osciladores:
+
+text
+Oscillators
+  ├─ Osc1 (type: "Oscillator")
+  └─ Osc2 (type: "Oscillator")
+Osc1 (MS‑20 VCO):
+
+text
+Osc1
+  properties:
+    slot = 1
+    componentId = "OSC-VA-002"     // Korg VCO
+    enabled = true
+    tune = 0.0
+    shape = 0                       // saw
+    fm_amount = 0.0
+Osc2 (Juno DCO sub‑refuerzo):
+
+text
+Osc2
+  properties:
+    slot = 2
+    componentId = "OSC-VA-001"     // Juno DCO
+    enabled = true
+    tune = -12.0
+    pulse_width = 0.5
+    sub_level = 0.5
+Filtro:
+
+text
+Filters
+  └─ Filter1 (type: "Filter")
+Filter1 (KORG35 MS‑20):
+
+text
+Filter1
+  properties:
+    slot = 1
+    componentId = "FLT-VA-003"     // KORG35
+    enabled = true
+    mode = "HP+LP Series"
+    cutoff = 800.0
+    resonance = 0.6
+    drive = 3.0
+Envolventes:
+
+text
+Envelopes
+  ├─ Env1 (type: "Envelope")
+  └─ Env2 (type: "Envelope")
+Env1 (amp):
+
+text
+Env1
+  properties:
+    slot = 1
+    componentId = "ENV-ADSR-GEN"
+    role = "amp"
+    attack = 10.0
+    decay = 120.0
+    sustain = 0.7
+    release = 300.0
+Env2 (filter):
+
+text
+Env2
+  properties:
+    slot = 2
+    componentId = "ENV-ADSR-GEN"
+    role = "filter"
+    attack = 5.0
+    decay = 200.0
+    sustain = 0.3
+    release = 250.0
+LFO:
+
+text
+Lfos
+  └─ Lfo1 (type: "Lfo")
+Lfo1:
+
+text
+Lfo1
+  properties:
+    slot = 1
+    componentId = "LFO-001"
+    rate = 0.4
+    shape = "triangle"
+    delay = 0.0
+FX:
+
+text
+Fx
+  └─ Fx1 (type: "Fx")
+Fx1 (chorus Juno):
+
+text
+Fx1
+  properties:
+    slot = 1
+    componentId = "FX-CH-001"
+    enabled = true
+    mix = 0.4
+    mode = "I+II"
+3.1.2 LayerA.Modulation
+text
+Modulation
+  children:
+    LocalRoutes  (type: "LocalRoutes")
+    GlobalRoutes (type: "GlobalRoutes")
+LocalRoutes:
+
+text
+LocalRoutes
+  ├─ Route0 (type: "Route")
+  └─ Route1 (type: "Route")
+Route0 (ENV2 → cutoff):
+
+text
+Route0
+  properties:
+    source = "ENV2"
+    destination = "LayerA.Filter1.cutoff"
+    amount = 0.5
+    curve = "exponential"
+    bipolar = false
+Route1 (LFO1 → pitch osc1):
+
+text
+Route1
+  properties:
+    source = "LFO1"
+    destination = "LayerA.Osc1.pitch"
+    amount = 0.1
+    curve = "sine"
+    bipolar = true
+GlobalRoutes (ejemplo vacío por ahora):
+
+text
+GlobalRoutes
+  // sin rutas en este preset
+3.1.3 LayerA.LayerParams
+text
+LayerParams
+  properties:
+    levelDb = -3.0
+    pan = -0.1
+    mute = false
+3.2 LayerB (JP Supersaw Pad)
+Misma estructura:
+
+text
+LayerB (type: "Layer")
+  properties:
+    id = "B"
+    name = "JP Supersaw Pad"
+    polyphony = 8
+    engine = "VirtualAnalog"
+
+  children:
+    VoiceArchitecture
+    Modulation
+    LayerParams
+LayerB.VoiceArchitecture:
+
+Osciladores:
+
+text
+Oscillators
+  ├─ Osc1
+  └─ Osc2
+Osc1 (supersaw):
+
+text
+Osc1
+  properties:
+    slot = 1
+    componentId = "OSC-VA-004"
+    enabled = true
+    detune = 0.4
+    spread = 0.6
+    brightness = 0.5
+Osc2 (Juno DCO):
+
+text
+Osc2
+  properties:
+    slot = 2
+    componentId = "OSC-VA-001"
+    enabled = true
+    tune = 0.0
+    pulse_width = 0.5
+    sub_level = 0.5
+Filtro:
+
+text
+Filters
+  └─ Filter1
+Filter1 (IR3109 LP24):
+
+text
+Filter1
+  properties:
+    slot = 1
+    componentId = "FLT-VA-001"
+    enabled = true
+    mode = "LP24"
+    cutoff = 3500.0
+    resonance = 0.2
+    drive = 0.0
+Envelopes:
+
+text
+Envelopes
+  ├─ Env1
+  └─ Env2
+Env1 (amp):
+
+text
+Env1
+  properties:
+    slot = 1
+    componentId = "ENV-ADSR-GEN"
+    role = "amp"
+    attack = 80.0
+    decay = 400.0
+    sustain = 0.8
+    release = 800.0
+Env2 (filter):
+
+text
+Env2
+  properties:
+    slot = 2
+    componentId = "ENV-ADSR-GEN"
+    role = "filter"
+    attack = 50.0
+    decay = 600.0
+    sustain = 0.5
+    release = 700.0
+LFO:
+
+text
+Lfos
+  └─ Lfo1
+Lfo1:
+
+text
+Lfo1
+  properties:
+    slot = 1
+    componentId = "LFO-001"
+    rate = 0.2
+    shape = "sine"
+    delay = 0.0
+FX:
+
+text
+Fx
+  └─ Fx1
+Fx1:
+
+text
+Fx1
+  properties:
+    slot = 1
+    componentId = "FX-CH-001"
+    enabled = true
+    mix = 0.8
+    mode = "I+II"
+LayerB.Modulation:
+
+text
+LocalRoutes
+  ├─ Route0
+  └─ Route1
+Route0 (LFO1 → detune supersaw):
+
+text
+Route0
+  properties:
+    source = "LFO1"
+    destination = "LayerB.Osc1.detune"
+    amount = 0.1
+    curve = "s-curve"
+    bipolar = true
+Route1 (ENV2 → cutoff):
+
+text
+Route1
+  properties:
+    source = "ENV2"
+    destination = "LayerB.Filter1.cutoff"
+    amount = 0.4
+    curve = "exponential"
+    bipolar = false
+LayerB.LayerParams:
+
+text
+LayerParams
+  properties:
+    levelDb = 0.0
+    pan = 0.1
+    mute = false
+4. Metadata
+text
+Metadata
+  properties:
+    name = "Hybrid MS20 + JP Supersaw Pad"
+    author = "abdeneurolab"
+    tags = "pad;hybrid;ms20;jp8000;juno;chorus"
+    bpm = 128
+    key = "C minor"
+    createdAt = "2026-03-17T10:33:00Z"   // ejemplo
+Con este esquema:
+
+Puedes mapear 1:1 entre YAML “humano” y ValueTree.
+
+AceValidator sabe exactamente dónde leer componentId y parámetros.
+
+VoiceFactory puede leer VoiceArchitecture para construir VoiceArchitectureRuntime.
+
+A partir de aquí, tu siguiente paso en código sería:
+
+Implementar funciones helpers tipo ValueTree OmegaPreset::createDefault(), OmegaPreset::fromYaml(), OmegaPreset::toYaml().
+
+Y usar este árbol como backend de getStateInformation/setStateInformation.
+
+
+
+La capa OmegaPreset envolviendo el ValueTree es justo el siguiente buen paso: te quita strings mágicos del resto del código y centraliza el contrato.
+
+1. Rol de OmegaPreset
+A nivel de infraestructura:
+
+Encapsula el ValueTree raíz (OMEGA_PRESET).
+
+Proporciona métodos de alto nivel para:
+
+Crear presets por defecto.
+
+Leer/escribir propiedades comunes (engine, nombre, capas).
+
+Acceder a VoiceArchitecture/Modulation de forma tipada.
+
+Es la única pieza que conoce los type names y property names del árbol.
+
+El resto del código (validator, factory, UI) trabaja contra métodos/structs, no contra strings.
+
+2. Interfaz conceptual de OmegaPreset
+Algo en esta línea:
+
+cpp
+class OmegaPreset
+{
+public:
+    // Construir desde un ValueTree existente o crear vacío
+    explicit OmegaPreset(juce::ValueTree root);
+    static OmegaPreset createEmpty();
+    static OmegaPreset createDefaultVirtualAnalog();
+
+    juce::ValueTree getRoot() const noexcept;
+
+    // Global
+    juce::String getEngine() const;
+    void setEngine(const juce::String&);
+
+    float getMasterGainDb() const;
+    void setMasterGainDb(float);
+
+    // Metadata
+    juce::String getName() const;
+    void setName(const juce::String&);
+    juce::String getAuthor() const;
+    void setAuthor(const juce::String&);
+
+    // Layers
+    int getNumLayers() const;
+    juce::StringArray getLayerIds() const;
+    juce::ValueTree getLayerTree(const juce::String& layerId) const;
+
+    // Helpers específicos de capa
+    float getLayerLevelDb(const juce::String& layerId) const;
+    void setLayerLevelDb(const juce::String& layerId, float);
+
+    // Acceso a sub-nodos
+    juce::ValueTree getVoiceArchitecture(const juce::String& layerId) const;
+    juce::ValueTree getModulation(const juce::String& layerId) const;
+};
+Internamente, OmegaPreset se encarga de:
+
+Crear nodos Global, Layers, Metadata si no existen.
+
+Crear LayerA/LayerB con su estructura mínima (VoiceArchitecture, Modulation, LayerParams).
+
+Así, AceValidator puede hacer:
+
+cpp
+OmegaPreset preset(rootTree);
+auto layerA = preset.getLayerTree("A");
+auto voiceArchA = preset.getVoiceArchitecture("A");
+auto modA = preset.getModulation("A");
+sin conocer strings de tipos ni nombres de hijos.
+
+3. Dónde vive y quién lo usa
+Módulo Source/Core/Preset/OmegaPreset.* (o similar).
+
+Usado por:
+
+AceValidator para recorrer componentes/rutas.
+
+UI para leer/escribir parámetros de capa/global/metadata.
+
+Serialización de estado (getStateInformation / setStateInformation):
+
+getStateInformation → serializa OmegaPreset::getRoot() a XML/binary.
+​
+
+setStateInformation → reconstruye ValueTree y lo envuelve en OmegaPreset.
+
+Audio engine no necesita ver OmegaPreset, solo los snapshots runtime que derivan de él.
+​
+
+4. Beneficios inmediatos
+Un solo sitio donde cambiar nombres de tipos/props si haces refactors.
+
+Menos riesgo de typos/bugs al acceder a propiedades.
+
+Más claro para cualquier colaborador/IA que quiera interactuar con tu preset format: una clase bien definida en lugar de manipular ValueTree “a pelo”.
+
+
+
+Queda entonces cerrado el diseño de alta nivel: ACE como catálogo emulado encima de OMEGA, con:
+
+Catálogo YAML (osc/filt/env/lfo/fx) ya definido para el MVP.
+
+Reglas de validación/fallback claras (OK/DEGRADED/INVALID).
+
+Módulos AceCatalog y AceValidator separados del audio thread.
+
+EngineConfig/VoiceConfig como snapshot inmutable para el motor VA.
+
+Esquema concreto de ValueTree de preset y capa OmegaPreset para encapsularlo.
+​
+​
+
+Con esto ya puedes empezar a implementarlo en tu repo sin tocar aún DSP profundo, y luego ir añadiendo modelos MS‑20/JP‑8000/Juno uno a uno.
+
+
+
+
+Para un MVP funcional, la primera familia ACE tiene sentido que sea “Roland Juno + Korg MS‑20 + un toque JP supersaw”, limitada pero muy expresiva.
+
+1. Objetivo del MVP de familia
+Un solo engine: VirtualAnalog, con:
+
+Patches Juno‑like: DCO + IR3109 + chorus.
+
+Patches MS‑20‑like: VCO + KORG35 agresivo.
+
+Patches híbridos “modernos”: supersaw JP‑8000 pasando por filtros Juno/MS‑20.
+​
+
+Todo apoyado en los componentes ACE MVP que ya definimos.
+
+2. Familia MVP: qué implementar primero
+Orden recomendado:
+
+Roland Juno “core”
+
+OSC-VA-001: DCO Juno (tú ya lo tienes en JUNiO, es adaptación).
+​
+
+FLT-VA-001: IR3109 LP24 suave.
+
+FX-CH-001: chorus BBD Juno (MN3009‑style), aunque sea una versión simplificada al principio.
+
+Korg MS‑20 “personalidad”
+
+OSC-VA-002: VCO MS‑20 con formas básicas (saw, pulse, quizá tri) y algo de inestabilidad.
+
+FLT-VA-003: filtro KORG35 HP+LP 12 dB con saturación y auto‑oscilación.
+
+JP‑8000 supersaw “moderna”
+
+OSC-VA-004: supersaw JP con detune y spread, aunque al principio uses una curva de detune simplificada; luego la puedes refinar con la curva de Szabo.
+
+Infra genérica
+
+ENV-ADSR-GEN, LFO-001, FX-CH-GENERIC, OSC‑VA‑GENERIC, FLT‑VA‑GENERIC‑LP24 para fallbacks.
+
+Con esto ya cubres pads, leads y basses muy variados.
+
+3. Prioridad de implementación (por fases cortas)
+Fase 1 – Juno puro (vertical slice)
+Implementar:
+
+OSC-VA-001 (DCO Juno) usando tu código JUNiO adaptado al interface ACE.
+​
+
+FLT-VA-001 (IR3109 LP24) con comportamiento suave.
+
+FX-CH-001 como chorus estéreo BBD simple (dos líneas de delay + LFO desfasados).
+
+Infra:
+
+AceCatalog + AceValidator operativos con estos ids.
+
+EngineConfig/VoiceConfig para una sola layer.
+​
+
+Resultado: un preset “Juno pad” completo que pase por todo el pipeline ACE → Engine.
+
+Fase 2 – MS‑20
+Añadir:
+
+OSC-VA-002 (VCO MS‑20) con algo de drift/inestabilidad.
+
+FLT-VA-003 (KORG35) con HP+LP serie, resonancia agresiva y saturación.
+
+Probar:
+
+Preset “MS20 bass/lead” y un híbrido Juno DCO + KORG35.
+
+Fase 3 – Supersaw JP
+Añadir:
+
+OSC-VA-004 (supersaw) con 7 sierras, detune y spread básicos.
+
+Probar:
+
+Preset “JP Supersaw pad” y el híbrido que ya definimos (Layer A MS‑20, Layer B supersaw + Juno).
+​
+
+Con esto ya tendrás un MVP que demuestra claramente el concepto ACE: combinar componentes de distintos sintes en un solo motor.
+
+4. Criterios de “MVP listo”
+Yo marcaría como “MVP VA+ACE 0.1 hecho” cuando:
+
+Puedes cargar 3 presets representativos:
+
+Juno‑like (solo componentes Roland).
+
+MS‑20‑like (solo componentes Korg).
+
+Híbrido MS‑20 + JP supersaw + chorus Juno.
+
+El Validator y los fallbacks funcionan (si quitas un componente del catálogo, el preset se degrada pero suena).
+
+La UI puede:
+
+Mostrar qué componentId hay en cada slot.
+
+Dejar cambiar entre, por ejemplo, FLT-VA-001 ↔ FLT-VA-003 y oír la diferencia.
+
+
+
+
+~~Para un MVP funcional, la primera familia ACE tiene sentido que sea “Roland Juno + Korg MS‑20 + un toque JP supersaw”, limitada pero muy expresiva.
+...
+Dejar cambiar entre, por ejemplo, FLT-VA-001 ↔ FLT-VA-003 y oír la diferencia.~~ [HECHO / MVP COMPLETADO]

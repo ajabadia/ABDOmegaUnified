@@ -1,0 +1,34 @@
+{
+  "title": "Ponte en",
+  "highlight": "Contacto",
+  "description": "Si necesitas soporte técnico para un motor alfa o quieres discutir una colaboración de investigación, nuestro enlace está abierto.",
+  "terminal": "Terminal de Contacto",
+  "form": {
+    "name": "Nombre del Operador",
+    "namePlaceholder": "Identidad Requerida",
+    "email": "Dirección de Retorno (Email)",
+    "emailPlaceholder": "nombre@dominio.com",
+    "subject": "Asunto de la Transmisión",
+    "subjectPlaceholder": "Propósito del contacto",
+    "message": "Payload de Datos (Mensaje)",
+    "messagePlaceholder": "Redacta tu consulta...",
+    "challenge": "Verificación Humana",
+    "challengeLoading": "Calculando...",
+    "challengeError": "Verificación fallida. ¿Eres humano?",
+    "submit": "Despachar Transmisión",
+    "security": "Cifrado de acoplamiento cero activado. Todos los paquetes de datos son filtrados por integridad industrial.",
+    "successTitle": "Transmisión Exitosa",
+    "successDesc": "Tu mensaje ha sido codificado y despachado. Se ha enviado un comprobante a tu bandeja de entrada.",
+    "newTransmission": "Nueva Transmisión",
+    "error": "Fallo del sistema. Transmisión abortada. Por favor, inténtalo más tarde."
+  },
+  "info": {
+    "inquiries": "Consultas",
+    "community": "Comunidad",
+    "lab": "Laboratorio Boutique",
+    "origin": "Origen",
+    "remote": "Operaciones Remotas Únicamente",
+    "global": "Matriz Digital Global",
+    "quote": "\"Creemos en la comunicación aséptica. Datos mínimos, resonancia máxima.\""
+  }
+}

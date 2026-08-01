@@ -1,0 +1,29 @@
+/* OMEGA INDUSTRIAL LEDS (Era 7.2.3 — High Fidelity) */
+/* Aligned with ABDSynthsWeb Standards */
+
+.theme-industrial .led {
+    border-radius: 50% !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.1s ease-out !important;
+    background-color: #331111; /* Default state */
+    opacity: 0.3;
+}
+
+/* SIZES */
+.theme-industrial .led.size-A { width: 12px !important; height: 12px !important; }
+.theme-industrial .led.size-B { width: 8px !important; height: 8px !important; }
+.theme-industrial .led.size-C { width: 5px !important; height: 5px !important; }
+.theme-industrial .led.size-D { width: 3px !important; height: 3px !important; }
+
+/* COLOR STATES & GLOW */
+.theme-industrial .led.color-cyan { background-color: var(--wb-primary); }
+.theme-industrial .led.color-red { background-color: #ff4444; }
+.theme-industrial .led.color-orange { background-color: var(--wb-accent); }
+.theme-industrial .led.color-green { background-color: #00ff88; }
+.theme-industrial .led.color-white { background-color: #ffffff; }
+
+/* Dynamic Glow Logic (Handled by Renderer via style, but theme provides base) */
+.theme-industrial .led.active {
+    opacity: 1 !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}

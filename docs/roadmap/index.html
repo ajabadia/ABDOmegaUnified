@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ABDOmegaUnified — Visor de Roadmap & Handoff</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #131b2e;
+      --surface-border: #202b46;
+      --surface-hover: #1c2742;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.25);
+      --accent: #06b6d4;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      
+      --status-completed: #10b981;
+      --status-pending: #f59e0b;
+      --status-in_progress: #3b82f6;
+      --status-future: #8b5cf6;
+      --status-discarded: #64748b;
+      --status-error_issue: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    .header {
+      background: linear-gradient(180deg, #131c33 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--surface-border);
+      padding: 30px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: white;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+    .title-group h1 { font-size: 22px; font-weight: 700; color: #fff; }
+    .title-group p { font-size: 13px; color: var(--text-muted); }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--surface);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--surface-border);
+    }
+    .nav-tab {
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      border: none;
+      background: transparent;
+    }
+    .nav-tab.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    /* Mode Banner */
+    .mode-banner {
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: var(--accent);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Metrics Bar */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .metric-card .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+    .metric-card .value { font-size: 28px; font-weight: 700; color: #fff; font-family: 'JetBrains Mono', monospace; }
+    .metric-card .sub { font-size: 12px; color: var(--status-completed); }
+
+    /* Controls Bar */
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--surface-border);
+      align-items: center;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+      background: var(--bg);
+      border: 1px solid var(--surface-border);
+      color: white;
+      padding: 9px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--primary); }
+
+    .select-filter {
+      background: var(--bg);
+      border: 1px solid var(--surface-border);
+      color: white;
+      padding: 9px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Cards Grid */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .item-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .item-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(6, 182, 212, 0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+    .status-badge {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .status-completed { background: rgba(16, 185, 129, 0.15); color: var(--status-completed); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--status-pending); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-in_progress { background: rgba(59, 130, 246, 0.15); color: var(--status-in_progress); border: 1px solid rgba(59, 130, 246, 0.3); }
+    .status-discarded { background: rgba(100, 116, 139, 0.15); color: var(--status-discarded); border: 1px solid rgba(100, 116, 139, 0.3); }
+
+    .card-title { font-size: 16px; font-weight: 600; color: #fff; }
+    .card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+    .card-notes {
+      background: rgba(0, 0, 0, 0.2);
+      border-left: 3px solid var(--primary);
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tags-list { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag-pill { font-size: 10px; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; color: #94a3b8; }
+
+    /* Handoff View */
+    .handoff-panel {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .handoff-header h2 { font-size: 20px; color: #fff; font-weight: 700; }
+    .handoff-header p { font-size: 13px; color: var(--text-muted); }
+
+    .handoff-section {
+      background: var(--bg);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .handoff-section h3 { font-size: 15px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .handoff-list { list-style-type: none; display: flex; flex-direction: column; gap: 8px; }
+    .handoff-list li { font-size: 13px; color: #e2e8f0; padding-left: 20px; position: relative; }
+    .handoff-list li::before { content: "•"; position: absolute; left: 6px; color: var(--accent); font-weight: bold; }
+
+    .btn-file {
+      background: var(--surface-border);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-file:hover { background: var(--primary); }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- EMBEDDED HYBRID DATA ENGINE FOR FILE:// PROTOCOL COMPATIBILITY -->
+  <script id="embedded-data-phase1" type="application/json">
+  {
+    "phase": "Fase 1: Inicialización & Arquitectura Greenfield",
+    "partitionId": "phase-1",
+    "items": [
+      {
+        "id": "RM-101",
+        "code": "ARCH-INIT",
+        "title": "Creación de la Estructura Greenfield (3 Cajas + Host Nativo)",
+        "category": "architecture",
+        "status": "completed",
+        "phase": "Fase 1",
+        "createdAt": "2026-07-30T10:05:00+02:00",
+        "updatedAt": "2026-07-30T12:15:00+02:00",
+        "actor": "antigravity",
+        "description": "Inicialización limpia de la carpeta ABDOmegaUnified agrupando: host (ABDOmega C++), engine, modules y web (ABDOmegaEditor).",
+        "notes": "Estructura aislada creada para evitar duplicidad de código y scripts de sincronización manuales.",
+        "tags": ["architecture", "greenfield", "setup"]
+      },
+      {
+        "id": "RM-113",
+        "code": "HOST-MIGRATION",
+        "title": "Integración del Host Nativo C++ (ABDOmega) en host/",
+        "category": "host",
+        "status": "completed",
+        "phase": "Fase 1",
+        "createdAt": "2026-07-30T12:14:00+02:00",
+        "updatedAt": "2026-07-30T12:15:00+02:00",
+        "actor": "antigravity",
+        "description": "Copia del código fuente completo del sintetizador host nativo ABDOmega C++/JUCE hacia host/ dentro del repositorio unificado.",
+        "notes": "Establece el hogar oficial del sintetizador donde se cargan los módulos fabricados.",
+        "tags": ["host", "c++", "juce", "abdomega"]
+      },
+      {
+        "id": "RM-114",
+        "code": "WEB-LAUNCHER",
+        "title": "Lanzador Web Central Portal en Puerto 6789 (4 Accesos)",
+        "category": "web",
+        "status": "completed",
+        "phase": "Fase 2",
+        "createdAt": "2026-07-30T12:26:00+02:00",
+        "updatedAt": "2026-07-30T12:38:00+02:00",
+        "actor": "antigravity",
+        "description": "Desarrollo del Lanzador Web Central en la página de inicio (http://localhost:6789) para acceder a ABDOmega Host UI, Rack Sandbox Player, ABDOmegaEditor y Roadmap.",
+        "notes": "Permite iniciar las 4 herramientas principales con 1 solo clic desde un portal web unificado.",
+        "tags": ["web", "portal", "launcher"]
+      },
+      {
+        "id": "RM-115",
+        "code": "HOST-UI-STANDALONE",
+        "title": "Desbloqueo de Splash Screen para Ejecución Web Standalone de ABDOmega",
+        "category": "host",
+        "status": "completed",
+        "phase": "Fase 2",
+        "createdAt": "2026-07-30T12:44:00+02:00",
+        "updatedAt": "2026-07-30T12:46:00+02:00",
+        "actor": "antigravity",
+        "description": "Implementación de temporizador de desvanecimiento automático en host/ui/index.html para permitir la ejecución de ABDOmega Host UI en navegadores web fuera del ejecutable C++.",
+        "notes": "Resuelve el bloqueo de pantalla de carga que impedía ver el rack en modo web standalone (patrón heredado de ABDJUNiO).",
+        "tags": ["host", "ui", "splash", "standalone"]
+      },
+      {
+        "id": "RM-102",
+        "code": "SDK-HEADERS",
+        "title": "Integración de Cabeceras C++ SDK & Mock WASM",
+        "category": "engine",
+        "status": "completed",
+        "phase": "Fase 1",
+        "createdAt": "2026-07-30T10:07:00+02:00",
+        "updatedAt": "2026-07-30T10:09:00+02:00",
+        "actor": "antigravity",
+        "description": "Instalación de OmegaContract.h y OmegaConstants.h en engine/include/Core/Ace junto a wasm_compat.h.",
+        "notes": "Permite compilar el motor C++ headless para WebAssembly sin dependencias nativas de ventana o hilos.",
+        "tags": ["c++", "sdk", "wasm"]
+      },
+      {
+        "id": "RM-103",
+        "code": "MOD-MIGRATION",
+        "title": "Migración de Módulos Preexistentes (midi_in, midi_trigger, omega_lab_monitor, test_parity)",
+        "category": "modules",
+        "status": "completed",
+        "phase": "Fase 1",
+        "createdAt": "2026-07-30T10:09:00+02:00",
+        "updatedAt": "2026-07-30T11:42:00+02:00",
+        "actor": "antigravity",
+        "description": "Copia e integración estricta de módulos preexistentes creados anteriormente en ABDOmega y ABDOmega plugins.",
+        "notes": "Ubicados en la estantería compartida modules/ respetando las fuentes C++ y manifiestos .acemm originales.",
+        "tags": ["modules", "preexisting", "acemm"]
+      },
+      {
+        "id": "RM-104",
+        "code": "WEB-MIGRATION",
+        "title": "Migración de la App Web Next.js 16 desde ABDOmegaEditor",
+        "category": "web",
+        "status": "completed",
+        "phase": "Fase 1",
+        "createdAt": "2026-07-30T10:15:00+02:00",
+        "updatedAt": "2026-07-30T10:30:00+02:00",
+        "actor": "antigravity",
+        "description": "Copia directa del código fuente web desde ABDOmegaEditor a web/. Instalación de dependencias (743 paquetes) y verificación de TypeScript (0 errores). Build de producción Next.js 16 exitoso.",
+        "notes": "Se preservaron el 100% de los temas CSS, editor Monaco, rejilla 5px y matriz de modulación SVG.",
+        "tags": ["nextjs", "react", "tailwind", "web"]
+      },
+      {
+        "id": "RM-105",
+        "code": "GIT-IGNORE",
+        "title": "Configuración de Gitignore y Limpieza de Entorno",
+        "category": "tooling",
+        "status": "completed",
+        "phase": "Fase 1",
+        "createdAt": "2026-07-30T10:27:00+02:00",
+        "updatedAt": "2026-07-30T10:28:00+02:00",
+        "actor": "antigravity",
+        "description": "Creación del archivo .gitignore de raíz ignorando node_modules, binarios compilados y temporales.",
+        "notes": "Mantiene limpios los archivos de código fuente y manifiestos sin sobrecargar el repositorio.",
+        "tags": ["git", "config"]
+      },
+      {
+        "id": "RM-107",
+        "code": "PLAYER-ROUTE",
+        "title": "Implementación de la Ruta Synthesizer Rack (/player)",
+        "category": "web",
+        "status": "completed",
+        "phase": "Fase 2",
+        "createdAt": "2026-07-30T10:33:00+02:00",
+        "updatedAt": "2026-07-30T10:46:00+02:00",
+        "actor": "antigravity",
+        "description": "Desarrollo de la vista /player (ABDOmega Synthesizer Rack) y conmutador de navegación en la App Web para el usuario final.",
+        "notes": "Permite visualizar el rack de sintetizador y conmuta entre el modo Editor y el modo Player de forma instantánea.",
+        "tags": ["web", "player", "rack"]
+      },
+      {
+        "id": "RM-109",
+        "code": "START-SCRIPT",
+        "title": "Script de Inicio Automático start.bat en Puerto 6789",
+        "category": "tooling",
+        "status": "completed",
+        "phase": "Fase 2",
+        "createdAt": "2026-07-30T11:21:00+02:00",
+        "updatedAt": "2026-07-30T11:22:00+02:00",
+        "actor": "antigravity",
+        "description": "Creación de start.bat en la raíz para matar procesos en puertos 6789 y 3000, abrir navegador web y lanzar Next.js en el puerto 6789.",
+        "notes": "Evita colisiones con otros servidores locales y automatiza la apertura del navegador.",
+        "tags": ["script", "batch", "port-6789"]
+      },
+      {
+        "id": "RM-106",
+        "code": "WASM-BUILD-PIPE",
+        "title": "Pipeline de Compilación Automática WASM",
+        "category": "engine",
+        "status": "completed",
+        "phase": "Fase 2",
+        "createdAt": "2026-07-30T10:33:00+02:00",
+        "updatedAt": "2026-07-30T11:29:00+02:00",
+        "actor": "antigravity",
+        "description": "Configuración de scripts/build_wasm.bat y despliegue de binarios .wasm preexistentes en web/public/wasm/.",
+        "notes": "Los módulos C++ se compilan a WASM y son servidos dinámicamente para la ejecución en la App Web.",
+        "tags": ["wasm", "emscripten", "build"]
+      },
+      {
+        "id": "RM-112",
+        "code": "SHARED-CATALOG",
+        "title": "Servicio de Lectura Dinámica de la Estantería (/modules)",
+        "category": "web",
+        "status": "completed",
+        "phase": "Fase 3",
+        "createdAt": "2026-07-30T11:47:00+02:00",
+        "updatedAt": "2026-07-30T12:00:00+02:00",
+        "actor": "antigravity",
+        "description": "Implementación de SharedModuleCatalogService para conectar dinámicamente la estantería /modules con el Rack Player y el Editor.",
+        "notes": "Carga los manifiestos .acemm y binarios .wasm preexistentes (midi_in, midi_trigger, omega_lab_monitor, test_parity).",
+        "tags": ["web", "catalog", "modules"]
+      },
+      {
+        "id": "RM-108",
+        "code": "LEGACY-DISCARD",
+        "title": "Descarte de ABDOmegaEditor___222 y Scripts de Sync Legados",
+        "category": "cleanup",
+        "status": "discarded",
+        "phase": "Fase 1",
+        "createdAt": "2026-07-30T09:14:00+02:00",
+        "updatedAt": "2026-07-30T10:00:00+02:00",
+        "actor": "user",
+        "description": "Se descarta la versión ___222 y los scripts sync_sdk.bat/sync_omega_ui.bat.",
+        "notes": "Motivo: Reemplazado por la arquitectura de 3 cajas aisladas en ABDOmegaUnified.",
+        "tags": ["cleanup", "deprecated"]
+      }
+    ]
+  }
+  </script>
+
+  <script id="embedded-data-handoff" type="application/json">
+  {
+    "partitionId": "handoff",
+    "lastHandoffDate": "2026-07-30T11:42:00+02:00",
+    "currentPhase": "Fase 1 & Fase 2 completadas - Integración estricta de activos preexistentes",
+    "activeGoal": "Consolidación Greenfield de ABDOmegaUnified en 3 cajas aisladas respetando únicamente código y módulos preexistentes",
+    "handoffState": {
+      "completedMilestones": [
+        "Creación del directorio limpio ABDOmegaUnified con estructura de 3 cajas.",
+        "Copia e integración del SDK base C++ (OmegaContract.h, OmegaConstants.h, wasm_compat.h).",
+        "Migración estricta de módulos C++ preexistentes (midi_in, midi_trigger, omega_lab_monitor, test_parity).",
+        "Migración completa de la App Web Next.js 16 desde ABDOmegaEditor.",
+        "Verificación de TypeScript (0 errores) y build de producción Next.js exitoso en 10.4s.",
+        "Ruta /player (ABDOmega Synthesizer Rack) agregada y verificada.",
+        "Script de inicio start.bat (puerto 6789 con limpieza de procesos previa) creado.",
+        "Visor visual de Roadmap & Handoff (JSON + HTML) actualizado."
+      ],
+      "immediateNextTasks": [
+        "Revisar el catálogo de componentes en el Editor Visual (/editor) para la lectura de los módulos de la estantería.",
+        "Verificar la previsualización y simulación de conectores en la rejilla de 5px."
+      ],
+      "knownGotchasAndRules": [
+        "REGLA DE ORO DE VISIÓN: ABDOmega (C++ Nativo) es el host principal donde interactúa el usuario final para sintetizar audio. La app web es el entorno de autoría ABDOmegaEditor y banco de pruebas WASM.",
+        "No crear módulos o inventos nuevos desde cero; incorporar estrictamente lo que estuviese previamente creado.",
+        "Toda UI de módulo en .acemm respeta la rejilla estricta de 5px y normalización de puertos (Cyan=Audio, Amber=CV, White=Gate, Orange=MIDI)."
+      ]
+    }
+  }
+  </script>
+
+  <header class="header">
+    <div class="brand">
+      <div class="logo-badge">Ω</div>
+      <div class="title-group">
+        <h1>ABDOmegaUnified — Dashboard</h1>
+        <p>Roadmap, Historial Modular & Handoff en Tiempo Real</p>
+      </div>
+    </div>
+    
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('roadmap', event)">📌 Roadmap & Tareas</button>
+      <button class="nav-tab" onclick="switchTab('handoff', event)">🤝 Handoff & Estado</button>
+      <button class="nav-tab" onclick="switchTab('partitions', event)">🗂️ Particiones JSON</button>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <div class="mode-banner" id="mode-banner">
+      <span>⚡ Modo Híbrido Activo (Lectura Automática + Soporte Local Directo file://)</span>
+      <button class="btn-file" onclick="document.getElementById('file-picker').click()">📂 Cargar JSON Externo</button>
+      <input type="file" id="file-picker" class="hidden" accept=".json" onchange="handleManualFile(event)">
+    </div>
+    
+    <!-- Metrics Bar -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <span class="label">Total Tareas</span>
+        <span class="value" id="stat-total">0</span>
+        <span class="sub" id="stat-progress-pct">0% Completado</span>
+      </div>
+      <div class="metric-card">
+        <span class="label">Completadas</span>
+        <span class="value" style="color: var(--status-completed);" id="stat-completed">0</span>
+      </div>
+      <div class="metric-card">
+        <span class="label">Pendientes</span>
+        <span class="value" style="color: var(--status-pending);" id="stat-pending">0</span>
+      </div>
+      <div class="metric-card">
+        <span class="label">Fase Actual</span>
+        <span class="value" style="font-size: 18px; color: var(--accent);" id="stat-phase">Fase 1</span>
+      </div>
+    </section>
+
+    <!-- Tab 1: Roadmap & Tasks -->
+    <div id="tab-roadmap">
+      <div class="controls-bar">
+        <input type="text" class="search-input" id="search-input" placeholder="🔍 Buscar por código, título o descripción..." oninput="filterItems()">
+        
+        <select class="select-filter" id="filter-status" onchange="filterItems()">
+          <option value="all">Todos los Estados</option>
+          <option value="completed">Completado</option>
+          <option value="pending">Pendiente</option>
+          <option value="in_progress">En Progreso</option>
+          <option value="discarded">Descartado</option>
+        </select>
+
+        <select class="select-filter" id="filter-category" onchange="filterItems()">
+          <option value="all">Todas las Categorías</option>
+          <option value="architecture">Arquitectura</option>
+          <option value="engine">Engine / DSP</option>
+          <option value="modules">Módulos</option>
+          <option value="web">Web App</option>
+          <option value="tooling">Herramientas</option>
+          <option value="cleanup">Limpieza</option>
+        </select>
+      </div>
+
+      <div class="items-grid" id="items-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Tab 2: Handoff View -->
+    <div id="tab-handoff" class="hidden">
+      <div class="handoff-panel">
+        <div class="handoff-header">
+          <h2 id="handoff-phase-title">Handoff de Sesión</h2>
+          <p id="handoff-date">Última actualización: --</p>
+        </div>
+
+        <div class="handoff-section">
+          <h3>✅ Hitos Completados en la Sesión</h3>
+          <ul class="handoff-list" id="handoff-completed-list"></ul>
+        </div>
+
+        <div class="handoff-section">
+          <h3>🚀 Próximas Tareas Inmediatas</h3>
+          <ul class="handoff-list" id="handoff-next-list"></ul>
+        </div>
+
+        <div class="handoff-section">
+          <h3>⚠️ Reglas de Arquitectura & Reglas de Oro</h3>
+          <ul class="handoff-list" id="handoff-rules-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: JSON Partitions Viewer -->
+    <div id="tab-partitions" class="hidden">
+      <div class="handoff-panel">
+        <h2>Particiones JSON Cargadas</h2>
+        <p>El sistema soporta modularización por fases para evitar archivos JSON gigantes.</p>
+        <div id="partitions-list" style="margin-top: 15px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent);"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let allItems = [];
+    let handoffData = null;
+    let loadedPartitions = [];
+
+    async function initDashboard() {
+      allItems = [];
+      loadedPartitions = [];
+      handoffData = null;
+
+      try {
+        const indexRes = await fetch('data/index.json');
+        const indexData = await indexRes.json();
+        loadedPartitions = indexData.partitions || [];
+
+        for (const partPath of loadedPartitions) {
+          const res = await fetch(partPath);
+          const data = await res.json();
+          if (data.items) {
+            allItems = allItems.concat(data.items);
+          }
+          if (data.partitionId === 'handoff' || data.handoffState) {
+            handoffData = data;
+          }
+        }
+
+      } catch (err) {
+        console.warn('Protocolo file:// detectado o fetch no disponible. Activando motor incrustado híbrido...');
+        loadEmbeddedFallback();
+      }
+
+      if (allItems.length === 0) {
+        loadEmbeddedFallback();
+      }
+
+      renderMetrics();
+      renderItems(allItems);
+      renderHandoff();
+      renderPartitions();
+    }
+
+    function loadEmbeddedFallback() {
+      try {
+        const p1Raw = document.getElementById('embedded-data-phase1').textContent;
+        const p1Data = JSON.parse(p1Raw);
+        allItems = p1Data.items || [];
+        loadedPartitions = ["data/roadmap-phase-1.json (embedded)"];
+
+        const hRaw = document.getElementById('embedded-data-handoff').textContent;
+        handoffData = JSON.parse(hRaw);
+        loadedPartitions.push("data/handoff.json (embedded)");
+      } catch (e) {
+        console.error('Error procesando fallback incrustado:', e);
+      }
+    }
+
+    function handleManualFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.items) {
+            allItems = allItems.concat(data.items);
+            loadedPartitions.push(`${file.name} (cargado manualmente)`);
+          }
+          if (data.partitionId === 'handoff' || data.handoffState) {
+            handoffData = data;
+          }
+          renderMetrics();
+          renderItems(allItems);
+          renderHandoff();
+          renderPartitions();
+          alert(`¡Archivo ${file.name} cargado correctamente!`);
+        } catch (err) {
+          alert('Error al leer el archivo JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function renderMetrics() {
+      const total = allItems.length;
+      const completed = allItems.filter(i => i.status === 'completed').length;
+      const pending = allItems.filter(i => i.status === 'pending' || i.status === 'in_progress').length;
+      const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      document.getElementById('stat-total').innerText = total;
+      document.getElementById('stat-completed').innerText = completed;
+      document.getElementById('stat-pending').innerText = pending;
+      document.getElementById('stat-progress-pct').innerText = `${pct}% Completado`;
+    }
+
+    function renderItems(items) {
+      const container = document.getElementById('items-container');
+      container.innerHTML = '';
+
+      if (items.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No se encontraron registros.</div>`;
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+
+        const createdFormatted = new Date(item.createdAt).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+        const updatedFormatted = new Date(item.updatedAt).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+
+        const tagsHtml = (item.tags || []).map(t => `<span class="tag-pill">#${t}</span>`).join('');
+
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="card-code">${item.code || item.id}</span>
+            <span class="status-badge status-${item.status}">${item.status}</span>
+          </div>
+          <div class="card-title">${item.title}</div>
+          <div class="card-desc">${item.description}</div>
+          ${item.notes ? `<div class="card-notes">💡 <strong>Nota:</strong> ${item.notes}</div>` : ''}
+          <div class="tags-list">${tagsHtml}</div>
+          <div class="card-meta">
+            <span>📅 Creado: ${createdFormatted}</span>
+            <span>⏱️ Modif: ${updatedFormatted}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterItems() {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const status = document.getElementById('filter-status').value;
+      const category = document.getElementById('filter-category').value;
+
+      const filtered = allItems.filter(item => {
+        const matchesSearch = (item.title + item.description + item.code + (item.notes || '')).toLowerCase().includes(search);
+        const matchesStatus = status === 'all' || item.status === status;
+        const matchesCategory = category === 'all' || item.category === category;
+        return matchesSearch && matchesStatus && matchesCategory;
+      });
+
+      renderItems(filtered);
+    }
+
+    function renderHandoff() {
+      if (!handoffData) return;
+      document.getElementById('handoff-phase-title').innerText = handoffData.currentPhase || 'Handoff de Sesión';
+      document.getElementById('handoff-date').innerText = `Última actualización: ${new Date(handoffData.lastHandoffDate).toLocaleString('es-ES')}`;
+
+      const state = handoffData.handoffState || {};
+      fillList('handoff-completed-list', state.completedMilestones || []);
+      fillList('handoff-next-list', state.immediateNextTasks || []);
+      fillList('handoff-rules-list', state.knownGotchasAndRules || []);
+    }
+
+    function fillList(elementId, items) {
+      const el = document.getElementById(elementId);
+      el.innerHTML = items.map(item => `<li>${item}</li>`).join('');
+    }
+
+    function renderPartitions() {
+      const el = document.getElementById('partitions-list');
+      el.innerHTML = loadedPartitions.map(p => `<div>📄 ${p}</div>`).join('');
+    }
+
+    function switchTab(tabName, evt) {
+      document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+      if (evt && evt.target) {
+        evt.target.classList.add('active');
+      }
+
+      document.getElementById('tab-roadmap').classList.add('hidden');
+      document.getElementById('tab-handoff').classList.add('hidden');
+      document.getElementById('tab-partitions').classList.add('hidden');
+
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+    }
+
+    initDashboard();
+  </script>
+</body>
+</html>

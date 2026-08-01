@@ -1,0 +1,80 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-06-25 12:16:04
+   ================================================================= */
+
+/* OMEGA INDUSTRIAL TABS (Era 7.2.3) */
+
+.module-tabs {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0,0,0,0.6);
+    padding: 4px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+[data-ui-theme="light"] .module-tabs {
+    background: rgba(0,0,0,0.06);
+    border-color: var(--wb-outline);
+}
+
+.tab-btn {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 8px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--wb-text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tab-btn:hover {
+    color: var(--wb-text);
+    background: rgba(255,255,255,0.05);
+}
+
+[data-ui-theme="light"] .tab-btn:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+.tab-btn.active {
+    background: var(--wb-primary);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(0,240,255,0.2);
+}
+
+[data-ui-theme="light"] .tab-btn.active {
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.tab-badge {
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 7px;
+    font-family: monospace;
+    background: rgba(255,255,255,0.1);
+}
+
+[data-ui-theme="light"] .tab-badge {
+    background: rgba(0,0,0,0.08);
+}
+
+.tab-btn.active .tab-badge {
+    background: rgba(255,255,255,0.2);
+}
+
+[data-ui-theme="light"] .tab-btn.active .tab-badge {
+    background: rgba(255,255,255,0.3);
+}

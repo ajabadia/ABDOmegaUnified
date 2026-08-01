@@ -1,0 +1,617 @@
+@import "tailwindcss";
+@import "../src/omega-ui-core/index.css";
+@import "../src/omega-ui-core/typography/fonts.css";
+
+@theme {
+  --font-headline: "Outfit", sans-serif;
+  --font-mono: "Space Mono", monospace;
+  
+  --color-background: #0a0a0b;
+  --color-foreground: #e0e0e0;
+  --color-primary: #00f0ff;
+  --color-accent: #ff8c00;
+  --color-surface: #141416;
+  --color-outline: #2a2a2d;
+
+  /* OMEGA ERA 7.2.3 — SYSTEM THEME (Shared) */
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/30 selection:text-primary;
+    background: linear-gradient(135deg, #1a1a1c 0%, #0e0e0f 100%);
+  }
+
+  [data-ui-theme="light"] body {
+    background: linear-gradient(135deg, #ffe4e6 0%, #ffd2d6 100%);
+  }
+
+  /* Focus-visible ring for keyboard navigation (WCAG AA 2.4.7, 2.4.11) */
+  :focus-visible {
+    outline: 2px solid var(--wb-primary, #00f0ff) !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Remove focus ring for mouse clicks (normal :focus) */
+  :focus:not(:focus-visible) {
+    outline: none !important;
+  }
+
+  /* Force ring on elements with outline-none that receive keyboard focus */
+  .outline-none:focus-visible {
+    outline: 2px solid var(--wb-primary, #00f0ff) !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Skip-to-content link */
+  .skip-to-content {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    z-index: 9999;
+    padding: 8px 16px;
+    background: var(--wb-primary, #00f0ff);
+    color: var(--wb-bg, #050505);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0 0 4px 0;
+    transition: top 0.15s ease-in-out;
+  }
+
+  .skip-to-content:focus-visible {
+    top: 0;
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
+  /* Global scrollbar override */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #00f0ff44;
+  }
+
+  /* Light mode scrollbar */
+  [data-ui-theme="light"] ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  [data-ui-theme="light"] ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  [data-ui-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-surface/60 backdrop-blur-xl border border-outline shadow-2xl;
+  }
+
+  .cyan-bloom {
+    @apply shadow-[0_0_15px_rgba(0,240,255,0.3)];
+  }
+
+  .orange-bloom {
+    @apply shadow-[0_0_15px_rgba(255,140,0,0.3)];
+  }
+
+  /* CRT Effect System */
+  .crt-screen {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .crt-screen::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: rgba(18, 16, 16, 0.1);
+    opacity: 0;
+    z-index: 2;
+    pointer-events: none;
+    animation: flicker 0.15s infinite;
+  }
+
+  .scanline {
+    width: 100%;
+    height: 2px;
+    z-index: 3;
+    background: rgba(0, 240, 255, 0.05);
+    opacity: 0.1;
+    position: absolute;
+    bottom: 100%;
+    animation: scanline-anim 8s linear infinite;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 2px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 240, 255, 0.25);
+    border-radius: 2px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 240, 255, 0.6);
+  }
+
+  /* Theme-specific custom scrollbars */
+  [data-ui-theme="light"] .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+  }
+  [data-ui-theme="light"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  [data-ui-theme="light"] .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  [data-ui-theme="amber"] .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(245, 158, 11, 0.25);
+  }
+  [data-ui-theme="amber"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(245, 158, 11, 0.6);
+  }
+
+  [data-ui-theme="cyberpunk"] .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 45, 149, 0.25);
+  }
+  [data-ui-theme="cyberpunk"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 45, 149, 0.6);
+  }
+
+  [data-ui-theme="high-contrast"] .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.45);
+  }
+  [data-ui-theme="high-contrast"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.85);
+  }
+  [data-ui-theme="high-contrast"] .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+@keyframes flicker {
+  0% { opacity: 0.27; }
+  50% { opacity: 0.32; }
+  100% { opacity: 0.27; }
+}
+
+/* ═══════════════════════════════════════════════
+   TOOLBAR ACTIVE GLOW PULSE
+   ═══════════════════════════════════════════════ */
+@keyframes tool-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(var(--glow-rgb, var(--primary-rgb)), 0.15),
+                0 0 16px rgba(var(--glow-rgb, var(--primary-rgb)), 0.05);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(var(--glow-rgb, var(--primary-rgb)), 0.35),
+                0 0 24px rgba(var(--glow-rgb, var(--primary-rgb)), 0.12),
+                0 0 40px rgba(var(--glow-rgb, var(--primary-rgb)), 0.05);
+  }
+}
+
+.tool-active-glow {
+  --glow-rgb: var(--primary-rgb);
+  animation: tool-glow-pulse 2s ease-in-out infinite;
+}
+
+.tool-active-glow-accent {
+  --glow-rgb: var(--accent-rgb);
+  animation: tool-glow-pulse 2s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════
+   CONNECTION OVERLAY ANIMATIONS
+   ═══════════════════════════════════════════════ */
+@keyframes conn-enter {
+  0% {
+    opacity: 0;
+    transform-origin: center;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes conn-pulse-badge {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes conn-ghost-dash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes scanline-anim {
+  0% { bottom: 100%; }
+  100% { bottom: 0%; }
+}
+
+/* ═══════════════════════════════════════════════
+   OMEGA ERA 7.2 — LAYOUT CONTAINER TOKENS
+   ═══════════════════════════════════════════════ */
+:root {
+  --omega-container-border: rgba(255, 255, 255, 0.06);
+  --omega-container-bg: rgba(255, 255, 255, 0.015);
+  --omega-container-radius: 2px;
+  
+  --omega-container-selected-border: rgba(0, 240, 255, 0.4);
+  --omega-container-selected-bg: rgba(0, 240, 255, 0.03);
+  --omega-container-selected-glow: 0 0 30px rgba(0, 240, 255, 0.1);
+}
+
+.omega-container {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.omega-container-selected {
+  box-shadow: var(--omega-container-selected-glow);
+  z-index: 10;
+}
+
+/* ═══════════════════════════════════════════════
+   WORKBENCH UI THEME ENGINE
+   ═══════════════════════════════════════════════ */
+:root {
+  --wb-bg: #050505;
+  --wb-surface: #0a0a0b;
+  --wb-surface-hover: #141416;
+  --wb-surface-subtle: rgba(255, 255, 255, 0.03);
+  --wb-surface-strong: rgba(255, 255, 255, 0.08);
+  --wb-surface-inset: #1a1a1c;
+  --wb-outline: rgba(255, 255, 255, 0.08);
+  --wb-text: #e0e0e0;
+  --wb-text-muted: rgba(255, 255, 255, 0.55);
+  --wb-bloom: rgba(0, 240, 255, 0.3);
+  --wb-primary: #00f0ff;
+  --wb-accent: #ff8c00;
+
+  /* RGB variants for custom alpha-based shadows */
+  --primary-rgb: 0, 240, 255;
+  --accent-rgb: 255, 140, 0;
+  --color-primary-rgb: 0, 240, 255;
+
+  /* SIGNAL COLOR TOKENS (ERA 7.2.3) */
+  --signal-audio: #00f0ff;
+  --signal-cv: #ffaa00;
+  --signal-gate: #ffffff;
+  --signal-midi: #ff5500;
+}
+
+[data-ui-theme="light"] {
+  --wb-bg: #f8fafc;
+  --wb-surface: #ffffff;
+  --wb-surface-hover: #f1f5f9;
+  --wb-surface-subtle: #f1f5f9;
+  --wb-surface-strong: #e2e8f0;
+  --wb-surface-inset: #e2e8f0; 
+  --wb-outline: #cbd5e1;
+  --wb-text: #020617;
+  --wb-text-muted: #475569; 
+  --wb-bloom: rgba(100, 116, 139, 0.1);
+  --wb-primary: #5c7089; 
+  --wb-accent: #f59e0b;
+
+  /* RGB variants for custom alpha-based shadows (light mode) */
+  --primary-rgb: 92, 112, 137;
+  --accent-rgb: 245, 158, 11;
+  --color-primary-rgb: 92, 112, 137;
+
+  /* SIGNAL COLOR TOKENS (LIGHT ADAPTATION) */
+  --signal-audio: #3b82f6;
+  --signal-cv: #f59e0b;
+  --signal-gate: #475569;
+  --signal-midi: #ea580c;
+
+  /* Tailwind Variable Overrides */
+  --color-primary: #5c7089;
+  --color-accent: #f59e0b;
+  --color-foreground: #020617;
+  --color-background: #f8fafc;
+}
+
+/* ═══════════════════════════════════════════════
+   THEME: AMBER — Tailwind Variable Overrides
+   ═══════════════════════════════════════════════ */
+[data-ui-theme="amber"] {
+  --color-primary: #f59e0b;
+  --color-accent: #d97706;
+  --color-foreground: #f0e6d3;
+  --color-background: #0a0804;
+  --wb-outline: rgba(245, 158, 11, 0.15);
+  --wb-primary: #f59e0b;
+  --primary-rgb: 245, 158, 11;
+  --wb-text: #f0e0c8;
+  --wb-text-muted: rgba(240, 224, 200, 0.6);
+  --wb-bg: #0a0804;
+  --wb-surface: #0f0c06;
+}
+
+/* ═══════════════════════════════════════════════
+   THEME: CYBERPUNK — Tailwind Variable Overrides
+   ═══════════════════════════════════════════════ */
+[data-ui-theme="cyberpunk"] {
+  --color-primary: #ff2d95;
+  --color-accent: #a855f7;
+  --color-foreground: #f0e6ff;
+  --color-background: #05000a;
+  --wb-outline: rgba(168, 85, 247, 0.2);
+  --wb-primary: #ff2d95;
+  --primary-rgb: 255, 45, 149;
+  --wb-text: #f0e6ff;
+  --wb-text-muted: rgba(240, 230, 255, 0.55);
+  --wb-bg: #05000a;
+  --wb-surface: #0a0014;
+}
+
+/* ═══════════════════════════════════════════════
+   THEME: HIGH CONTRAST — Tailwind Variable Overrides
+   ═══════════════════════════════════════════════ */
+[data-ui-theme="high-contrast"] {
+  --color-primary: #ffffff;
+  --color-accent: #00ff88;
+  --color-foreground: #ffffff;
+  --color-background: #000000;
+  --wb-outline: rgba(255, 255, 255, 0.35);
+  --wb-primary: #ffffff;
+  --primary-rgb: 255, 255, 255;
+  --wb-text: #ffffff;
+  --wb-text-muted: rgba(255, 255, 255, 0.8);
+  --wb-bg: #000000;
+  --wb-surface: #0a0a0a;
+}
+
+.wb-bg { background-color: var(--wb-bg) !important; }
+.wb-surface { background-color: var(--wb-surface) !important; }
+.wb-surface-subtle { background-color: var(--wb-surface-subtle) !important; }
+.wb-surface-strong { background-color: var(--wb-surface-strong) !important; }
+.wb-surface-inset { background-color: var(--wb-surface-inset) !important; }
+.wb-surface-hover { background-color: var(--wb-surface-hover) !important; }
+.wb-outline { border-color: var(--wb-outline) !important; }
+.wb-text { color: var(--wb-text) !important; }
+.wb-text-muted { color: var(--wb-text-muted) !important; }
+
+/* ═══════════════════════════════════════════════
+   LIGHT THEME OVERRIDES FOR HARDCODED CLASS PATTERNS
+   (Mapped centrally to CSS Variables to ensure absolute uniqueness)
+   ═══════════════════════════════════════════════ */
+[data-ui-theme="light"] .text-white {
+  color: var(--wb-text) !important;
+}
+[data-ui-theme="light"] .text-white\/10 {
+  color: rgba(2, 6, 23, 0.15) !important;
+}
+[data-ui-theme="light"] .text-white\/20 {
+  color: rgba(2, 6, 23, 0.3) !important;
+}
+[data-ui-theme="light"] .text-white\/30 {
+  color: rgba(2, 6, 23, 0.45) !important;
+}
+[data-ui-theme="light"] .text-white\/40 {
+  color: rgba(2, 6, 23, 0.6) !important;
+}
+[data-ui-theme="light"] .text-white\/50 {
+  color: rgba(2, 6, 23, 0.7) !important;
+}
+[data-ui-theme="light"] .text-white\/60 {
+  color: rgba(2, 6, 23, 0.8) !important;
+}
+[data-ui-theme="light"] .text-white\/70 {
+  color: rgba(2, 6, 23, 0.85) !important;
+}
+[data-ui-theme="light"] .text-white\/80 {
+  color: rgba(2, 6, 23, 0.9) !important;
+}
+[data-ui-theme="light"] .text-white\/90 {
+  color: rgba(2, 6, 23, 0.95) !important;
+}
+
+[data-ui-theme="light"] .bg-black\/10 {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+[data-ui-theme="light"] .bg-black\/20 {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}  /* Apply to amber, cyberpunk, high-contrast as well — map dark hardcoded backgrounds to theme surface */
+  [data-ui-theme="amber"] .bg-\[\#050505\],
+  [data-ui-theme="amber"] .bg-\[\#080808\],
+  [data-ui-theme="amber"] .bg-\[\#0a0a0a\],
+  [data-ui-theme="amber"] .bg-\[\#0a0a0b\],
+  [data-ui-theme="amber"] .bg-\[\#0c0c0d\],
+  [data-ui-theme="amber"] .bg-\[\#080809\],
+  [data-ui-theme="amber"] .bg-\[\#121212\],
+  [data-ui-theme="amber"] .bg-\[\#1a1a1a\],
+  [data-ui-theme="amber"] .bg-\[\#1a1a1b\],
+  [data-ui-theme="amber"] .bg-black\/10,
+  [data-ui-theme="amber"] .bg-black\/20,
+  [data-ui-theme="amber"] .bg-black\/25,
+  [data-ui-theme="amber"] .bg-black\/30 {
+    background-color: var(--wb-surface) !important;
+  }
+  [data-ui-theme="cyberpunk"] .bg-\[\#050505\],
+  [data-ui-theme="cyberpunk"] .bg-\[\#080808\],
+  [data-ui-theme="cyberpunk"] .bg-\[\#0a0a0a\],
+  [data-ui-theme="cyberpunk"] .bg-\[\#0a0a0b\],
+  [data-ui-theme="cyberpunk"] .bg-\[\#0c0c0d\],
+  [data-ui-theme="cyberpunk"] .bg-\[\#080809\],
+  [data-ui-theme="cyberpunk"] .bg-\[\#121212\],
+  [data-ui-theme="cyberpunk"] .bg-\[\#1a1a1a\],
+  [data-ui-theme="cyberpunk"] .bg-\[\#1a1a1b\],
+  [data-ui-theme="cyberpunk"] .bg-black\/10,
+  [data-ui-theme="cyberpunk"] .bg-black\/20,
+  [data-ui-theme="cyberpunk"] .bg-black\/25,
+  [data-ui-theme="cyberpunk"] .bg-black\/30 {
+    background-color: var(--wb-surface) !important;
+  }
+  [data-ui-theme="high-contrast"] .bg-\[\#050505\],
+  [data-ui-theme="high-contrast"] .bg-\[\#080808\],
+  [data-ui-theme="high-contrast"] .bg-\[\#0a0a0a\],
+  [data-ui-theme="high-contrast"] .bg-\[\#0a0a0b\],
+  [data-ui-theme="high-contrast"] .bg-\[\#0c0c0d\],
+  [data-ui-theme="high-contrast"] .bg-\[\#080809\],
+  [data-ui-theme="high-contrast"] .bg-\[\#121212\],
+  [data-ui-theme="high-contrast"] .bg-\[\#1a1a1a\],
+  [data-ui-theme="high-contrast"] .bg-\[\#1a1a1b\],
+  [data-ui-theme="high-contrast"] .bg-black\/10,
+  [data-ui-theme="high-contrast"] .bg-black\/20,
+  [data-ui-theme="high-contrast"] .bg-black\/25,
+  [data-ui-theme="high-contrast"] .bg-black\/30 {
+    background-color: var(--wb-surface) !important;
+  }
+  /* Standardized Layout Backgrounds (Force all sidebar/panel wrappers to use solid white surface) */
+  [data-ui-theme="light"] .bg-\[\#050505\],
+[data-ui-theme="light"] .bg-\[\#080808\],
+[data-ui-theme="light"] .bg-\[\#0a0a0a\],
+[data-ui-theme="light"] .bg-\[\#0a0a0b\],
+[data-ui-theme="light"] .bg-\[\#0c0c0d\],
+[data-ui-theme="light"] .bg-\[\#080809\],
+[data-ui-theme="light"] .bg-\[\#121212\],
+[data-ui-theme="light"] .bg-\[\#1a1a1a\],
+[data-ui-theme="light"] .bg-\[\#1a1a1b\],
+[data-ui-theme="light"] .bg-black\/10,
+[data-ui-theme="light"] .bg-black\/20,
+[data-ui-theme="light"] .bg-black\/25,
+[data-ui-theme="light"] .bg-black\/30 {
+  background-color: var(--wb-surface) !important;
+}
+
+/* Standardized Inset/Nested/Input Backgrounds */
+[data-ui-theme="light"] .bg-\[\#111\],
+[data-ui-theme="light"] .bg-\[\#111112\],
+[data-ui-theme="light"] .bg-\[\#1a1a1c\],
+[data-ui-theme="light"] .bg-\[\#0d0d0d\],
+[data-ui-theme="light"] .bg-\[\#151515\],
+[data-ui-theme="light"] .bg-black\/40,
+[data-ui-theme="light"] .bg-black\/50,
+[data-ui-theme="light"] .bg-black\/60,
+[data-ui-theme="light"] .bg-black\/80 {
+  background-color: var(--wb-surface-inset) !important;
+}
+
+[data-ui-theme="light"] .bg-black\/90 {
+  background-color: var(--wb-surface) !important;
+  backdrop-filter: blur(16px);
+}
+
+[data-ui-theme="light"] .bg-\[\#222\],
+[data-ui-theme="light"] .bg-\[\#2a2a2d\] {
+  background-color: var(--wb-surface-strong) !important;
+}
+
+/* Boost opacity in light mode for placeholders and empty state texts */
+[data-ui-theme="light"] .opacity-30 { opacity: 0.65 !important; }
+[data-ui-theme="light"] .opacity-20 { opacity: 0.55 !important; }
+
+/* Escaped opacity variants */
+[data-ui-theme="light"] .bg-\[\#0a0a0b\]\/95 { background-color: var(--wb-surface) !important; opacity: 0.95 !important; }
+[data-ui-theme="light"] .bg-\[\#1a1a1b\]\/90 { background-color: var(--wb-bg) !important; opacity: 0.9 !important; }
+
+/* Standardized Outlines & Borders */
+[data-ui-theme="light"] .border-white\/5,
+[data-ui-theme="light"] .border-white\/10,
+[data-ui-theme="light"] .border-white\/20,
+[data-ui-theme="light"] .border-\[\#222\],
+[data-ui-theme="light"] .border-\[\#333\],
+[data-ui-theme="light"] .border-\[\#444\],
+[data-ui-theme="light"] .border-y-\[\#222\],
+[data-ui-theme="light"] .border-x-\[\#333\],
+[data-ui-theme="light"] .wb-outline {
+  border-color: var(--wb-outline) !important;
+}
+
+/* Text fixes & high contrast control */
+[data-ui-theme="light"] .text-\[\#a0a0a0\] { color: var(--wb-text-muted) !important; }
+[data-ui-theme="light"] .text-gray-200 { color: var(--wb-text) !important; }
+[data-ui-theme="light"] .text-gray-300 { color: var(--wb-text) !important; }
+[data-ui-theme="light"] .text-gray-400 { color: var(--wb-text-muted) !important; }
+[data-ui-theme="light"] .text-gray-500 { color: var(--wb-text-muted) !important; }
+[data-ui-theme="light"] .text-gray-600 { color: var(--wb-text-muted) !important; }
+[data-ui-theme="light"] .text-gray-700 { color: var(--wb-text-muted) !important; }
+[data-ui-theme="light"] .text-blue-400 { color: var(--wb-primary) !important; }
+[data-ui-theme="light"] .text-blue-500 { color: var(--wb-primary) !important; }
+[data-ui-theme="light"] .text-cyan-400 { color: var(--wb-primary) !important; }
+[data-ui-theme="light"] .text-foreground\/60 { color: var(--wb-text-muted) !important; }
+[data-ui-theme="light"] .text-foreground\/80 { color: var(--wb-text) !important; }
+[data-ui-theme="light"] .text-foreground\/40 { color: var(--wb-text-muted) !important; opacity: 0.85 !important; }
+[data-ui-theme="light"] .text-foreground\/35 { color: var(--wb-text-muted) !important; opacity: 0.75 !important; }
+[data-ui-theme="light"] .text-foreground\/70 { color: var(--wb-text) !important; }
+[data-ui-theme="light"] .text-foreground\/75 { color: var(--wb-text) !important; }
+[data-ui-theme="light"] .text-foreground\/30 { color: var(--wb-text-muted) !important; opacity: 0.8 !important; }
+
+/* Divide utility */
+[data-ui-theme="light"] .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--wb-outline) !important;
+}
+
+/* Hover utilities mapping */
+[data-ui-theme="light"] .hover\:bg-white\/5:hover {
+  background-color: var(--wb-surface-hover) !important;
+}
+[data-ui-theme="light"] .hover\:bg-white\/10:hover {
+  background-color: var(--wb-surface-hover) !important;
+}
+
+/* Typography Standardization */
+[data-ui-theme="light"] h3,
+[data-ui-theme="light"] h4,
+[data-ui-theme="light"] .tracking-widest,
+[data-ui-theme="light"] [class*="tracking-wid"] {
+  font-family: var(--font-headline), "Outfit", sans-serif !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  font-weight: 800 !important;
+}
+
+[data-ui-theme="light"] .font-mono {
+  font-family: var(--font-mono), monospace !important;
+}
+
+/* ═══════════════════════════════════════════════
+   MONACO SOURCE HIGHLIGHT (PHASE 6.2)
+   ═══════════════════════════════════════════════ */
+.omega-source-selection-highlight {
+  background: rgba(0, 240, 255, 0.08) !important;
+  border-left: 2px solid #00f0ff;
+  transition: all 0.3s ease;
+}
+
+.omega-source-selection-gutter {
+  background: #00f0ff !important;
+  width: 4px !important;
+  margin-left: 2px;
+}

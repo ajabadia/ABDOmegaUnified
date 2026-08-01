@@ -1,0 +1,270 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`DockIconBar — snapshots should match snapshot with custom className 1`] = `
+<div
+  aria-label="Dock panel tabs"
+  class="w-10 wb-surface border-l wb-outline flex flex-col items-center py-3 gap-3 shrink-0 z-45 animate-in slide-in-from-right shadow-lg"
+  role="toolbar"
+>
+  <div
+    class="flex flex-col items-center gap-1.5"
+  >
+    <button
+      aria-label="Alpha"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Alpha"
+    >
+      <span
+        data-testid="icon-alpha"
+      >
+        A
+      </span>
+    </button>
+    <button
+      aria-label="Beta"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Beta"
+    >
+      <span
+        data-testid="icon-beta"
+      >
+        B
+      </span>
+    </button>
+    <button
+      aria-label="Gamma"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Gamma"
+    >
+      <span
+        data-testid="icon-gamma"
+      >
+        C
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`DockIconBar — snapshots should match snapshot with groups and label 1`] = `
+<div
+  aria-label="Dock panel tabs"
+  class="w-10 wb-surface border-l wb-outline flex flex-col items-center py-3 gap-3 shrink-0 z-50 shadow-xl"
+  role="toolbar"
+>
+  <div
+    class="text-[5px] font-black uppercase text-foreground/45 tracking-widest text-center select-none pointer-events-none"
+  >
+    SECTIONS
+  </div>
+  <div
+    class="flex flex-col items-center gap-1.5 "
+  >
+    <button
+      aria-label="Alpha"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Alpha"
+    >
+      <span
+        data-testid="icon-alpha"
+      >
+        A
+      </span>
+    </button>
+    <button
+      aria-label="Beta"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Beta"
+    >
+      <span
+        data-testid="icon-beta"
+      >
+        B
+      </span>
+    </button>
+  </div>
+  <div
+    class="w-5 h-px bg-white/10"
+  />
+  <div
+    class="flex flex-col items-center gap-1.5 "
+  >
+    <button
+      aria-label="Gamma"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Gamma"
+    >
+      <span
+        data-testid="icon-gamma"
+      >
+        C
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`DockIconBar — snapshots should match snapshot with per-group className (like advanced scrolling) 1`] = `
+<div
+  aria-label="Dock panel tabs"
+  class="w-10 wb-surface border-l wb-outline flex flex-col items-center py-3 gap-3 shrink-0 z-50 shadow-xl"
+  role="toolbar"
+>
+  <div
+    class="text-[5px] font-black uppercase text-foreground/45 tracking-widest text-center select-none pointer-events-none"
+  >
+    RACK SECT
+  </div>
+  <div
+    class="flex flex-col items-center gap-1.5 "
+  >
+    <button
+      aria-label="Alpha"
+      aria-pressed="true"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 bg-primary/20 text-primary border border-primary/20 shadow-[0_0_8px_rgba(var(--primary-rgb),0.1)]"
+      title="Alpha"
+    >
+      <span
+        data-testid="icon-alpha"
+      >
+        A
+      </span>
+    </button>
+  </div>
+  <div
+    class="w-5 h-px bg-white/10"
+  />
+  <div
+    class="flex flex-col items-center gap-1.5 overflow-y-auto max-h-[50vh]"
+  >
+    <button
+      aria-label="Beta"
+      aria-pressed="true"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 bg-primary/20 text-primary border border-primary/20 shadow-[0_0_8px_rgba(var(--primary-rgb),0.1)]"
+      title="Beta"
+    >
+      <span
+        data-testid="icon-beta"
+      >
+        B
+      </span>
+    </button>
+    <button
+      aria-label="Gamma"
+      aria-pressed="true"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 bg-primary/20 text-primary border border-primary/20 shadow-[0_0_8px_rgba(var(--primary-rgb),0.1)]"
+      title="Gamma"
+    >
+      <span
+        data-testid="icon-gamma"
+      >
+        C
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`DockIconBar — snapshots should match snapshot without groups, all inactive 1`] = `
+<div
+  aria-label="Dock panel tabs"
+  class="w-10 wb-surface border-l wb-outline flex flex-col items-center py-3 gap-3 shrink-0 z-50 shadow-xl"
+  role="toolbar"
+>
+  <div
+    class="flex flex-col items-center gap-1.5"
+  >
+    <button
+      aria-label="Alpha"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Alpha"
+    >
+      <span
+        data-testid="icon-alpha"
+      >
+        A
+      </span>
+    </button>
+    <button
+      aria-label="Beta"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Beta"
+    >
+      <span
+        data-testid="icon-beta"
+      >
+        B
+      </span>
+    </button>
+    <button
+      aria-label="Gamma"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Gamma"
+    >
+      <span
+        data-testid="icon-gamma"
+      >
+        C
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`DockIconBar — snapshots should match snapshot without groups, some active 1`] = `
+<div
+  aria-label="Dock panel tabs"
+  class="w-10 wb-surface border-l wb-outline flex flex-col items-center py-3 gap-3 shrink-0 z-50 shadow-xl"
+  role="toolbar"
+>
+  <div
+    class="flex flex-col items-center gap-1.5"
+  >
+    <button
+      aria-label="Alpha"
+      aria-pressed="true"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 bg-primary/20 text-primary border border-primary/20 shadow-[0_0_8px_rgba(var(--primary-rgb),0.1)]"
+      title="Alpha"
+    >
+      <span
+        data-testid="icon-alpha"
+      >
+        A
+      </span>
+    </button>
+    <button
+      aria-label="Beta"
+      aria-pressed="false"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+      title="Beta"
+    >
+      <span
+        data-testid="icon-beta"
+      >
+        B
+      </span>
+    </button>
+    <button
+      aria-label="Gamma"
+      aria-pressed="true"
+      class="flex items-center justify-center rounded-xs transition-all w-7 h-7 bg-primary/20 text-primary border border-primary/20 shadow-[0_0_8px_rgba(var(--primary-rgb),0.1)]"
+      title="Gamma"
+    >
+      <span
+        data-testid="icon-gamma"
+      >
+        C
+      </span>
+    </button>
+  </div>
+</div>
+`;

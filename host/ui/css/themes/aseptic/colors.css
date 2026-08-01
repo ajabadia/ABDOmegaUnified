@@ -1,0 +1,16 @@
+/* OMEGA ASEPTIC COLORS (Cyan Neon Identity) */
+.theme-aseptic {
+  --module-bg: #0a0a0a;
+  --module-header-bg: #121212;
+  --module-border: 1px solid #00f2ff;
+  --module-label-color: #00f2ff;
+  --module-display-bg: #000;
+  --module-display-color: #00f2ff;
+  --module-accent: #00f2ff;
+  --module-font-main: "Inter", sans-serif;
+  --module-font-mono: "JetBrains Mono", monospace;
+  --module-glow: 0 0 15px rgba(0, 242, 255, 0.4);
+  
+  --module-knob-bg: #111;
+  --module-knob-border: #333;
+}

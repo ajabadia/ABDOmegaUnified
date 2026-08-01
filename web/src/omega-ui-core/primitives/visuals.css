@@ -1,0 +1,129 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-06-25 12:16:04
+   ================================================================= */
+
+/* ════════════════════════════════════════════════════════════════════════
+   OMEGA UI CORE — Visuals (Ports & Decorative Primitives)
+   Era 7.2.3 — High Fidelity
+   ════════════════════════════════════════════════════════════════════════
+   Consolidated from: port.css, label.css, illustration.css
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── PORTS (Jacks) ──────────────────────────────────────────────────── */
+
+.port-socket {
+    border-radius: var(--primitive-radius-round) !important;
+    border: var(--primitive-border) !important;
+    background: var(--primitive-bg-dark) !important;
+    filter: var(--primitive-shadow) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.port-socket:hover {
+    border-color: #666 !important;
+    box-shadow: 0 0 10px rgba(255,255,255,0.05);
+}
+
+.port-inner {
+    width: 60% !important;
+    height: 60% !important;
+    border-radius: var(--primitive-radius-round) !important;
+    background: var(--primitive-bg) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.port-led {
+    width: 4px !important;
+    height: 4px !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease;
+    opacity: 0.3;
+}
+
+/* Sizes */
+.port-socket.size-A { width: 42px !important; height: 42px !important; }
+.port-socket.size-B { width: 36px !important; height: 36px !important; }
+.port-socket.size-C { width: 30px !important; height: 30px !important; }
+.port-socket.size-D { width: 24px !important; height: 24px !important; }
+
+.port-led.active { opacity: 1 !important; }
+
+
+/* ── LABELS ──────────────────────────────────────────────────────────── */
+
+.cell-label {
+    font-family: var(--omega-font, 'Inter'), sans-serif;
+    font-size: var(--omega-font-size, 8px);
+    font-weight: 900;
+    color: var(--omega-font-color, var(--wb-text-muted));
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    line-height: 1;
+    pointer-events: none;
+    white-space: nowrap;
+    opacity: var(--omega-opacity, 1);
+    text-align: var(--omega-alignment, center);
+}
+
+
+/* ── ILLUSTRATIONS ───────────────────────────────────────────────────── */
+
+.illustration-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+    border-radius: var(--omega-rounding, 0);
+    opacity: var(--omega-opacity, 1);
+    background-color: var(--omega-color-override, transparent);
+    filter: brightness(var(--omega-intensity, 1.0));
+    transition: all 0.3s ease-in-out;
+}
+
+.illustration-container img {
+    display: block;
+    image-rendering: auto;
+    filter: drop-shadow(var(--omega-shadow-x, 0) var(--omega-shadow-y, 2px) var(--omega-shadow-blur, 4px) var(--omega-shadow-color, rgba(0,0,0,0.2)));
+    border-radius: inherit;
+}
+
+/* Variants */
+.illustration-container.variant-contain img { object-fit: contain; }
+.illustration-container.variant-cover img { object-fit: cover; }
+.illustration-container.variant-stretch img { object-fit: fill; }
+
+/* Missing asset state */
+.illustration-missing {
+    background: repeating-linear-gradient(
+        45deg, #000, #000 10px,
+        #ff0000 10px, #ff0000 20px
+    );
+    border: 1px solid #ff0000;
+    opacity: 0.8;
+    animation: hazard-pulse 1s infinite alternate ease-in-out;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
+@keyframes hazard-pulse {
+    from { opacity: 0.6; filter: brightness(0.8); }
+    to { opacity: 1; filter: brightness(1.5); }
+}
+
+/* Special case: Identity branding */
+.illustration-container[data-source="module_logo"] img {
+    filter: saturate(calc(var(--omega-intensity, 1.0) * 0.8)) contrast(1.1);
+}

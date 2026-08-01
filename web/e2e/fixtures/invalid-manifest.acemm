@@ -1,0 +1,4 @@
+name: Invalid Import
+value: 42
+nested:
+  foo: bar

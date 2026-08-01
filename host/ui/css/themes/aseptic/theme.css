@@ -1,0 +1,12 @@
+/* OMEGA ASEPTIC THEME (MASTER) */
+@import "./colors.css";
+@import "./knobs.css";
+@import "./leds.css";
+@import "./ports.css";
+@import "./sliders.css";
+
+.omega-theme-context.theme-aseptic {
+    background: var(--module-bg);
+    color: var(--module-label-color);
+    font-family: var(--module-font-main);
+}

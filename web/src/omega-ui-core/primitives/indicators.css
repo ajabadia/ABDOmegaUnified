@@ -1,0 +1,279 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-06-25 12:16:04
+   ================================================================= */
+
+/* ════════════════════════════════════════════════════════════════════════
+   OMEGA UI CORE — Indicators (Display & Signal Primitives)
+   Era 7.2.3 — High Fidelity
+   ════════════════════════════════════════════════════════════════════════
+   Consolidated from: led.css, display.css, scope.css, terminal.css
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── LEDS ───────────────────────────────────────────────────────────── */
+
+.led {
+    border-radius: 50% !important;
+    border: var(--omega-border-width, 1px) solid rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.1s ease-out !important;
+    background-color: var(--omega-glow-color, var(--glow-color, #111));
+    opacity: var(--omega-opacity, 0.3);
+    position: relative;
+    overflow: hidden;
+    filter: var(--primitive-shadow) !important;
+}
+
+.led-glass-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 60%);
+    z-index: 10;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+}
+
+.led-internal-glow {
+    position: absolute;
+    inset: 15%;
+    border-radius: 50%;
+    background: var(--omega-glow-color, var(--glow-color, transparent));
+    opacity: 0.1;
+    z-index: 1;
+    transition: all 0.1s ease-out;
+}
+
+.led.active .led-internal-glow {
+    opacity: calc(var(--omega-intensity, 1.0) * 0.8);
+    filter: blur(2px);
+}
+
+/* Asset bridge */
+.led.has-asset .led-glass-overlay,
+.led.has-asset .led-internal-glow { display: none !important; }
+
+.led-asset {
+    position: absolute;
+    inset: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated;
+    z-index: 2;
+}
+
+.led-asset.filmstrip-v { background-size: 100% auto; }
+.led-asset.filmstrip-h { background-size: auto 100%; }
+
+/* Sizes */
+.led.size-A { width: 12px !important; height: 12px !important; }
+.led.size-B { width: 8px !important; height: 8px !important; }
+.led.size-C { width: 5px !important; height: 5px !important; }
+.led.size-D { width: 3px !important; height: 3px !important; }
+
+/* Color states */
+.led.color-cyan { --glow-color: var(--wb-primary); }
+.led.color-red { --glow-color: #ff4444; }
+.led.color-orange { --glow-color: var(--wb-accent); }
+.led.color-green { --glow-color: #00ff88; }
+.led.color-white { --glow-color: #ffffff; }
+
+.led.active {
+    opacity: var(--omega-opacity, 1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 0 calc(var(--glow-size, 8px) * var(--omega-intensity, 1.0)) var(--omega-glow-color, var(--glow-color, #fff));
+}
+
+.led.size-A { --glow-size: 12px; }
+.led.size-B { --glow-size: 8px; }
+.led.size-C { --glow-size: 5px; }
+.led.size-D { --glow-size: 3px; }
+
+
+/* ── DISPLAYS ────────────────────────────────────────────────────────── */
+
+.mini-display {
+    background: var(--omega-glass-color, var(--primitive-bg-dark));
+    border: var(--omega-border-width, 1px) solid var(--omega-color-override, var(--primitive-border-color));
+    box-shadow: var(--primitive-shadow);
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: var(--omega-rounding, var(--primitive-radius-flat));
+    position: relative;
+    opacity: var(--omega-opacity, 1);
+    padding: var(--omega-padding, 0);
+}
+
+.display-glass-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%);
+    pointer-events: none;
+    z-index: 10;
+    mix-blend-mode: overlay;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: inherit;
+}
+
+.display-internal-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, var(--omega-glow-color, var(--glow-color, rgba(0,240,255,0.2))) 0%, transparent 80%);
+    pointer-events: none;
+    z-index: 1;
+    opacity: calc(var(--omega-intensity, 1.0) * 0.3);
+}
+
+.display-scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent 0px, transparent 1px,
+        rgba(0, 0, 0, 0.2) 1px, rgba(0, 0, 0, 0.2) 2px
+    );
+    pointer-events: none;
+    z-index: 6;
+    opacity: 0.5;
+    border-radius: inherit;
+}
+
+.display-btn {
+    background: transparent;
+    border: none;
+    color: #444;
+    cursor: pointer;
+    flex: none;
+    width: 20%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+    z-index: 11;
+}
+
+.display-btn:hover { background: rgba(255,255,255,0.05); color: #666; }
+.display-btn:active { background: rgba(0,242,255,0.2); color: #fff; }
+
+.display-value {
+    flex: 1;
+    text-align: center;
+    font-family: var(--omega-font, 'Seven Segment'), monospace;
+    font-size: var(--omega-font-size, inherit);
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.4);
+    color: var(--omega-font-color, var(--omega-color-override, inherit));
+    text-align: var(--omega-alignment, center);
+}
+
+/* Sizes */
+.mini-display.size-A { width: 100px; height: 33px; }
+.mini-display.size-A .display-value { font-size: 14px; }
+.mini-display.size-B { width: 80px; height: 26px; }
+.mini-display.size-B .display-value { font-size: 11px; }
+.mini-display.size-C { width: 60px; height: 20px; }
+.mini-display.size-C .display-value { font-size: 8px; }
+.mini-display.size-D { width: 40px; height: 14px; }
+.mini-display.size-D .display-value { font-size: 6px; }
+
+/* Color variants */
+.mini-display.color-cyan { --glow-color: rgba(0,240,255,0.4); }
+.mini-display.color-cyan:not([style*="--omega-color-override"]) .display-value { color: var(--wb-primary); text-shadow: 0 0 10px rgba(0,240,255,0.3); }
+.mini-display.color-red { --glow-color: rgba(255,68,68,0.4); }
+.mini-display.color-red:not([style*="--omega-color-override"]) .display-value { color: #ff4444; text-shadow: 0 0 10px rgba(255,68,68,0.3); }
+.mini-display.color-orange { --glow-color: rgba(255,140,0,0.4); }
+.mini-display.color-orange:not([style*="--omega-color-override"]) .display-value { color: var(--wb-accent); text-shadow: 0 0 10px rgba(255,140,0,0.3); }
+.mini-display.color-green { --glow-color: rgba(0,255,136,0.4); }
+.mini-display.color-green:not([style*="--omega-color-override"]) .display-value { color: #00ff88; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
+.mini-display.color-white { --glow-color: rgba(255,255,255,0.2); }
+.mini-display.color-white:not([style*="--omega-color-override"]) .display-value { color: #ffffff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+
+/* Variant overrides */
+.mini-display.variant-oled { background: #0a0a0a; }
+.mini-display.variant-lcd { background: #111811; }
+.mini-display.variant-lcd.color-green:not([style*="--omega-color-override"]) .display-value { color: #113311; text-shadow: none; font-weight: bold; }
+
+
+/* ── SCOPE (Oscilloscope) ────────────────────────────────────────────── */
+
+.scope-display {
+    background: var(--primitive-bg-dark) !important;
+    border: var(--primitive-border) !important;
+    border-radius: var(--primitive-radius-flat) !important;
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--primitive-shadow) !important;
+}
+
+.scope-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    filter: blur(0.5px) brightness(1.2);
+}
+
+.scope-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* Variants */
+.scope-display.variant-phosphor .scope-canvas { filter: drop-shadow(0 0 4px #00ff88); }
+.scope-display.variant-cyan .scope-canvas { filter: drop-shadow(0 0 4px var(--wb-primary)); }
+.scope-display.variant-amber .scope-canvas { filter: drop-shadow(0 0 4px #ffaa00); }
+
+/* Sizes (dynamic via manifest) */
+.scope-display { width: 100%; height: 100%; }
+
+
+/* ── TERMINAL (Log / Console) ────────────────────────────────────────── */
+
+.terminal-display {
+    background: #000 !important;
+    border: var(--primitive-border) !important;
+    border-radius: var(--primitive-radius-flat) !important;
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--primitive-shadow) !important;
+    font-family: 'Fragment Mono', 'Courier New', monospace;
+}
+
+.terminal-container {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.terminal-container::-webkit-scrollbar { width: 4px; }
+.terminal-container::-webkit-scrollbar-track { background: transparent; }
+.terminal-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.terminal-line {
+    font-size: 8px;
+    line-height: 1.2;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: var(--wb-text-muted);
+}
+
+/* Variants */
+.terminal-display.variant-green .terminal-line { color: #00ff88; text-shadow: 0 0 4px rgba(0, 255, 136, 0.4); }
+.terminal-display.variant-amber .terminal-line { color: #ffaa00; text-shadow: 0 0 4px rgba(255, 170, 0, 0.4); }
+.terminal-display.variant-cyan .terminal-line { color: var(--wb-primary); text-shadow: 0 0 4px rgba(0, 240, 255, 0.4); }
+
+/* Sizes (dynamic via manifest) */
+.terminal-display { width: 100%; height: 100%; }

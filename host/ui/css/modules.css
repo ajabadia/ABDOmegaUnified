@@ -1,0 +1,102 @@
+/* ═══════════════════════════════════════════════
+   OMEGA ERA 7.2.3 — MODULE ARCHITECTURE
+   ═══════════════════════════════════════════════ */
+
+.module {
+    height: calc(100% - 20px);
+    margin: 10px;
+    background-color: var(--wb-surface);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: inset 0 0 15px rgba(255,255,255,0.05), 5px 5px 15px rgba(0,0,0,0.5);
+    border: 1px solid var(--wb-outline);
+    min-width: 80px;
+    width: fit-content;
+    transition: background 0.3s ease;
+    overflow: hidden;
+}
+
+/* COMPACT HEADER (Era 7.2.3 Industrial Fix) */
+/* Era 7.2.3 - Industrial Module Architecture */
+.module-panel {
+    box-sizing: content-box;
+    border-left: 4px solid #333;
+    border-right: 4px solid #333;
+    border-top: 1px solid #444;
+    border-bottom: 1px solid #111;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    position: relative;
+    background-color: var(--wb-bg-deep);
+}
+
+.module-canvas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+
+/* MODULE HEADER (Rack Application) */
+
+.module-header {
+    height: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    padding: 0 6px;
+    gap: 8px;
+    cursor: default;
+    position: relative;
+    z-index: 10;
+}
+
+.module-header-action {
+    color: #666;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.module-header-action:hover {
+    color: var(--wb-primary);
+    background: rgba(0, 240, 255, 0.1);
+    text-shadow: 0 0 5px var(--wb-primary);
+}
+
+.module-header-action.module-header-action-close {
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.module-header-action.module-header-action-close:hover {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.2);
+    text-shadow: 0 0 10px #ff4444;
+}
+
+/* MODULE CONTENT AREA (Era 7.2.3 Full Canvas) */
+.module-content {
+    flex: 1;
+    position: relative;
+    padding: 0; /* Zero padding for high-fidelity parity */
+    display: block; /* No flex to avoid anchor drift */
+    overflow: visible;
+}
+
+/* ERA 7.2.3 — UNIFIED RENDERER BRIDGE */
+/* All component styling is now delegated to omega-ui-core */
+

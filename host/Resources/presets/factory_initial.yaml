@@ -1,0 +1,23 @@
+# OMEGA Era 4: Agnostic Initial State
+name: "Clean Slate"
+author: "OMEGA"
+version: 1.0
+
+# Layer configuration (Vaciado de parámetros y módulos legacy)
+layers:
+  - id: "layer.0"
+    name: "Main"
+    modules: []
+    auxiliary: []
+    mainChain: []
+
+# El Patchbay nace sin conexiones persistentes de usuario
+patchbay:
+  connections: []
+
+# Configuración visual por defecto
+visual:
+  scope:
+    mode: "AUDIO"
+    audio:
+      sourceA: "MASTER_OUT"

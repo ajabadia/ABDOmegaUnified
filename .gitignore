@@ -1,0 +1,73 @@
+# ==========================================
+# ABDOmegaUnified - Git Ignore Configuration
+# ==========================================
+
+# Node.js & Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js Build Outputs
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Compiled Binaries & C++ Artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.obj
+*.a
+*.lib
+*.wasm
+!modules/**/*.wasm
+!web/public/wasm/*.wasm
+
+# Environment & Local Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs, Temp & Audits
+*.log
+.temp*
+dev_*.txt
+server_*.txt
+eslint_*.txt
+omega-audit-results.log
+
+# IDE & System Files
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+
+# Testing & E2E Reports
+playwright-report/
+test-results/
+coverage/
+.brain/
+scratch/
+
+# Junctions / symlinks (Windows) — duplican contenido ya trackeado por su ruta
+# canónica (web/src/omega-ui-core y host/ui). Con core.symlinks=false git las
+# seguiría como directorios y triplicaría los 61MB de omega-ui-core en el repo.
+host/ui/omega-ui-core/
+host/ui/fonts/
+web/public/omega-ui-core/
+web/public/fonts/
+web/public/host-ui/

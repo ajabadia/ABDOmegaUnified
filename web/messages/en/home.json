@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "subtitle": "Neural Matrix_01 / Boutique",
+    "title1": "Next-Gen",
+    "title2": "Synthesis",
+    "description": "Industrial grade virtual instruments engineered for the next era of sound design. Precision emulations and aseptic neural engines.",
+    "cta": "Explore the Engine"
+  },
+  "philosophy": {
+    "title": "Engineering",
+    "highlight": "Sonic Matter",
+    "description": "At ABD, we don't just replicate instruments; we model the physical laws of sound. Our <bold>Zero-Latency Spectral Engine™</bold> ensures that every harmonic interaction happens in real-time, providing the tactile response of analog hardware with the infinite precision of digital mathematics.",
+    "f1_title": "01. Fidelity",
+    "f1_desc": "64-bit internal floating-point processing for artifact-free modulation.",
+    "f2_title": "02. Performance",
+    "f2_desc": "Full M1/M2/M3 native optimization with zero-allocation memory management.",
+    "side_title": "Boutique DNA",
+    "side_desc": "Every instrument is a limited digital research project. We prioritize character over mass-market appeal."
+  },
+  "features": {
+    "f1_title": "Industrial Precision",
+    "f1_desc": "Every component is modeled with absolute fidelity to the original circuits.",
+    "f2_title": "Zero-Latency Engine",
+    "f2_desc": "Optimized for real-time performance without compromising on sound quality.",
+    "f3_title": "Alpha/Beta Access",
+    "f3_desc": "Get immediate access to our latest research engines during the development phase."
+  },
+  "catalog": {
+    "title": "The",
+    "highlight": "Boutique",
+    "catalog": "Catalog",
+    "description": "Explore our collection of hardware-authentic emulations and next-generation synthesis platforms.",
+    "total": "Total Instruments"
+  },
+  "connect": {
+    "title": "Research",
+    "highlight": "& Development",
+    "description": "Our lab is constantly evolving. For technical inquiries, alpha testing access, or collaborative research, dispatch your transmission through our terminal."
+  }
+}

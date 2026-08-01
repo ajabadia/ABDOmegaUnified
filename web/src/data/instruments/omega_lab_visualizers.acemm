@@ -1,0 +1,71 @@
+schemaVersion: "7.2"
+id: omega_lab_visualizers
+metadata:
+  name: OMEGA LAB MONITOR
+  family: util
+  version: 1.0.0
+  rack:
+    hp: 16
+    slot: main
+ui:
+  dimensions: { width: 240, height: 420 }
+  skin: minimal
+  layout:
+    containers:
+      - id: top_section
+        label: SIGNAL ANALYZER
+        pos: { x: 5, y: 10 }
+        size: { w: 230, h: 180 }
+        variant: inset
+      - id: bottom_section
+        label: EVENT CONSOLE
+        pos: { x: 5, y: 200 }
+        size: { w: 230, h: 210 }
+        variant: panel
+  controls:
+    # --- SCOPE 1: Green Phosphor ---
+    - id: scope_main
+      bind: audio_in
+      presentation:
+        container: top_section
+        component: scope
+        variant: phosphor
+        size: { w: 220, h: 150 }
+        pos: { x: 5, y: 20 }
+    
+    # --- TERMINAL 1: Amber Retro ---
+    - id: terminal_log
+      bind: midi_events
+      presentation:
+        container: bottom_section
+        component: terminal
+        variant: amber
+        size: { w: 220, h: 120 }
+        pos: { x: 5, y: 25 }
+        font: 'Fragment Mono'
+        color: '#ffcc00'
+
+    # --- CONTROLS ---
+    - id: k_zoom
+      bind: zoom
+      pos: { x: 40, y: 360 }
+      presentation:
+        container: bottom_section
+        component: knob
+        attachments: [{ type: label, text: "ZOOM" }]
+
+    - id: k_filter
+      bind: filter
+      pos: { x: 100, y: 360 }
+      presentation:
+        container: bottom_section
+        component: knob
+        attachments: [{ type: label, text: "FILTER" }]
+
+    - id: b_clear
+      bind: clear
+      pos: { x: 160, y: 365 }
+      presentation:
+        container: bottom_section
+        component: button
+        attachments: [{ type: label, text: "CLEAR LOG" }]

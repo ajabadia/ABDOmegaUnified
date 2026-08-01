@@ -1,0 +1,31 @@
+id: "midi_in"
+modelId: "ACE-UTIL-MIDI-IN"
+theme: "industrial"
+name: "MIDI IN"
+implementationId: 501
+version: "5.2.0"
+family: "Utility"
+description: "Canonical MIDI Input Bridge for the OMEGA Rack (Era 5.2 Gold)."
+
+layout:
+  hp: 4
+  rack: "upper"
+  columns: 1
+
+registry:
+  - id: "activity"
+    label: "ACTIVITY"
+    roles: [telemetry]
+    direction: internal
+    presentation: 
+      tab: "MAIN"
+      group: "STATUS"
+      order: 1
+      ui: { component: "led", variant: "A" }
+
+  - id: "midi_data"
+    label: "MIDI DATA"
+    type: midi
+    direction: output
+    roles: [stream, output]
+    presentation: { tab: "PATCHING", group: "OUTPUTS", order: 1 }

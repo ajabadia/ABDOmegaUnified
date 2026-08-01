@@ -1,0 +1,23 @@
+{
+  "id": "stereo_io",
+  "version": "1.0.0",
+  "label": "Stereo I/O Block",
+  "family": "I/O",
+  "category": "io",
+  "description": "Standard stereo input/output Jack configuration.",
+  "policy": [],
+  "slots": [
+    { "id": "in_l", "label": "Input L", "kind": "port", "required": true, "path": "in_l_cell" },
+    { "id": "in_r", "label": "Input R", "kind": "port", "required": true, "path": "in_r_cell" }
+  ],
+  "baseNode": {
+    "id": "io_root",
+    "kind": "container",
+    "role": "structure",
+    "layout": { "pos": { "x": 0, "y": 0 }, "mode": "stack-h", "gap": 20 },
+    "children": [
+      { "id": "in_l_cell", "kind": "cell", "role": "io", "cellRef": "port", "bind": "in_l", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 30, "height": 30 } } },
+      { "id": "in_r_cell", "kind": "cell", "role": "io", "cellRef": "port", "bind": "in_r", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 30, "height": 30 } } }
+    ]
+  }
+}

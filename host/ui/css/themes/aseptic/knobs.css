@@ -1,0 +1,41 @@
+/* OMEGA ASEPTIC KNOBS (Era 7.2.3 — Cyberpunk High-Fidelity) */
+/* Aligned with ABDSynthsWeb Standards */
+
+.theme-aseptic .knob-container {
+    background: #000 !important;
+    border: 1px solid rgba(0, 240, 255, 0.2) !important;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.1), inset 0 0 10px rgba(0, 240, 255, 0.05) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.theme-aseptic .knob-container:hover {
+    border-color: rgba(0, 240, 255, 0.5) !important;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.2) !important;
+}
+
+.theme-aseptic .knob-cap {
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 80%) !important;
+}
+
+/* SIZES */
+.theme-aseptic .knob-container.size-A { width: 32px !important; height: 32px !important; border-width: 2px !important; }
+.theme-aseptic .knob-container.size-B { width: 24px !important; height: 24px !important; }
+.theme-aseptic .knob-container.size-C { width: 16px !important; height: 16px !important; }
+.theme-aseptic .knob-container.size-D { width: 12px !important; height: 12px !important; }
+
+/* POINTER / MARKER SYSTEM */
+.theme-aseptic .knob-marker {
+    width: 2px !important;
+    height: 45% !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+    box-shadow: 0 0 10px #fff, 0 0 20px var(--wb-primary) !important;
+}
+
+/* COLOR VARIANTS */
+.theme-aseptic .knob-container.color-cyan .knob-marker { box-shadow: 0 0 10px #fff, 0 0 20px var(--wb-primary); }
+.theme-aseptic .knob-container.color-red .knob-marker { box-shadow: 0 0 10px #fff, 0 0 20px #ff4444; }
+.theme-aseptic .knob-container.color-orange .knob-marker { box-shadow: 0 0 10px #fff, 0 0 20px var(--wb-accent); }

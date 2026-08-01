@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="435" viewBox="0 0 300 435">
+      <rect width="100%" height="100%" fill="#050505" />
+      
+      <g transform="translate(60, 60)">
+        <!-- RACK CHASSIS -->
+        <rect width="180" height="315" fill="#111111" stroke="#00f0ff" stroke-width="2" rx="2" />
+        
+        <!-- SCREWS (Era 7 Standard) -->
+        <g fill="#333" stroke="#555" stroke-width="0.5">
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="168" cy="12" r="4" />
+          <circle cx="12" cy="303" r="4" />
+          <circle cx="168" cy="303" r="4" />
+        </g>
+        
+        <!-- LABELS -->
+        <text x="0" y="-15" fill="#00f0ff" font-family="monospace" font-size="10" font-weight="900">RACK CHASSIS [ 8 HP / 180 px ]</text>
+        <text x="0" y="-30" fill="rgba(255,255,255,0.2)" font-family="monospace" font-size="8">OMEGA ERA 7.2.3 | INDUSTRIAL BLUEPRINT</text>
+
+        <!-- CONTAINERS -->
+        
+          <g>
+            <rect 
+              x="7.5" 
+              y="15" 
+              width="165" 
+              height="285" 
+              fill="rgba(255, 255, 255, 0.02)" 
+              stroke="rgba(255, 255, 255, 0.1)" 
+              stroke-width="0.5" 
+              stroke-dasharray="2 2"
+            />
+            <text x="11.5" y="23" fill="rgba(255, 255, 255, 0.2)" font-family="monospace" font-size="6" font-weight="900">TRIGGER</text>
+          </g>
+        
+          <g>
+            <rect 
+              x="7.5" 
+              y="15" 
+              width="165" 
+              height="285" 
+              fill="rgba(255, 255, 255, 0.02)" 
+              stroke="rgba(255, 255, 255, 0.1)" 
+              stroke-width="0.5" 
+              stroke-dasharray="2 2"
+            />
+            <text x="11.5" y="23" fill="rgba(255, 255, 255, 0.2)" font-family="monospace" font-size="6" font-weight="900">CONFIG</text>
+          </g>
+        
+          <g>
+            <rect 
+              x="0" 
+              y="31.5" 
+              width="180" 
+              height="243" 
+              fill="rgba(255, 255, 255, 0.02)" 
+              stroke="rgba(255, 255, 255, 0.1)" 
+              stroke-width="0.5" 
+              stroke-dasharray="2 2"
+            />
+            <text x="4" y="39.5" fill="rgba(255, 255, 255, 0.2)" font-family="monospace" font-size="6" font-weight="900">OUTPUTS</text>
+          </g>
+        
+
+        <!-- ELEMENTS -->
+        
+            <g transform="translate(90, 150)">
+              
+                <circle r="16" fill="#222" stroke="#00f0ff" stroke-width="0.5" opacity="0.3" />
+                <circle r="14" fill="#151515" stroke="#00f0ff" stroke-width="1.5" />
+                <line y1="-14" y2="-8" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" transform="rotate(45)" />
+              
+              <text y="28" fill="#00f0ff" font-family="monospace" font-size="7" font-weight="900" text-anchor="middle">TRIG_BTN</text>
+              <text y="36" fill="rgba(255,255,255,0.2)" font-family="monospace" font-size="5" text-anchor="middle">X:60 Y:100</text>
+            </g>
+          
+            <g transform="translate(88.5, 148.5)">
+              
+                <circle r="16" fill="#222" stroke="#00f0ff" stroke-width="0.5" opacity="0.3" />
+                <circle r="14" fill="#151515" stroke="#00f0ff" stroke-width="1.5" />
+                <line y1="-14" y2="-8" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" transform="rotate(45)" />
+              
+              <text y="28" fill="#00f0ff" font-family="monospace" font-size="7" font-weight="900" text-anchor="middle">MIDI_OUT</text>
+              <text y="36" fill="rgba(255,255,255,0.2)" font-family="monospace" font-size="5" text-anchor="middle">X:59 Y:99</text>
+            </g>
+          
+            <g transform="translate(90, 75)">
+              
+                <circle r="16" fill="#222" stroke="#00f0ff" stroke-width="0.5" opacity="0.3" />
+                <circle r="14" fill="#151515" stroke="#00f0ff" stroke-width="1.5" />
+                <line y1="-14" y2="-8" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" transform="rotate(45)" />
+              
+              <text y="28" fill="#00f0ff" font-family="monospace" font-size="7" font-weight="900" text-anchor="middle">SETUP_NOTE</text>
+              <text y="36" fill="rgba(255,255,255,0.2)" font-family="monospace" font-size="5" text-anchor="middle">X:60 Y:50</text>
+            </g>
+          
+            <g transform="translate(90, 150)">
+              
+                <circle r="16" fill="#222" stroke="#00f0ff" stroke-width="0.5" opacity="0.3" />
+                <circle r="14" fill="#151515" stroke="#00f0ff" stroke-width="1.5" />
+                <line y1="-14" y2="-8" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" transform="rotate(45)" />
+              
+              <text y="28" fill="#00f0ff" font-family="monospace" font-size="7" font-weight="900" text-anchor="middle">SETUP_OCT</text>
+              <text y="36" fill="rgba(255,255,255,0.2)" font-family="monospace" font-size="5" text-anchor="middle">X:60 Y:100</text>
+            </g>
+          
+            <g transform="translate(90, 225)">
+              
+                <circle r="16" fill="#222" stroke="#00f0ff" stroke-width="0.5" opacity="0.3" />
+                <circle r="14" fill="#151515" stroke="#00f0ff" stroke-width="1.5" />
+                <line y1="-14" y2="-8" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" transform="rotate(45)" />
+              
+              <text y="28" fill="#00f0ff" font-family="monospace" font-size="7" font-weight="900" text-anchor="middle">SETUP_VEL</text>
+              <text y="36" fill="rgba(255,255,255,0.2)" font-family="monospace" font-size="5" text-anchor="middle">X:60 Y:150</text>
+            </g>
+          
+      </g>
+
+      <text x="60" y="405" fill="rgba(255, 255, 255, 0.2)" font-family="monospace" font-size="8">MODULE: MIDI_TRIGGER | SKU: MIDI | DESIGN INTEGRITY: 100%</text>
+    </svg>

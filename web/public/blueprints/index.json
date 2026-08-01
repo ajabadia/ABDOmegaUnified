@@ -1,0 +1,26 @@
+[
+  {
+    "id": "standard_vcf",
+    "label": "Industrial VCF",
+    "version": "1.0.0",
+    "category": "composite",
+    "description": "Classic 24dB/oct low-pass filter with resonance control.",
+    "path": "/blueprints/standard_vcf.json"
+  },
+  {
+    "id": "stereo_io",
+    "label": "Stereo I/O Block",
+    "version": "1.0.0",
+    "category": "io",
+    "description": "Standard stereo input/output Jack configuration.",
+    "path": "/blueprints/stereo_io.json"
+  },
+  {
+    "id": "osc_macro_block",
+    "label": "VCO Macro Block",
+    "version": "1.1.0",
+    "category": "composite",
+    "description": "High-precision oscillator with waveform selector and FM input.",
+    "path": "/blueprints/osc_macro_block.json"
+  }
+]

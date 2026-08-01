@@ -1,0 +1,11 @@
+/* OMEGA DEFAULT THEME (MASTER) */
+@import "./colors.css";
+@import "./knobs.css";
+@import "./leds.css";
+
+/* Structural base for themes */
+.omega-theme-context.theme-default {
+    background: var(--module-bg);
+    color: var(--module-label-color);
+    font-family: var(--module-font-main);
+}

@@ -1,0 +1,39 @@
+schemaVersion: "7.2.3"
+id: midi_in
+metadata:
+  name: GLOBAL MIDI INPUT
+  family: io
+  version: 1.0.0
+  rack: { hp: 4, height_mode: "1U" }
+ui:
+  dimensions: { width: 60, height: 140 }
+  skin: industrial
+  layout:
+    containers:
+      - id: main
+        label: Bridge
+        pos: { x: 5, y: 5 }
+        size: { w: 50, h: 130 }
+        variant: panel
+  controls:
+    - id: port_out
+      bind: midi_out
+      pos: { x: 10, y: 20 }
+      presentation:
+        container: main
+        component: port
+        variant: industrial
+        size: { w: 30, h: 30 }
+        attachments: [{ type: label, text: "DATA" }]
+    
+    - id: led_act
+      bind: led_activity
+      pos: { x: 13, y: 75 }
+      presentation:
+        container: main
+        component: led
+        variant: orange
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "ACT" }]
+resources:
+  wasm: midi_in.wasm

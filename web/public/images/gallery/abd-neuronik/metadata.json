@@ -1,0 +1,28 @@
+{
+  "images": {
+    "neuro001.png": {
+      "en": { "caption": "Dashboard / Global", "description": "Core synthesis control panel and global engine parameters." },
+      "es": { "caption": "Panel Global", "description": "Panel de control principal y parámetros globales del motor." }
+    },
+    "neuro002.png": {
+      "en": { "caption": "Spectral Resonator", "description": "64-Partial additive engine with real-time spectral visualization." },
+      "es": { "caption": "Resonador Espectral", "description": "Motor aditivo de 64 parciales con visualización espectral en tiempo real." }
+    },
+    "neuro003.png": {
+      "en": { "caption": "Matter Sculpting", "description": "Inharmonicity and entropy controls for sonic matter manipulation." },
+      "es": { "caption": "Esculpido de Materia", "description": "Controles de inarmonía y entropía para la manipulación de la materia sonora." }
+    },
+    "neuro004.png": {
+      "en": { "caption": "Modulation Matrix", "description": "High-precision routing system for neural-inspired modulations." },
+      "es": { "caption": "Matriz de Modulación", "description": "Sistema de ruteo de alta precisión para modulaciones de inspiración neural." }
+    },
+    "neuro005.png": {
+      "en": { "caption": "Precision Filtering", "description": "Surgical spectral filters for harmonic shaping and tone control." },
+      "es": { "caption": "Filtrado de Precisión", "description": "Filtros espectrales quirúrgicos para el moldeado armónico y control de tono." }
+    },
+    "neuro006.png": {
+      "en": { "caption": "Master Signal Path", "description": "Final stage processing and unified output distribution hub." },
+      "es": { "caption": "Ruta de Señal Master", "description": "Procesamiento de etapa final y centro de distribución de salida unificada." }
+    }
+  }
+}

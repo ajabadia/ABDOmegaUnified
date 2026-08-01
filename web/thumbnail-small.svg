@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="28" viewBox="0 0 40 28">
+  <rect width="100%" height="100%" fill="rgba(8,8,8,0.95)" rx="6" />
+  <circle cx="13.914285714285715" cy="10.914285714285715" r="1.4399999999999997" fill="none" stroke="#00f0ff" stroke-width="1.5" />
+  <circle cx="13.914285714285715" cy="10.914285714285715" r="0.7199999999999999" fill="#00f0ff" opacity="0.3" />
+  <line x1="13.914285714285715" y1="9.474285714285715" x2="13.914285714285715" y2="10.194285714285714" stroke="#00f0ff" stroke-width="1.5" />
+  <circle cx="19.057142857142857" cy="10.914285714285715" r="1.4399999999999997" fill="none" stroke="#00f0ff" stroke-width="1.5" />
+  <circle cx="19.057142857142857" cy="10.914285714285715" r="0.7199999999999999" fill="#00f0ff" opacity="0.3" />
+  <line x1="19.057142857142857" y1="9.474285714285715" x2="19.057142857142857" y2="10.194285714285714" stroke="#00f0ff" stroke-width="1.5" />
+  <rect x="24.142857142857142" y="10.857142857142858" width="2.8571428571428577" height="0.11428571428571388" rx="3" fill="none" stroke="#00f0ff" stroke-width="1" opacity="0.6" />
+  <line x1="28.142857142857142" y1="10.297142857142857" x2="23" y2="10.297142857142857" stroke="#00f0ff" stroke-width="0.8" opacity="0.4" />
+  <line x1="28.142857142857142" y1="11.120000000000001" x2="17" y2="11.120000000000001" stroke="#00f0ff" stroke-width="0.8" opacity="0.3" />
+  <circle cx="13.4" cy="15.542857142857143" r="0.7714285714285715" fill="none" stroke="#ff6b35" stroke-width="1.5" />
+  <circle cx="13.4" cy="15.542857142857143" r="2" fill="#ff6b35" />
+  <circle cx="16.82857142857143" cy="15.114285714285714" r="0.34285714285714286" fill="#ff0044" opacity="0.8" />
+  <rect x="20.714285714285715" y="16" width="-1.942857142857143" height="1.1428571428571432" rx="2" fill="none" stroke="#00f0ff" stroke-width="1" opacity="0.5" />
+  <rect x="22.714285714285715" y="15.542857142857143" width="-5.942857142857143" height="0.7714285714285715" fill="#00f0ff" opacity="0.5" rx="1" />
+  <circle cx="23.685714285714287" cy="15.542857142857143" r="0.7714285714285715" fill="none" stroke="#ff6b35" stroke-width="1.5" />
+  <circle cx="23.685714285714287" cy="15.542857142857143" r="2" fill="#ff6b35" />
+  <text x="18.714285714285715" y="22.142857142857142" fill="rgba(255,255,255,0.5)" font-family="monospace" font-size="5" text-anchor="middle" dominant-baseline="middle">TEST GRO</text>
+</svg>

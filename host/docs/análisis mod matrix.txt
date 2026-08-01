@@ -1,0 +1,3742 @@
+Sí: el enfoque es muy bueno, y además encaja especialmente bien con cómo ya está evolucionando OMEGA hacia una UI modular, data-driven y sincronizada con el motor por RPC y ValueTree. La parte más sólida de tu idea es que no trata la matriz como “otro panel más”, sino como una capa operativa de alto nivel ligada al preset y al estado real del engine, algo que ya está alineado con la arquitectura que has ido consolidando en ABD Omega.
+
+Lo que ya funciona
+Tu intuición del launcher resuelve un problema real de densidad visual: 32 slots permanentes en rack romperían la jerarquía del interfaz, mientras que un módulo corto en la utility row preserva foco y mantiene la idea de “modular sin cables” que ya define el proyecto. Además, en el código actual ya existe una matriz de 32 slots, carga dinámica de sources/targets por RPC, y un módulo JS de matriz basado en metadatos, así que conceptualmente no estás inventando una pieza aislada, sino refinando una capacidad que el sistema ya soporta.
+
+También aciertas con la modal como workspace. OMEGA ya usa overlays y modales para funciones “de segundo nivel” como análisis y vistas ampliadas, y la propia arquitectura reciente del proyecto refuerza una WebUI ligera que pide datos al abrirse y se mantiene sincronizada con una source of truth en C++/ValueTree.
+
+Cómo lo mejoraría
+Yo no lo llamaría solo “Launcher”, sino “Mod Matrix Controller” o incluso “Mod Hub” desde el principio, porque abre mejor la puerta a crecer sin rehacer la semántica visual más adelante. En vez de limitarlo a contador + botón, lo convertiría en un micro-resumen del estado: rutas activas, una o dos fuentes dominantes en mini-labels, y un indicador de “actividad útil” que no mida ruido total sino cuántas rutas están realmente modulando algo perceptible.
+
+La modal tampoco la plantearía como una simple cuadrícula de 8x4 “de slots”, sino como un entorno con tres capas: overview global, edición rápida por slot y detalle contextual. Así mantienes la panorámica que propones, pero evitas que el grid se convierta en una tabla densa; de hecho, el módulo actual de matriz ya está muy orientado a fila técnica con source/target/amount/via, por lo que el salto de ergonomía no vendrá solo de reorganizar en 8x4, sino de cambiar el modelo mental hacia tarjetas o celdas escaneables con estado visible al primer golpe de vista.
+
+Propuesta refinada
+Te propongo esta dirección de producto:
+
+Launcher compacto en el rack superior:
+
+Display numérico de rutas activas.
+
+LED de activity con decay suave, no parpadeo bruto.
+
+Botón grande MATRIX.
+
+Pulsación secundaria o icono pequeño para “Quick Clear / Init”.
+
+Overlay dividido en tres zonas:
+
+Cabecera: resumen del patch, filtros por source/target, contador de activas, acciones globales.
+
+Cuerpo: grid 8x4 de slots tipo card.
+
+Inspector lateral o inferior: detalle del slot seleccionado con controles completos.
+
+Cada slot en el grid:
+
+Source y target legibles.
+
+Depth bipolar visible en anillo, barra o trazo horizontal centrado en cero.
+
+Via visible solo si existe.
+
+Estados Active, Mute, Solo, Edited, Conflict.
+
+Color semántico por tipo de fuente, no por marca arbitraria.
+
+Acciones rápidas:
+
+Click: seleccionar.
+
+Alt/secondary click: mute.
+
+Solo momentáneo con pulsación larga.
+
+Duplicar slot, swap source, copy/paste route.
+
+Esto encaja mejor con la idea de “workspace” y aprovecha que ya tienes resolución dinámica de metadatos y un bridge dedicado para manipulación en tiempo real sin interrumpir audio.
+
+Ergonomía visual
+La gran mejora no está solo en glassmorphism, sino en la jerarquía de lectura. Tu diseño debería dejar responder en menos de un segundo a tres preguntas: cuántas rutas hay, cuáles son las importantes y cuál estoy tocando ahora mismo; ese objetivo es más relevante que cualquier efecto premium.
+
+Yo usaría glassmorphism con mucha contención. OMEGA ya tiene una estética técnica/premium con componentes especializados y acentos visuales fuertes en la WebUI, así que una capa translúcida puede funcionar, pero solo si el contenido de la modal tiene superficies sólidas internas, contraste alto y una grilla muy marcada; si no, acabaría “lavando” el interfaz y restando precisión, justo lo contrario de lo que necesita una matriz.
+
+Mod Hub
+La idea del Modulation Hub es probablemente la más potente de todas. Ya tienes telemetría de modulación, fuentes dinámicas y un ecosistema UI donde el osciloscopio y otros módulos contextuales se alimentan por RPC, así que unir matriz + observación de LFOs/envelopes en una misma capa tiene mucha coherencia arquitectónica y de producto.
+
+Mi mejora aquí sería separar dos modos dentro del mismo overlay:
+
+Routing, para crear y editar conexiones.
+
+Activity, para ver qué fuentes se están moviendo y qué destinos reciben más energía.
+
+Eso permite que el Hub sea “el cerebro” sin intentar meter demasiado detalle en una sola pantalla. Un ejemplo muy potente sería seleccionar un slot “LFO 1 -> Cutoff via ModWheel” y ver, al lado, una mini-traza del LFO y un medidor del amount efectivo tras aplicar la vía; eso enlaza perfectamente con la telemetría y con tu idea de audición rápida.
+
+Mi recomendación
+Yo consolidaría tu concepto así: un módulo superior pequeño, permanente y elegante; una modal tipo workspace de alta densidad visual pero no tabla tradicional; y una evolución planificada desde “Matrix Editor” hacia “Modulation Hub”. Esa ruta es la más coherente con el estado actual de ABD Omega, porque respeta la arquitectura SOT/ValueTree, reutiliza la carga lazy por RPC, y además da una identidad propia a la modulación en lugar de esconderla como un panel técnico secundario.
+
+La única cosa que no haría ahora es anclarte demasiado al lenguaje “32 slots visibles siempre en 8x4” como requisito rígido. Mantendría el 8x4 como vista principal, sí, pero con capacidad de filtrar, agrupar y resaltar rutas activas, porque tu matriz ya no es una simple lista de cables: con 32 slots, bipolar depth y vía secundaria, empieza a comportarse como un sistema compositivo que necesita lectura semántica, no solo espacial.
+
+Una pregunta más ¿conviene que la matriz de modulación tenga elementos que disminuyan o aumenten la cantidad de señal que se deriva a otro módulo, un knob o similar? o es preferible desarrollar atenuadores y multiplicadores y usarlos entre los módulos y la modulación?
+
+Sí: para OMEGA te conviene tener ambas cosas, pero con jerarquía clara. La matriz debe llevar control de cantidad por slot como mecanismo principal de uso musical, y los atenuadores/multiplicadores deben existir como herramientas avanzadas de composición dentro del grafo, no como sustituto del amount básico.
+
+Recomendación
+En tu caso, cada ruta de la matriz ya nace con amount bipolar y además tienes “via” secundaria, así que eliminar el control de cantidad del propio slot haría la UX peor y obligaría al usuario a crear nodos intermedios para una operación que debería ser inmediata. Además, la arquitectura del motor ya contempla conexiones con peso amount, nodos Multiply, nodos Mix y compilación a runtime, así que lo más natural es reservar los operadores modulares para casos complejos y dejar el slot como unidad expresiva autosuficiente.
+
+Mi recomendación concreta es:
+
+Cada slot de matriz: source → target + amount bipolar obligatorio.
+
+Via opcional por slot: para modular esa profundidad.
+
+Nodos extra tipo Attenuator/Multiply/Curve/Mix: solo en modo avanzado o futura vista graph.
+
+Por qué el knob es mejor
+El amount en el slot resuelve el 90% de los casos musicales: “LFO a cutoff”, “ENV a pitch”, “velocity a VCA”, “aftertouch a vibrato”. Si obligas a insertar siempre un módulo de atenuación, conviertes una acción de una intención en una pequeña construcción modular, y eso penaliza justo la inmediatez que una matriz debe aportar.
+
+Además, tu runtime ya está pensado para pesos por conexión y sinks que suman modulación total por destino, así que el modelo conceptual del sistema ya asume que cada ruta tiene su propia ganancia. Eso significa que el knob no es un añadido superficial de UI, sino la representación directa de algo que el motor ya entiende muy bien.
+
+Cuándo usar atenuadores
+Los atenuadores y multiplicadores sí son valiosos, pero como segunda capa. En tu propio sistema de modulación ya aparecen nodos Multiply, Mix y Curve, y la documentación los describe precisamente para depth control, suma y remapeo de señales dentro del grafo.
+
+Úsalos para estos casos:
+
+Escalar una fuente una sola vez y reutilizarla en varias rutas.
+
+Combinar dos moduladores antes de llegar al destino.
+
+Hacer modulation-of-modulation más sofisticada que un simple via.
+
+Aplicar curvas, compresión de rango o transformaciones no lineales.
+
+Modelo híbrido
+La mejor arquitectura para OMEGA sería esta tabla:
+
+Nivel	Qué hace	Dónde vive
+Básico	Amount bipolar por ruta, mute, solo, via depth 
+En cada slot de la matriz
+Intermedio	Via como depth VCA o depth modulator por slot 
+En la propia matriz
+Avanzado	Attenuator, Multiply, Mix, Curve, Delay1 
+En graph view o “advanced modulation”
+Este modelo encaja especialmente bien con tu roadmap, porque ya contemplas una futura “Modulation Graph UI” tipo Max/MSP además de la matriz de 32 slots. En otras palabras: la matriz debe ser el editor rápido y musical; el grafo, el laboratorio profundo.
+
+Decisión de diseño
+Si me pides una decisión tajante, haría esto: sí al knob de amount en cada slot, sí a bipolaridad, sí a via como modulador de profundidad, y sí a multiplicadores/atenuadores solo como nivel avanzado. Eso mantiene OMEGA rápido para diseñar sonido, consistente con el motor actual de pesos por conexión, y abierto a crecer hacia un entorno modular más profundo sin obligar al usuario a trabajar siempre “a lo Max” para tareas simples.
+
+Incluso puedes formularlo así en UX:
+
+La matriz conecta.
+
+El amount calibra.
+
+El via anima la profundidad.
+
+Los operadores avanzados esculpen la señal.
+
+Mi consejo práctico adicional: evita llamar “attenuator” al control del slot en la UI principal. Para el usuario, mejor “Depth” o “Amount”; reserva “Attenuator”, “Multiply” y “Scale” para el modo avanzado, donde ya estás hablando de procesamiento de señal y no solo de ruteo musical.
+
+¿Quieres que te proponga ahora una spec concreta del slot ideal de OMEGA Matrix, con controles exactos, estados visuales y comportamiento del knob de Depth + Via?
+
+Sí. Te propongo un slot pensado para OMEGA como unidad musical completa: rápido para programar, legible en grid, y coherente con tu motor actual de source, target, amount, via, viaAmount y activación automática por ruta válida.
+
+Estructura del slot
+Cada slot debería tener esta estructura funcional mínima:
+
+Index.
+
+Source.
+
+Target.
+
+Depth bipolar.
+
+Via opcional.
+
+Via Depth.
+
+Estado: Active, Mute, Solo, Edited, Invalid.
+
+Eso encaja muy bien con el modelo ya presente en OmegaPreset, donde cada slot guarda source, target, amount, via, viaAmount y active, y con el RpcModulationController, que actualiza cada clave por separado y autoactiva la ruta cuando hay source y target válidos.
+
+Controles exactos
+Yo haría el slot así, de izquierda a derecha:
+
+Número de slot, pequeño pero siempre visible.
+
+Selector de Source.
+
+Selector de Target.
+
+Control de Depth bipolar.
+
+Botón o campo Via.
+
+Control de Via Depth.
+
+Mini zona de acciones: mute, solo, clear.
+
+Sobre el control de Depth, no usaría un knob grande dentro del grid. En la vista 8x4 te conviene mucho más un control horizontal centrado en cero, porque comunica inmediatamente polaridad negativa/positiva y ocupa menos altura visual que un rotary; además, el módulo actual ya usa input[type=range] para amount entre -1 y 1 y otro para viaAmount, así que esta dirección también es consistente con la base UI existente.
+
+Depth ideal
+Mi propuesta para Depth:
+
+Rango: -1.00 a +1.00.
+
+Centro visual muy marcado en 0.
+
+Relleno dual: azul/cian a la derecha, ámbar o magenta tenue a la izquierda; o una sola familia cromática con distinto brillo si quieres más sobriedad.
+
+Doble interacción: drag para ajuste rápido, doble click para reset a 0.
+
+Modificador fino: Shift para microajuste.
+
+Visualmente, en grid usaría:
+
+Barra horizontal centrada.
+
+Valor numérico pequeño debajo o superpuesto, por ejemplo +0.37.
+
+Si el slot está muteado, el valor sigue visible pero desaturado.
+
+No pondría un knob circular en cada tarjeta salvo en el inspector lateral. En el inspector sí puedes mostrar un rotary premium grande para el slot seleccionado, porque ahí el usuario ya está en modo edición de detalle y no en lectura panorámica.
+
+Via y Via Depth
+El via ya existe como concepto en OMEGA y es una gran baza, así que yo lo trataría como “modulador de profundidad”, no como una ruta secundaria ambigua. Eso significa que el label visual debería explicar la relación, por ejemplo: LFO1 -> Cutoff y debajo Depth via ModWheel.
+
+Para Via Depth haría esto:
+
+Por defecto 0 a 1 si quieres mantener el comportamiento actual simple y estable con tu implementación existente.
+
+En una versión posterior, permitir bipolar si quieres que la vía no solo aumente sino también reduzca/invierta la profundidad.
+
+Si no hay via, el control queda colapsado o en ghost state.
+
+Si hay via, aparece como subcapa visual, no con el mismo peso que Source/Target.
+
+Estados visuales
+Cada slot necesita estados muy claros:
+
+Active: contraste normal, glow o borde fino.
+
+Inactive: desaturado, casi apagado.
+
+Selected: realce claro y persistente.
+
+Muted: tachado suave o icono M activo, pero conservando lectura.
+
+Soloed: color de prioridad y oscurecimiento relativo del resto.
+
+Invalid: source sin target, target no disponible o source filtrada; borde warning.
+
+Esto es importante porque tu sistema ya depende de metadatos dinámicos y filtrado de fuentes/destinos disponibles según preset cargado. Por tanto, el slot no solo representa valores; también debe comunicar si una ruta sigue siendo legal en el estado actual del patch.
+
+Layout recomendado
+Para la vista overview 8x4, yo haría una tarjeta compacta así:
+
+Fila 1: Slot 07 + estado + acciones rápidas.
+
+Fila 2: Source.
+
+Fila 3: flecha o vínculo visual + Target.
+
+Fila 4: barra de Depth.
+
+Fila 5: línea secundaria de Via y mini barra de Via Depth.
+
+Ejemplo visual conceptual:
+
+07 ACTIVE
+
+LFO 1
+
+→ VCF Cutoff
+
+DEPTH ───●──── +0.42
+
+VIA ModWheel 0.65
+
+Eso lee muchísimo mejor que una fila tipo spreadsheet y sigue aprovechando la metadata dinámica que ya devuelven tus endpoints de modulación.
+
+Interacciones
+Interacciones que sí pondría:
+
+Click en tarjeta: selecciona slot.
+
+Enter o doble click: abre inspector.
+
+Alt click en Mute: mute rápido sin perder valores.
+
+Shift + arrastre en Depth: ajuste fino.
+
+Click derecho o menú contextual:
+
+Duplicate slot.
+
+Copy route.
+
+Paste route.
+
+Clear slot.
+
+Invert depth.
+
+Set via = ModWheel / Aftertouch / Velocity.
+
+Y dos detalles muy útiles para sound design:
+
+Cmd/Ctrl + drag sobre Depth copia el mismo valor a varios slots seleccionados.
+
+Doble click en Source o Target reabre directamente el último grupo usado, aprovechando que las fuentes y destinos vienen de un registro dinámico estable.
+
+Inspector del slot
+Cuando seleccionas un slot, abriría un inspector lateral o inferior con:
+
+Source grande.
+
+Target grande.
+
+Knob rotary premium para Depth.
+
+Selector Via.
+
+Knob para Via Depth.
+
+Toggles: Active, Mute, Solo.
+
+Ayuda contextual: rango, tipo de destino, si suma con otras rutas al mismo target.
+
+Aquí sí cabe el rotary porque estás en modo precisión. En resumen:
+
+Grid: slider bipolar centrado.
+
+Inspector: knob de detalle.
+
+Nombres de UI
+Usaría estos labels:
+
+Source
+
+Destination o Target
+
+Depth
+
+Via
+
+Via Depth
+
+Mute
+
+Solo
+
+Clear
+
+Evitaría Amount si quieres una sensación más musical y menos técnica. En synth UX, “Depth” suele comunicar mejor que hablamos de intensidad de modulación y no de una magnitud abstracta.
+
+Mi spec final
+La versión que yo implementaría en OMEGA sería esta:
+
+Slot-card compacta en grid 8x4.
+
+Source y Target como selects.
+
+Depth como slider bipolar horizontal centrado en cero.
+
+Via opcional visible como subruta.
+
+Via Depth como mini slider secundario.
+
+Inspector para el slot seleccionado con rotary knobs premium.
+
+Estados visuales claros y acciones rápidas Mute/Solo/Clear.
+
+Eso te da tres ventajas claras: lectura panorámica real, edición rápida sin abrir detalle y consistencia directa con el modelo de datos ya presente en preset, RPC y runtime.
+
+Quieres que dé el siguiente paso y te redacte una spec UX/UI completa del Matrix Overlay de OMEGA, ya en formato casi implementable para tu WebUI, con layout, clases lógicas, estados y comportamiento de cada control?
+
+
+Sí. Te dejo una spec ya bastante implementable para la OMEGA Matrix Overlay, pensada para convivir con tu arquitectura actual: dual-rack UI, metadata dinámica por RPC, OmegaPreset con modMatrix, RpcModulationController por slot y una futura expansión hacia graph UI avanzada.
+
+Propósito
+La Matrix Overlay debe ser el espacio de trabajo principal para ruteo de modulación en OMEGA, no una tabla técnica ni una pantalla secundaria escondida. Su función es permitir crear, leer, comparar y ajustar las 32 rutas de forma panorámica, manteniendo a la vez una edición precisa del slot seleccionado y compatibilidad directa con el modelo source / target / amount / via / viaAmount / active.
+
+A nivel conceptual:
+
+El rack muestra el instrumento.
+
+El launcher invoca el sistema.
+
+La overlay muestra el mapa de modulación.
+
+El inspector resuelve el detalle.
+
+Arquitectura UI
+Yo estructuraría la feature en tres piezas:
+
+Pieza	Función	Persistencia
+Launcher module	Resumen y acceso rápido desde upper rack 
+Sí, en preset/state visual si quieres
+Matrix Overlay	Workspace principal 8x4 para los 32 slots 
+Estado efímero + datos persistentes
+Slot Inspector	Edición precisa del slot seleccionado 
+Usa y actualiza modMatrix
+Esto encaja con el estado actual de OMEGA, donde ya existen overlays/modales para funciones de trabajo ampliado, una utility row superior y módulos que cargan metadatos al inicializarse o abrirse.
+
+Launcher module
+Nombre del módulo
+MOD MATRIX o MOD HUB. Yo usaría MOD MATRIX ahora y reservaría MOD HUB para cuando integres scopes/LFO/env activity dentro del mismo workspace.
+
+Tamaño
+Módulo corto de utility rack, ancho similar a un módulo de monitor o herramienta compacta. Debe vivir arriba, no en el rack principal de síntesis, porque su rol es transversal.
+
+Contenido
+Display numérico de rutas activas, por ejemplo 05.
+
+Activity LED global, con decay suave.
+
+Botón grande MATRIX.
+
+Indicador pequeño de estado: SOLO, MUTE, EDIT, si existe algún slot en esos modos.
+
+Interacciones
+Click en MATRIX: abre overlay.
+
+Shift+click: abre overlay enfocada al último slot editado.
+
+Double click en display: opcionalmente filtra solo slots activos al abrir.
+
+Overlay layout
+La overlay debe ocupar gran parte del área útil, similar a cómo ya manejas vistas expandidas como el analizador avanzado. Dado que OMEGA ya ha ampliado el workspace a 1600x750 y usa modales complejas para herramientas premium, aquí conviene una modal amplia, con fondo oscurecido y una capa interna sólida aunque tenga un ligero glass effect externo.
+
+Estructura general
+Header superior.
+
+Cuerpo central dividido en grid + inspector.
+
+Footer opcional de acciones globales.
+
+Distribución
+Desktop:
+
+Izquierda: grid de 8 columnas x 4 filas.
+
+Derecha: inspector del slot seleccionado.
+
+Pantallas algo más estrechas:
+
+Grid arriba.
+
+Inspector abajo en panel colapsable.
+
+Móvil no es prioritario aquí, pero en caso de adaptación:
+
+Lista filtrable, no grid completa.
+
+Header
+El header debe dar contexto y control global, no repetir el contenido del inspector.
+
+Contenido recomendado
+Título: MODULATION MATRIX.
+
+Subtítulo dinámico: 32 slots / 7 active / 2 muted.
+
+Search/filter row.
+
+Botones globales:
+
+Show Active
+
+Show All
+
+Init
+
+Panic Mutes Off
+
+Close
+
+Filtros
+Por source.
+
+Por target.
+
+Por tipo de source: MIDI, LFO, ENV, Macro, Internal.
+
+Por estado: Active, Empty, Muted, Soloed, Invalid.
+
+Esto aprovecha muy bien que tus fuentes y targets ya vienen del ModulationRegistry y del RpcModulationController, así que no necesitas codificar a mano el catálogo visual; puedes construir grupos dinámicamente desde metadata.
+
+Grid 8x4
+La grid es la vista panorámica del patch. Debe permitir leer 32 slots de un golpe sin sensación de “spreadsheet”.
+
+Cada card-slot contiene
+Número de slot.
+
+Badge de estado.
+
+Source.
+
+Arrow visual.
+
+Target.
+
+Depth slider bipolar.
+
+Valor numérico de depth.
+
+Línea secundaria de Via.
+
+Mini control de Via Depth.
+
+Acciones rápidas.
+
+Jerarquía visual
+Source y Target son lo más legible.
+
+Depth es el control principal.
+
+Via es secundario.
+
+Índice y acciones son terciarios.
+
+Ejemplo de card
+07
+
+LFO 1
+
+→ VCF Cutoff
+
+DEPTH +0.42
+
+via ModWheel 0.65
+
+[M] [S] [X]
+
+Slot visual states
+Cada tarjeta debe tener clases visuales lógicas claras:
+
+is-empty
+
+is-active
+
+is-selected
+
+is-muted
+
+is-solo
+
+is-invalid
+
+is-edited
+
+is-live si recibe modulación perceptible en ese momento.
+
+Reglas
+Empty: superficie muy apagada.
+
+Active: contraste normal.
+
+Selected: borde claro + elevación.
+
+Muted: desaturado + badge M.
+
+Solo: realce fuerte; las demás se atenúan.
+
+Invalid: borde warning y ayuda contextual.
+
+Live: pulso sutil o activity strip, nunca glow excesivo.
+
+Controles por slot
+Source
+Select searchable con grupos por categoría. La lista debe venir de metadata dinámica, como ya haces al cargar sources y targets en el módulo actual.
+
+Target
+Otro select searchable, también agrupado. Idealmente mostrar nombre musical, no id semántico crudo, aunque internamente uses ids estables como layer.a.vcf.cutoff.
+
+Depth
+Este es el control principal del slot.
+
+En grid:
+
+Slider horizontal bipolar centrado.
+
+Rango -1 a +1.
+
+Step 0.01.
+
+Double click = reset a 0.
+
+Shift drag = ajuste fino.
+
+En inspector:
+
+Rotary knob premium + lectura numérica.
+
+Campo editable opcional para valor exacto.
+
+Via
+Select compacto.
+
+Placeholder: No Via.
+
+Solo visible como “activo” si hay fuente seleccionada.
+
+Via Depth
+Mini slider secundario.
+
+Por ahora 0 a 1 para seguir el modelo actual.
+
+Si luego haces evolución avanzada, podrás ampliar a bipolar sin romper el layout.
+
+Active / Mute / Solo
+Aunque el modelo actual guarda active, yo diferenciaría UX:
+
+active: propiedad automática basada en tener route válida.
+
+mute: capa UI explícita si la añades después.
+
+solo: estado temporal de audición A/B, idealmente no destructivo.
+
+Inspector panel
+El inspector debe mostrar una sola ruta con precisión y contexto.
+
+Secciones
+Identity.
+
+Routing.
+
+Depth shaping.
+
+Monitoring.
+
+Actions.
+
+1. Identity
+Slot 07
+
+Estado actual.
+
+Nombre legible generado: LFO 1 -> VCF Cutoff.
+
+2. Routing
+Source select grande.
+
+Target select grande.
+
+Via select.
+
+Botón swap/copy/duplicate/clear.
+
+3. Depth shaping
+Knob principal Depth.
+
+Mini medidor de valor efectivo si más adelante expones telemetría de depth resultante.
+
+Knob o slider Via Depth.
+
+Toggle futuro para Bipolar Via si lo incorporas.
+
+4. Monitoring
+Mini actividad del source.
+
+Mini actividad del target si se puede inferir o instrumentar.
+
+Valor en tiempo real del slot, si después expones telemetría por conexión.
+
+5. Actions
+Mute
+
+Solo
+
+Duplicate
+
+Clear
+
+Reset Depth
+
+Invert Depth
+
+Estados de interacción
+Alta de ruta
+Usuario elige source.
+
+Usuario elige target.
+
+Slot pasa a active automáticamente.
+
+Depth toma valor por defecto sugerido, por ejemplo +0.25 o 0.00 según tu filosofía.
+
+Dado que el controlador actual ya autoactiva al haber source y target válidos, esta lógica queda alineada con el backend y evita fricción extra.
+
+Edición
+Cambios de slider en tiempo real con RPC.
+
+Valor visual actualizado inmediatamente.
+
+Si el bridge devuelve estado completo, reconciliación posterior para evitar drift visual.
+
+Borrado
+Clear slot vacía source, target, via, amount y viaAmount; active = false.
+
+Mejor tener confirmación solo si el slot está activo y no vacío.
+
+Acciones globales
+Footer o header secundario:
+
+Init Matrix
+
+Clear Empty Noise o Compact View
+
+By Source
+
+By Target
+
+Collapse Inactive
+
+Export Graph futuro
+
+Open Advanced Graph futuro
+
+Esto enlaza muy bien con tu roadmap, donde la Matrix 2.0 convive con la intención de una futura “Modulation Graph UI” interactiva.
+
+Estilo visual
+Yo evitaría una estética “sci-fi sobresaturada” aunque OMEGA tenga acentos neon en algunas partes. La matriz necesita más legibilidad que espectáculo.
+
+Dirección visual recomendada
+Fondo general oscurecido y algo translúcido.
+
+Panel interno casi sólido.
+
+Cards con contraste medio.
+
+Acento principal cian/teal técnico coherente con OMEGA actual.
+
+Un segundo color muy medido para estados especiales, no para todo.
+
+Importante
+No usaría bordes laterales gruesos de color en cada slot. Eso en interfaces complejas termina pareciendo dashboard genérico; mejor usar borde fino, fill sutil y badges pequeños.
+
+Modelo de datos UI
+Te recomiendo este modelo frontend por slot:
+
+ts
+type MatrixSlotViewModel = {
+  index: number;
+  source: string;
+  target: string;
+  amount: number;
+  via: string;
+  viaAmount: number;
+  active: boolean;
+  muted?: boolean;
+  solo?: boolean;
+  selected?: boolean;
+  invalid?: boolean;
+  liveValue?: number;
+  edited?: boolean;
+};
+Los campos persistentes siguen siendo los que ya tienes en OmegaPreset; muted, solo, selected, edited y liveValue pueden ser UI/runtime state si no quieres meterlos aún en preset.
+
+Nombres de clases lógicas
+Para que luego te sea fácil integrarlo en tu WebUI declarativa:
+
+.omega-matrix-overlay
+
+.omega-matrix-header
+
+.omega-matrix-toolbar
+
+.omega-matrix-grid
+
+.omega-matrix-slot
+
+.omega-matrix-slot.is-active
+
+.omega-matrix-slot.is-selected
+
+.omega-matrix-slot.is-muted
+
+.omega-matrix-slot.is-invalid
+
+.omega-matrix-inspector
+
+.omega-matrix-depth
+
+.omega-matrix-via
+
+.omega-matrix-actions
+
+Comportamiento técnico
+Dado el estado actual del proyecto, haría esto:
+
+Cargar metadata de sources/targets al abrir overlay, no antes.
+
+Leer preset.modMatrix del estado actual al abrir.
+
+Mantener cambios optimistas en UI.
+
+Enviar updates por slot/clave usando el puente existente.
+
+Reconciliar con getState si detectas inconsistencia.
+
+No bloquear audio; la arquitectura ya está preparada para manipulación en tiempo real con RpcModulationController.
+
+Spec resumida
+La versión 1 que yo implementaría sería:
+
+Launcher compacto en upper rack.
+
+Overlay ancha con header + grid 8x4 + inspector lateral.
+
+Slot-card con Source, Target, Depth bipolar, Via, Via Depth y acciones rápidas.
+
+Slider bipolar en grid; knob premium en inspector.
+
+Estados visuales active/selected/muted/solo/invalid/live.
+
+Metadata dinámica por RPC cargada al abrir.
+
+Persistencia real solo en campos del preset; estados de trabajo como selected o solo pueden ser temporales.
+
+Eso te da una base muy fuerte: usable ya, coherente con el código actual, y preparada para evolucionar hacia un verdadero Modulation Hub y más adelante a un graph editor avanzado.
+
+¿Quieres que el siguiente paso sea un mockup textual de la interfaz, con el layout dibujado en ASCII y los textos exactos que vería el usuario en cada zona?
+
+Sí: conviene muchísimo más que la matriz se construya de forma progresiva y no como una parrilla “llena” desde el minuto uno, aunque internamente siga existiendo un límite fijo de 32 slots. En tu arquitectura actual ya tienes 32 slots persistentes en el preset, actualización por índice y lógica de autoactivación al editar source o target, así que puedes mantener el backend fijo y hacer que la UX sea incremental, que es la combinación correcta aquí.
+
+Respuesta corta
+Mi recomendación es esta:
+
+Modelo interno: 32 slots fijos en OmegaPreset.modMatrix.
+
+Modelo visual: vista incremental “solo rutas existentes” + botón Add Modulation.
+
+Vista avanzada: opción para abrir la panorámica completa 8x4 cuando el patch ya tenga complejidad.
+
+Eso te da lo mejor de ambos mundos: persistencia y simplicidad de implementación por debajo, ergonomía real por arriba.
+
+Por qué incremental
+Mostrar 32 slots vacíos de entrada transmite “tabla técnica”, no “instrumento”. En cambio, ir agregando rutas hace que la matriz se sienta como construcción musical: primero creas una relación, luego otra, luego otra, y solo cuando el patch madura necesitas la cartografía total.
+
+Además, el propio backend ya favorece esa idea: un slot se vuelve útil cuando tiene source y target, y la lógica actual lo autoactiva al completar esa ruta, así que el flujo “añadir modulación” encaja mejor con cómo el sistema ya entiende una conexión válida.
+
+El mejor enfoque
+Yo no haría ni “solo lista incremental” ni “solo grid 8x4 completa”. Haría una interfaz de dos modos:
+
+Modo	Cuándo	Qué muestra
+Compose	Diseño diario, patches simples o medios	Solo slots activos o editados 
+Overview	Revisión, depuración, patches complejos	Grid completa 8x4 con vacíos incluidos 
+Ese sería el comportamiento ideal para OMEGA. El usuario empieza componiendo, no administrando capacidad; cuando necesita visión sistémica, cambia a overview.
+
+Flujo recomendado
+1. Launcher
+El launcher superior muestra:
+
+Número de rutas activas.
+
+Activity LED.
+
+Botón MATRIX.
+
+2. Al abrir
+Si hay 0 rutas activas:
+
+No muestras 32 huecos.
+
+Muestras empty state premium con CTA Add First Modulation.
+
+Si hay entre 1 y 8 rutas:
+
+Abres en modo Compose.
+
+Ves cards existentes y una card final + Add Modulation.
+
+Si hay muchas rutas, por ejemplo más de 8 o 10:
+
+Sigues abriendo en Compose si quieres continuidad.
+
+Pero ofreces toggle visible Overview 8x4.
+
+3. Añadir ruta
+Click en Add Modulation.
+
+Se crea o se enfoca el primer slot libre.
+
+Aparece editor inline o inspector.
+
+Source -> Target -> Depth.
+
+Como ya tienes acceso por índice con getModSlot y setModSlot, y el estado persistente vive en el ValueTree, buscar el primer slot libre es muy natural sobre la estructura actual.
+
+Mockup textual
+Te propongo este flujo visual.
+
+Launcher
+text
+┌───────────────────────────────────────┐
+│ MOD MATRIX                    [ 05 ]  │
+│ ● activity                    [MATRIX]│
+└───────────────────────────────────────┘
+[ 05 ] = rutas activas.
+
+● activity = brillo según modulación real.
+
+MATRIX abre workspace.
+
+Overlay en modo Compose
+text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ MODULATION MATRIX                                      5 active   [Overview]│
+│ Build routes progressively, then switch to map view when needed.            │
+│ [Show Active] [By Source] [By Target] [Init]                         [Close] │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌────────────────────────────┐  ┌────────────────────────────┐              │
+│  │ Slot 01    ACTIVE          │  │ Slot 02    ACTIVE          │              │
+│  │ LFO 1      -> VCF Cutoff   │  │ ENV 2      -> PWM Amount   │              │
+│  │ Depth      +0.70           │  │ Depth      -0.28           │              │
+│  │ Via        ModWheel 0.65   │  │ Via        none            │              │
+│  │ [Mute] [Solo] [Edit] [X]   │  │ [Mute] [Solo] [Edit] [X]   │              │
+│  └────────────────────────────┘  └────────────────────────────┘              │
+│                                                                              │
+│  ┌────────────────────────────┐  ┌────────────────────────────┐              │
+│  │ Slot 05    ACTIVE          │  │ + ADD MODULATION           │              │
+│  │ Velocity   -> VCA Gain     │  │ Create a new modulation    │              │
+│  │ Depth      +0.42           │  │ route in the next free slot│              │
+│  │ Via        none            │  │                            │              │
+│  │ [Mute] [Solo] [Edit] [X]   │  │        [Add Route]         │              │
+│  └────────────────────────────┘  └────────────────────────────┘              │
+│                                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ SELECTED SLOT                                                                │
+│ Source: [ LFO 1                    v ]                                       │
+│ Target: [ Layer A VCF Cutoff       v ]                                       │
+│ Depth : [----●-------------------] +0.70                                     │
+│ Via   : [ ModWheel                 v ]                                       │
+│ V-Dep : [---------●--------------] 0.65                                      │
+│ Actions: [Duplicate] [Invert] [Clear]                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+Esto hace que la experiencia inicial sea compositiva y orgánica, no burocrática.
+
+Overlay en modo Overview
+text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ MODULATION MATRIX MAP                                  5 active   [Compose] │
+│ Full 8x4 routing overview                                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ [01] LFO1 -> Cutoff     [02] ENV2 -> PWM       [03] empty  [04] empty       │
+│ [05] Vel  -> VCA Gain   [06] empty             [07] empty  [08] empty       │
+│ [09] empty              [10] empty             [11] empty  [12] empty       │
+│ [13] empty              [14] empty             [15] empty  [16] empty       │
+│ [17] empty              [18] empty             [19] empty  [20] empty       │
+│ [21] empty              [22] empty             [23] empty  [24] empty       │
+│ [25] empty              [26] empty             [27] empty  [28] empty       │
+│ [29] empty              [30] empty             [31] empty  [32] empty       │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Inspector del slot seleccionado...                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+Este modo sí sirve para depurar, auditar el patch y detectar huecos o densidad.
+
+Regla UX que yo usaría
+La matriz debe responder a esta lógica:
+
+0–8 rutas activas: Compose por defecto.
+
+9–16: Compose por defecto, pero Overview muy visible.
+
+17–32: puedes recordar el último modo usado, porque ya es un patch complejo.
+
+Así la interfaz acompaña la complejidad real del sonido, en vez de imponerla desde el principio.
+
+Qué haría a nivel técnico
+Con lo que tienes ahora, implementaría esto:
+
+Mantienes los 32 slots persistentes en modMatrix.
+
+En frontend derives:
+
+allSlots
+
+activeSlots
+
+firstFreeSlotIndex
+
+El modo Compose renderiza:
+
+activeSlots
+
+quizá también slots “edited but incomplete”
+
+una card Add Route
+
+Add Route usa el primer slot libre y escribe sobre él.
+
+El modo Overview renderiza siempre los 32.
+
+Eso no rompe nada del modelo actual y te evita una refactorización innecesaria en C++.
+
+Mi recomendación final sobre la pregunta
+Sí: para OMEGA conviene claramente que visualmente la matriz se vaya montando agregando modulaciones. La grid completa de 32 debería existir como vista de mapa, no como experiencia inicial por defecto, porque tu sinte quiere sentirse como un instrumento modular premium, no como una hoja de routing industrial.
+
+La solución más fuerte es:
+
+persistencia fija de 32 por debajo,
+
+construcción progresiva por arriba,
+
+y vista panorámica completa solo cuando haga falta.
+
+¿Quieres que ahora te haga el siguiente nivel de detalle: una spec de interacción exacta tipo “click, doble click, drag, teclado, estados vacíos y transiciones” para que luego la implementes casi tal cual?
+
+Sí. Te dejo una spec de interacción ya en formato casi implementable, pensada para encajar con tu WebUI actual de modales/overlays, bridge RPC asíncrono, dual-rack layout y estado persistente en OmegaPreset.modMatrix. OMEGA ya usa modales amplias para herramientas avanzadas, tiene una utility row superior y dispone de un RpcModulationController y metadata dinámica para sources/targets, así que esta interacción puede montarse sin violentar la arquitectura existente.
+
+Principios
+La Matrix no debe sentirse como una tabla administrativa, sino como una superficie de composición. Como el motor ya trabaja con 32 slots persistentes, amount bipolar, via secundaria y compilación de rutas al cargar el preset, la UX puede centrarse en velocidad de creación, claridad de lectura y edición no destructiva sobre ese modelo fijo.
+
+Reglas de diseño:
+
+Compose primero, overview después.
+
+Un slot es una idea musical, no una fila de formulario.
+
+Toda acción frecuente debe resolverse en un click o drag.
+
+El inspector solo profundiza; no debe ser obligatorio para todo.
+
+Estados
+Estados globales
+Closed.
+
+Opening.
+
+Compose mode.
+
+Overview mode.
+
+Filtering.
+
+Solo audition.
+
+Error or invalid metadata.
+
+Estados por slot
+Empty.
+
+Draft, cuando el usuario ha empezado a configurarlo pero aún no hay ruta válida.
+
+Active.
+
+Selected.
+
+Muted.
+
+Solo.
+
+Edited, pendiente de confirmación visual aunque ya se haya enviado.
+
+Invalid, si source o target ya no existen en metadata.
+
+Regla de validez
+Un slot pasa a “usable” cuando tiene source y target; esto coincide con el comportamiento actual del modelo de preset y de actualización por claves del slot.
+
+Apertura y cierre
+Abrir desde launcher
+Click en MATRIX:
+
+Si no hay rutas activas, abre en Compose con empty state.
+
+Si hay rutas activas, abre en Compose mostrando rutas activas.
+
+Shift+click:
+
+Abre en Overview.
+
+Double click:
+
+Abre enfocando el último slot editado.
+
+Cerrar
+Esc cierra.
+
+Click fuera del panel cierra, siguiendo el patrón modal ya presente en OMEGA.
+
+Botón Close arriba a la derecha.
+
+Si hay cambios locales no reconciliados visualmente, no hace falta confirmación si el commit ya fue por RPC; solo confías en persistencia del estado real.
+
+Modo Compose
+Este es el modo por defecto. Muestra solo:
+
+Slots activos.
+
+Slots draft.
+
+Card + Add Modulation.
+
+Empty state
+Cuando no hay rutas:
+
+text
+┌──────────────────────────────────────────────────────────────┐
+│ MODULATION MATRIX                                            │
+│ No modulation routes yet.                                    │
+│ Start by linking one source to one destination.              │
+│                                                              │
+│                 [ Add First Modulation ]                     │
+└──────────────────────────────────────────────────────────────┘
+Esto es preferible a enseñar 32 celdas vacías porque OMEGA ya se presenta como sintetizador modular premium, no como editor de tabla.
+
+Add modulation
+Click en Add First Modulation o + Add Modulation.
+
+Se toma el primer slot libre del array persistente.
+
+Se crea una card en estado Draft.
+
+Focus inmediato en Source.
+
+Interacciones principales
+Click simple en una card
+Selecciona slot.
+
+Abre o actualiza inspector con ese slot.
+
+No entra en edición modal aparte.
+
+Doble click en una card
+Entra en modo edición rápida inline.
+
+Focus en el primer campo editable no definido; si el slot ya está completo, focus en Depth.
+
+Click en slot vacío, solo en Overview
+Crea draft sobre ese índice concreto.
+
+Cambia a inspector.
+
+Si el usuario estaba en Overview, puede quedarse ahí o volver automáticamente a Compose; yo prefiero quedarse donde está para no romper contexto.
+
+Hover
+Resalta la card.
+
+Muestra acciones secundarias: mute, solo, duplicate, clear.
+
+Nunca dependas del hover para acciones esenciales, porque ya has ido cuidando que la UI tenga equivalentes explícitos en otros módulos.
+
+Edición inline
+Source select
+Click abre dropdown searchable.
+
+Flechas arriba/abajo navegan.
+
+Enter confirma.
+
+Esc cancela lista sin cerrar el slot.
+
+Target select
+Igual que source.
+
+Si cambias source y target ya no tiene sentido, no limpies target automáticamente salvo que el metadata filter lo exija; mejor marcar posible incompatibilidad y dejar al usuario decidir.
+
+Depth slider
+Drag horizontal.
+
+Doble click: reset a 0.00.
+
+Shift+drag: fine adjust.
+
+Alt+click: invierte signo.
+
+Arrow left/right con slot seleccionado: ajuste fino incremental.
+
+Via select
+Dropdown compacto.
+
+Opción fija No Via.
+
+Si eliges No Via, viaAmount queda visualmente desactivado.
+
+Via depth
+Slider mini horizontal.
+
+Double click: reset a 1.00 o a tu default elegido.
+
+Shift+drag: fine adjust.
+
+Inspector
+El inspector es el área de precisión. No abre otra modal, solo ocupa el panel lateral o inferior.
+
+Layout textual
+text
+┌────────────────────────────────────┐
+│ SLOT 07                            │
+│ LFO 1 -> VCF Cutoff                │
+│ ACTIVE                             │
+├────────────────────────────────────┤
+│ Source   [ LFO 1              v ]  │
+│ Target   [ Layer A VCF Cutoff v ]  │
+│ Via      [ ModWheel           v ]  │
+├────────────────────────────────────┤
+│ Depth        [ bipolar knob ]      │
+│ Value        +0.70                 │
+│ Via Depth    [ mini knob   ] 0.65  │
+├────────────────────────────────────┤
+│ [Mute] [Solo] [Duplicate] [Clear]  │
+│ [Invert Depth] [Reset]             │
+└────────────────────────────────────┘
+Comportamiento
+Cambios en inspector actualizan la card seleccionada al instante.
+
+La card y el inspector siempre deben reflejar el mismo estado.
+
+Si el bridge responde con una corrección o el engine normaliza algo, la UI reconcilia y anima el valor al nuevo estado.
+
+RPC y feedback visual
+Tu bridge ya es asíncrono y la app ya usa RPC moderno con respuestas estructuradas, así que la interacción ideal es optimista.
+
+Regla
+Usuario cambia valor.
+
+UI refleja el cambio al instante.
+
+Se envía RPC por slot y key.
+
+Si OK, desaparece estado edited.
+
+Si falla, reaplicas valor anterior y marcas error breve.
+
+Indicadores
+Mientras se edita: pequeño punto ámbar o cyan en la card.
+
+Si commit OK: flash sutil de confirmación.
+
+Si falla: badge pequeño SYNC ERR.
+
+Nada de loaders grandes ni bloqueos, porque toda la arquitectura reciente del proyecto está orientada a real-time safe manipulation sin interrumpir audio.
+
+Mute y Solo
+Mute
+Click en Mute:
+
+silencia la contribución del slot a nivel de UI/runtime.
+
+Visual:
+
+card desaturada,
+
+amount visible pero “dormido”.
+
+Si no quieres persistirlo aún en preset, mantenlo como estado de sesión; eso encaja bien porque ModMatrixSlot persistente actual solo garantiza source, target, amount, via, viaAmount y active.
+
+Solo
+Click en Solo:
+
+todas las demás rutas pasan a estado visual atenuado y funcionalmente muted si implementas audición real.
+
+Segundo click:
+
+desactiva solo.
+
+Esc con solo activo:
+
+desactiva solo antes de cerrar overlay.
+
+Long press opcional
+Pulsación larga en Solo:
+
+solo momentáneo mientras mantienes.
+Esto sería excelente para A/B rápido, pero solo si no te complica demasiado la capa de runtime.
+
+Duplicate, Clear, Reset
+Duplicate
+Duplica al primer slot libre.
+
+Selecciona el nuevo slot.
+
+Si no hay hueco, aviso no modal Matrix full (32/32).
+
+Clear
+Limpia source, target, via, amount y viaAmount.
+
+active=false.
+
+La card desaparece en Compose y queda vacía en Overview.
+
+Reset
+Resetea depth a 0.
+
+Mantiene route.
+
+viaAmount puede mantenerse o resetearse por separado con Reset Via.
+
+Teclado
+Como OMEGA ya tiene una app JS estructurada y controles avanzados, merece atajos buenos.
+
+Globales
+M: abrir/cerrar Matrix si quieres shortcut global.
+
+Esc: cerrar o salir de subestado.
+
+Tab: mover foco entre campos del inspector.
+
+Navegación
+Flechas en grid:
+
+mueven selección entre cards visibles.
+
+Enter:
+
+editar campo principal del slot seleccionado.
+
+Delete o Backspace:
+
+clear slot con confirmación ligera si está activo.
+
+Ajustes
+Shift:
+
+fine control mientras drags.
+
+Alt:
+
+acciones alternativas, por ejemplo invertir depth.
+
+Ctrl/Cmd + D:
+
+duplicate slot.
+
+Overview mode
+Overview muestra la matriz completa 8x4. Está pensada para inspección sistémica, no para composición inicial.
+
+Comportamiento
+Toggle Overview.
+
+Las 32 celdas aparecen siempre.
+
+Las vacías son clicables.
+
+El inspector sigue existiendo al lado.
+
+Acciones ideales
+Scan visual del patch.
+
+Ver densidad de rutas.
+
+Detectar huecos.
+
+Reordenar mentalmente el patch.
+
+Qué no haría
+No haría drag-and-drop de reordenación en la primera versión. El modelo por índice existe, sí, pero primero conviene estabilizar creación, edición, mute/solo y overview antes de introducir reorder semántico.
+
+Filtros
+Toolbar
+Show Active
+
+Show All
+
+By Source
+
+By Target
+
+Only With Via
+
+Only Invalid
+
+Interacción
+En Compose, los filtros reducen las cards visibles.
+
+En Overview, los filtros no eliminan celdas; las atenúan o resaltan para conservar el mapa completo.
+
+Eso es importante: si Overview deja de ser mapa, pierde su razón de ser.
+
+Estados inválidos
+Como sources y targets son metadata-driven y pueden variar según preset o módulos activos, necesitas tratar inconsistencias con elegancia.
+
+Casos
+Source ya no existe.
+
+Target ya no existe.
+
+Via ya no existe.
+
+Route ya no es recomendable para el preset actual.
+
+UX
+Card con badge INVALID.
+
+Texto original preservado, no se borra automáticamente.
+
+Inspector muestra:
+
+Source missing
+
+Target missing
+
+botón Repair.
+
+Repair
+Reemplazar por opción cercana sugerida si puedes mapear por categoría.
+
+O dejar que el usuario la reasigne manualmente.
+
+Transiciones
+Ya tienes una UI con overlays premium y estética cuidada, así que aquí las animaciones deben ser sutiles y funcionales.
+
+Recomendación
+Apertura overlay: fade + scale leve.
+
+Card nueva: slide/fade corto.
+
+Selección de slot: transición de borde y elevación.
+
+Solo/mute: desaturación suave, no parpadeos fuertes.
+
+Cambios de valor: microanimación de confirmación en el control.
+
+Evitar
+Glow excesivo.
+
+Rebotes grandes.
+
+Animaciones teatrales al mover depth.
+La matriz necesita precisión, no espectáculo.
+
+Flujo ideal completo
+Este sería el recorrido perfecto:
+
+Usuario pulsa MATRIX en launcher.
+
+Se abre Compose.
+
+Si no hay rutas, pulsa Add First Modulation.
+
+Elige source.
+
+Elige target.
+
+Ajusta depth con drag.
+
+Opcionalmente añade via.
+
+Escucha.
+
+Usa mute/solo para A/B.
+
+Cuando el patch crece, cambia a Overview para ver el mapa completo.
+
+Ese flujo encaja exactamente con la lógica de “modular sin cables” y con la evolución del proyecto hacia una modulation system más potente, incluida la aspiración futura a graph UI avanzada.
+
+Recomendación de implementación
+Yo lo dividiría en cuatro fases:
+
+Compose mode + Add Route + Inspector básico.
+
+Acciones rápidas: mute, solo, duplicate, clear.
+
+Overview 8x4 + filtros.
+
+Monitoring avanzado y telemetría por slot o Mod Hub expandido.
+
+Así reduces riesgo y llegas antes a una versión usable, sin intentar resolver el “hub definitivo” de golpe.
+
+Decisión clave
+La mejor decisión de UX aquí es esta: la matriz debe crecer con el patch, pero sin renunciar a una vista de mapa completa cuando el sonido lo requiera. Como internamente ya tienes 32 slots persistentes y control por índice en preset/bridge, no necesitas elegir entre modelo fijo o experiencia progresiva; puedes tener ambos y hacer que el usuario solo vea complejidad cuando realmente la necesita.
+
+El siguiente paso más útil sería convertir todo esto en una spec de componentes concreta, con nombres de clases, estructura DOM y eventos JS/TS (onClick, onDoubleClick, onSlotUpdate, onAddRoute, onToggleOverview) para que luego la implementes casi en directo sobre tu WebUI actual.
+
+
+
+Perfecto. Te dejo una spec de componentes ya aterrizada a tu arquitectura actual, usando el lenguaje y la estructura que mejor encajan con tu WebUI TypeScript declarativa, ModuleManager, moduledescriptors, omegarpc, MetadataStore y el componente existente ModuleModMatrix. OMEGA ya expone módulos vía ModuleManager, registra ModuleModMatrix en index.js y carga metadata y estado por RPC, así que la vía más natural es mantener el launcher como módulo y sacar la experiencia rica a un overlay especializado, no intentar meterlo todo dentro del módulo compacto.
+
+Estructura general
+Te propongo separar en estas piezas:
+
+Pieza	Tipo	Rol
+ModuleModMatrix	módulo rack	Launcher compacto en upper rack 
+MatrixOverlayController	controlador UI	Ciclo de vida del overlay
+MatrixStore	store local	Estado visual, selección, filtros, drafts
+MatrixRpcAdapter	adaptador bridge	Lectura/escritura de slots por RPC
+MatrixComposeView	renderer	Vista progresiva
+MatrixOverviewView	renderer	Vista 8x4
+MatrixInspectorView	renderer	Panel lateral de detalle
+Eso encaja muy bien con tu evolución reciente hacia TypeScript modular y controladores especializados en el bridge.
+
+Archivos recomendados
+Yo lo montaría así:
+
+components/ModuleModMatrix.ts
+
+components/MatrixOverlayController.ts
+
+components/MatrixComposeView.ts
+
+components/MatrixOverviewView.ts
+
+components/MatrixInspectorView.ts
+
+stores/matrixstore.ts
+
+services/matrixrpc.ts
+
+styles/matrix-overlay.css
+
+Si quieres hacerlo todavía más conservador con tu estructura actual:
+
+mantener componentsModuleModMatrix.js
+
+añadir componentsMatrixOverlay.js
+
+añadir matrixstore.js
+
+añadir matrixrpc.js
+
+Tipos base
+Slot persistente
+Esto refleja tu ModMatrixSlot actual, con source, target, amount, via, viaAmount y active.
+
+ts
+export type ModMatrixSlot = {
+  source: string;
+  target: string;
+  amount: number;
+  via: string;
+  viaAmount: number;
+  active: boolean;
+};
+Estado visual
+Esto no tiene por qué persistirse en preset.
+
+ts
+export type MatrixSlotViewModel = ModMatrixSlot & {
+  index: number;
+  status: 'empty' | 'draft' | 'active' | 'selected' | 'muted' | 'solo' | 'invalid';
+  edited?: boolean;
+  invalidReason?: 'missing-source' | 'missing-target' | 'missing-via';
+  liveValue?: number;
+};
+
+export type MatrixMode = 'compose' | 'overview';
+
+export type MatrixFilterState = {
+  showActiveOnly: boolean;
+  source: string | null;
+  target: string | null;
+  onlyWithVia: boolean;
+  onlyInvalid: boolean;
+};
+
+export type MatrixUiState = {
+  open: boolean;
+  mode: MatrixMode;
+  selectedSlotIndex: number | null;
+  lastEditedSlotIndex: number | null;
+  filters: MatrixFilterState;
+  soloSlotIndex: number | null;
+  mutedSlots: Set<number>;
+  pendingWrites: Set<string>;
+};
+Esto respeta que el preset siga siendo la source of truth persistente y deja el resto como estado efímero del overlay, que es coherente con tu patrón actual de vistas avanzadas y con el ValueTree como núcleo real del sonido.
+
+MatrixStore
+Este store debe ser fino y sin lógica visual mezclada con DOM.
+
+Responsabilidades
+Mantener slots.
+
+Mantener uiState.
+
+Calcular activeSlots.
+
+Calcular firstFreeSlotIndex.
+
+Resolver composeSlots.
+
+Exponer mutaciones puras.
+
+API recomendada
+ts
+export default class MatrixStore {
+  slots: MatrixSlotViewModel[] = [];
+  ui: MatrixUiState = {
+    open: false,
+    mode: 'compose',
+    selectedSlotIndex: null,
+    lastEditedSlotIndex: null,
+    filters: {
+      showActiveOnly: true,
+      source: null,
+      target: null,
+      onlyWithVia: false,
+      onlyInvalid: false
+    },
+    soloSlotIndex: null,
+    mutedSlots: new Set(),
+    pendingWrites: new Set()
+  };
+
+  loadSlots(slots: ModMatrixSlot[]): void {}
+  getAllSlots(): MatrixSlotViewModel[] {}
+  getActiveSlots(): MatrixSlotViewModel[] {}
+  getComposeSlots(): MatrixSlotViewModel[] {}
+  getOverviewSlots(): MatrixSlotViewModel[] {}
+  getSelectedSlot(): MatrixSlotViewModel | null {}
+  getFirstFreeSlotIndex(): number | null {}
+  selectSlot(index: number): void {}
+  setMode(mode: MatrixMode): void {}
+  createDraftAtFirstFree(): number | null {}
+  clearSlot(index: number): void {}
+  patchSlot(index: number, patch: Partial<ModMatrixSlot>): void {}
+  setMuted(index: number, muted: boolean): void {}
+  setSolo(index: number | null): void {}
+  markPending(key: string): void {}
+  clearPending(key: string): void {}
+}
+MatrixRpcAdapter
+Como ya tienes bridge moderno y un RpcModulationController dedicado a manipulación de matriz, esta capa debe encapsular completamente las llamadas.
+
+API propuesta
+ts
+export default class MatrixRpcAdapter {
+  async getState(): Promise<any> {}
+  async getMatrixSlots(): Promise<ModMatrixSlot[]> {}
+  async getSources(): Promise<Array<{ id: string; label: string; category: string }>> {}
+  async getTargets(): Promise<Array<{ id: string; label: string; category: string }>> {}
+  async updateSlotKey(index: number, key: 'source'|'target'|'amount'|'via'|'viaAmount'|'active', value: string | number | boolean): Promise<boolean> {}
+  async replaceSlot(index: number, slot: ModMatrixSlot): Promise<boolean> {}
+  async clearSlot(index: number): Promise<boolean> {}
+}
+Nota importante
+Si tu RPC real hoy solo expone updates por slotIdx + key, mantén esa granularidad. Es muy buena para sliders y knobs porque evita enviar el objeto completo en cada cambio.
+
+ModuleModMatrix
+Este componente debe quedarse como launcher, no como editor completo.
+
+Responsabilidades
+Render del módulo corto en upper rack.
+
+Mostrar número de rutas activas.
+
+Mostrar LED de actividad.
+
+Botón MATRIX.
+
+Emitir open-matrix-overlay.
+
+DOM sugerido
+xml
+<div class="module-content omega-matrix-launcher">
+  <div class="matrix-launcher-display">
+    <span class="matrix-launcher-count">05</span>
+  </div>
+  <div class="matrix-launcher-led" data-state="active"></div>
+  <button class="matrix-launcher-btn">MATRIX</button>
+</div>
+API del componente
+ts
+class ModuleModMatrix {
+  constructor(el, content, descriptor) {}
+  async init() {}
+  onStateUpdate(state) {}
+  render() {}
+  bind() {}
+  updateCount(activeCount: number) {}
+  updateActivity(value: number) {}
+  openOverlay(mode?: 'compose' | 'overview') {}
+}
+Eventos
+click en botón: window.dispatchEvent(new CustomEvent('omega:matrix-open'))
+
+shift+click: omega:matrix-open con { mode: 'overview' }
+
+MatrixOverlayController
+Este es el cerebro.
+
+Responsabilidades
+Abrir/cerrar overlay.
+
+Cargar metadata lazily al abrir.
+
+Pedir slots al abrir.
+
+Instanciar compose/overview/inspector.
+
+Coordinar selección, filtros y persistencia.
+
+API
+ts
+export default class MatrixOverlayController {
+  constructor(store: MatrixStore, rpc: MatrixRpcAdapter) {}
+  async init(): Promise<void> {}
+  async open(mode?: MatrixMode): Promise<void> {}
+  close(): void {}
+  async refresh(): Promise<void> {}
+  render(): void {}
+  bindGlobalEvents(): void {}
+  handleAddRoute(): Promise<void> {}
+  handleSlotSelect(index: number): void {}
+  handleModeToggle(mode: MatrixMode): void {}
+  handleFilterChange(nextFilters: Partial<MatrixFilterState>): void {}
+  handleSlotPatch(index: number, patch: Partial<ModMatrixSlot>): Promise<void> {}
+  handleSlotClear(index: number): Promise<void> {}
+  handleSlotDuplicate(index: number): Promise<void> {}
+  handleSlotMute(index: number): void {}
+  handleSlotSolo(index: number): void {}
+}
+Flujo de apertura
+Crear overlay root si no existe.
+
+Cargar sources y targets vía RPC al abrir.
+
+Cargar slots desde preset.modMatrix.
+
+Derivar activeCount.
+
+Render.
+
+Esto está perfectamente alineado con tu decisión de mantener la UI principal ligera y usar carga lazy en workspaces complejos.
+
+DOM del overlay
+xml
+<div id="matrix-overlay" class="omega-matrix-overlay hidden">
+  <div class="omega-matrix-backdrop"></div>
+  <section class="omega-matrix-panel" role="dialog" aria-modal="true" aria-labelledby="matrix-title">
+    <header class="omega-matrix-header">
+      <div class="omega-matrix-title-group">
+        <h2 id="matrix-title">MODULATION MATRIX</h2>
+        <p class="omega-matrix-subtitle">5 active / 32 max</p>
+      </div>
+      <div class="omega-matrix-toolbar"></div>
+      <button class="omega-matrix-close" aria-label="Close">×</button>
+    </header>
+
+    <div class="omega-matrix-body">
+      <main class="omega-matrix-main"></main>
+      <aside class="omega-matrix-inspector"></aside>
+    </div>
+  </section>
+</div>
+Esta estructura sigue el patrón de modales avanzadas que ya existen en tu HTML, como About, Presets, Preferences y el Advanced Wave Analyzer.
+
+MatrixComposeView
+Responsabilidades
+Renderizar solo slots activos, draft o filtrados.
+
+Renderizar card + Add Modulation.
+
+Reemitir eventos.
+
+API
+ts
+export default class MatrixComposeView {
+  constructor(container: HTMLElement, store: MatrixStore) {}
+  render(): void {}
+  bind(events: {
+    onAddRoute: () => void;
+    onSelectSlot: (index: number) => void;
+    onEditSlot: (index: number) => void;
+    onMuteSlot: (index: number) => void;
+    onSoloSlot: (index: number) => void;
+    onClearSlot: (index: number) => void;
+  }): void {}
+}
+DOM por slot
+xml
+<article class="omega-matrix-slot is-active" data-slot-index="0">
+  <header class="omega-matrix-slot-head">
+    <span class="omega-matrix-slot-index">01</span>
+    <span class="omega-matrix-slot-badge">ACTIVE</span>
+  </header>
+
+  <div class="omega-matrix-slot-route">
+    <button class="omega-matrix-slot-source">LFO 1</button>
+    <span class="omega-matrix-slot-arrow">→</span>
+    <button class="omega-matrix-slot-target">VCF Cutoff</button>
+  </div>
+
+  <div class="omega-matrix-slot-depth">
+    <input type="range" min="-1" max="1" step="0.01" />
+    <span class="omega-matrix-slot-depth-value">+0.70</span>
+  </div>
+
+  <div class="omega-matrix-slot-via">
+    <span class="omega-matrix-slot-via-label">via</span>
+    <button class="omega-matrix-slot-via-source">ModWheel</button>
+    <span class="omega-matrix-slot-via-value">0.65</span>
+  </div>
+
+  <footer class="omega-matrix-slot-actions">
+    <button data-action="mute">Mute</button>
+    <button data-action="solo">Solo</button>
+    <button data-action="duplicate">Duplicate</button>
+    <button data-action="clear">Clear</button>
+  </footer>
+</article>
+MatrixOverviewView
+Responsabilidades
+Render 8x4 fijo de los 32 slots.
+
+Mantener el mapa aunque haya filtros.
+
+Resaltar en vez de ocultar.
+
+API
+ts
+export default class MatrixOverviewView {
+  constructor(container: HTMLElement, store: MatrixStore) {}
+  render(): void {}
+  bind(events: {
+    onSelectSlot: (index: number) => void;
+    onCreateAtSlot: (index: number) => void;
+  }): void {}
+}
+DOM
+.omega-matrix-grid
+
+32 hijos .omega-matrix-grid-cell
+
+clases:
+
+.is-empty
+
+.is-active
+
+.is-selected
+
+.is-dimmed
+
+.is-invalid
+
+MatrixInspectorView
+Responsabilidades
+Mostrar slot seleccionado.
+
+Renderizar selects y knobs/sliders de precisión.
+
+No persistir por sí misma; delega al controller.
+
+API
+ts
+export default class MatrixInspectorView {
+  constructor(container: HTMLElement, store: MatrixStore, dictionaries: { sources: any[]; targets: any[] }) {}
+  render(): void {}
+  bind(events: {
+    onPatchSlot: (index: number, patch: Partial<ModMatrixSlot>) => void;
+    onDuplicateSlot: (index: number) => void;
+    onClearSlot: (index: number) => void;
+    onMuteSlot: (index: number) => void;
+    onSoloSlot: (index: number) => void;
+  }): void {}
+}
+DOM sugerido
+xml
+<section class="omega-matrix-inspector-panel">
+  <h3 class="omega-matrix-inspector-title">SLOT 07</h3>
+  <p class="omega-matrix-inspector-route">LFO 1 → VCF Cutoff</p>
+
+  <label>Source</label>
+  <select data-field="source"></select>
+
+  <label>Target</label>
+  <select data-field="target"></select>
+
+  <label>Via</label>
+  <select data-field="via"></select>
+
+  <label>Depth</label>
+  <input type="range" data-field="amount" min="-1" max="1" step="0.01" />
+
+  <label>Via Depth</label>
+  <input type="range" data-field="viaAmount" min="0" max="1" step="0.01" />
+
+  <div class="omega-matrix-inspector-actions">
+    <button data-action="mute">Mute</button>
+    <button data-action="solo">Solo</button>
+    <button data-action="duplicate">Duplicate</button>
+    <button data-action="clear">Clear</button>
+    <button data-action="invert">Invert</button>
+    <button data-action="reset">Reset</button>
+  </div>
+</section>
+Eventos
+Yo usaría eventos DOM simples para no meter una capa extra si todavía no la necesitas.
+
+Eventos globales
+omega:matrix-open
+
+omega:matrix-close
+
+omega:matrix-mode-change
+
+omega:matrix-slot-select
+
+omega:matrix-slot-patch
+
+omega:matrix-slot-clear
+
+omega:matrix-slot-duplicate
+
+omega:matrix-slot-mute
+
+omega:matrix-slot-solo
+
+Payload ejemplo
+ts
+window.dispatchEvent(new CustomEvent('omega:matrix-slot-patch', {
+  detail: {
+    index: 6,
+    patch: { amount: 0.72 }
+  }
+}));
+Integración con ModuleManager
+Como ModuleManager ya resuelve módulos auxiliares y lanza ModuleModMatrix cuando detecta tipos matrix o modmatrix, no hace falta tocar el patrón conceptual: solo debes hacer que ModuleModMatrix deje de renderizar editor interno y pase a ser lanzador.
+
+Recomendación
+Mantener detección actual en ModuleManager.
+
+Mantener componentId: MOD-MATRIX-001.
+
+Cambiar la responsabilidad del componente, no el pipeline.
+
+Integración con omegarpc
+Tu omegarpc ya envuelve acciones como getMetadata, setParam, getSystemSettings y otras, así que aquí haría exactamente lo mismo: añadir métodos específicos de matriz en vez de colar esta lógica dentro de setParam.
+
+Métodos propuestos
+ts
+getModMatrixState()
+getModMatrixSources()
+getModMatrixTargets()
+updateModMatrixSlot(slotIndex, key, value)
+clearModMatrixSlot(slotIndex)
+Shim en window.juce
+Si quieres compatibilidad rápida:
+
+ts
+window.juce.getModMatrixState = () => rpc.getModMatrixState();
+window.juce.getModMatrixSources = () => rpc.getModMatrixSources();
+window.juce.getModMatrixTargets = () => rpc.getModMatrixTargets();
+window.juce.updateModMatrixSlot = (slotIndex, key, value) => rpc.updateModMatrixSlot(slotIndex, key, value);
+window.juce.clearModMatrixSlot = (slotIndex) => rpc.clearModMatrixSlot(slotIndex);
+Eso sigue exactamente el patrón con el que ya has modernizado el bridge y mantenido compatibilidad de superficie.
+
+Flujo de eventos recomendado
+Abrir
+ModuleModMatrix emite omega:matrix-open.
+
+MatrixOverlayController.open():
+
+hace lazy load de metadata,
+
+lee slots,
+
+renderiza Compose.
+
+Editar amount
+Usuario mueve slider inline.
+
+ComposeView emite onPatchSlot(index, { amount }).
+
+Controller:
+
+store.patchSlot(...)
+
+store.markPending(...)
+
+rpc.updateSlotKey(...)
+
+al resolver, clearPending(...)
+
+Añadir route
+Usuario pulsa Add Route.
+
+store.createDraftAtFirstFree()
+
+selectSlot(newIndex)
+
+render
+
+focus en source del inspector
+
+Clases CSS
+Usaría esta taxonomía:
+
+.omega-matrix-overlay
+
+.omega-matrix-backdrop
+
+.omega-matrix-panel
+
+.omega-matrix-header
+
+.omega-matrix-toolbar
+
+.omega-matrix-body
+
+.omega-matrix-main
+
+.omega-matrix-inspector
+
+.omega-matrix-compose
+
+.omega-matrix-grid
+
+.omega-matrix-slot
+
+.omega-matrix-slot.is-empty
+
+.omega-matrix-slot.is-active
+
+.omega-matrix-slot.is-selected
+
+.omega-matrix-slot.is-muted
+
+.omega-matrix-slot.is-solo
+
+.omega-matrix-slot.is-invalid
+
+.omega-matrix-slot.is-pending
+
+.omega-matrix-add-card
+
+Orden de implementación
+Te recomiendo este orden exacto:
+
+Convertir ModuleModMatrix en launcher mínimo.
+
+Crear MatrixOverlayController y overlay base.
+
+Añadir MatrixStore y lectura de slots reales.
+
+Implementar ComposeView.
+
+Implementar InspectorView.
+
+Conectar updates por RPC.
+
+Añadir OverviewView.
+
+Añadir mute/solo efímeros.
+
+Añadir estados inválidos y repair.
+
+Ese orden es consistente con tu roadmap reciente: primero arquitectura sólida y data-driven, luego refinamiento UX.
+
+Mi recomendación técnica final
+No intentaría “encajar” la UX rica dentro del actual ModuleModMatrix como un módulo más del rack. Dado que OMEGA ya tiene modales avanzadas, bridge RPC desacoplado, metadata dinámica y una utility row superior, lo correcto es tratar ModuleModMatrix como launcher de sistema y mover toda la experiencia compleja a un overlay con store y controller propios.
+
+La razón es simple: la matriz ya no es un control aislado, sino una capa de composición del sintetizador. Y con el estado actual de tu código, esa separación no solo es mejor en UX, sino también la más coherente con la arquitectura que ya has consolidado
+
+
+Perfecto. Te lo bajo ya a pseudocódigo implementable, intentando respetar al máximo los nombres, patrones y convenciones que ya aparecen en tu bundle actual: ModuleModMatrix, ModuleManager, omegarpc, metadataStore, ModuleRenderer y el bridge desacoplado por controladores RPC. Además, el ModuleManager ya detecta matrix/modmatrix, ModuleModMatrix hoy carga metadata con getModulationMetadata y actualiza slots con updateModMatrixSlot, así que no hace falta romper el pipeline existente, solo refactorizar responsabilidades.
+
+1. ModuleModMatrix.ts
+Objetivo: convertir el componente actual de editor largo en un launcher compacto del upper rack. Ahora mismo ModuleModMatrix renderiza una tabla/lista de 32 filas y escucha cambios directos en cada control; mi propuesta es dejar toda esa edición para el overlay y que este módulo solo muestre resumen + botón.
+
+ts
+// components/ModuleModMatrix.ts
+
+type ModMatrixSlot = {
+  active: boolean;
+  source: string;
+  target: string;
+  amount: number;
+  via: string;
+  viaAmount: number;
+};
+
+class ModuleModMatrix {
+  el: HTMLElement;
+  content: HTMLElement;
+  options: any;
+  state: any = null;
+  slots: ModMatrixSlot[] = [];
+  activityValue = 0;
+  pulseRaf: number | null = null;
+
+  constructor(el: HTMLElement, content: HTMLElement, options: any) {
+    this.el = el;
+    this.content = content;
+    this.options = options;
+    this.renderBase();
+  }
+
+  async init() {
+    this.bind();
+    await this.refreshFromState();
+  }
+
+  async refreshFromState() {
+    const state = window.moduleManager?.lastState || null;
+    this.state = state;
+
+    const slots = state?.preset?.modMatrix || state?.modMatrix || [];
+    this.slots = this.normalizeSlots(slots);
+
+    this.updateCount();
+    this.updateActivityFromSlots();
+  }
+
+  normalizeSlots(raw: any[]): ModMatrixSlot[] {
+    const out: ModMatrixSlot[] = [];
+    for (let i = 0; i < 32; i++) {
+      const slot = raw?.[i] || {};
+      out.push({
+        active: !!slot.active,
+        source: slot.source || '',
+        target: slot.target || '',
+        amount: typeof slot.amount === 'number' ? slot.amount : 0,
+        via: slot.via || '',
+        viaAmount: typeof slot.viaAmount === 'number' ? slot.viaAmount : 0
+      });
+    }
+    return out;
+  }
+
+  renderBase() {
+    this.content.innerHTML = `
+      <div class="omega-matrix-launcher">
+        <div class="omega-matrix-launcher__top">
+          <div class="omega-matrix-launcher__display">
+            <span class="omega-matrix-launcher__count" id="matrix-active-count">00</span>
+          </div>
+          <div class="omega-matrix-launcher__led" id="matrix-activity-led"></div>
+        </div>
+
+        <div class="omega-matrix-launcher__meta">
+          <div class="omega-matrix-launcher__label">MOD MATRIX</div>
+          <div class="omega-matrix-launcher__sub" id="matrix-summary-line">NO ACTIVE ROUTES</div>
+        </div>
+
+        <button class="omega-matrix-launcher__button" id="matrix-open-btn">
+          MATRIX
+        </button>
+      </div>
+    `;
+  }
+
+  bind() {
+    const btn = this.content.querySelector('#matrix-open-btn') as HTMLButtonElement | null;
+    if (btn) {
+      btn.onclick = (e) => {
+        const mode = e.shiftKey ? 'overview' : 'compose';
+        window.dispatchEvent(new CustomEvent('omega:matrix-open', {
+          detail: { mode }
+        }));
+      };
+    }
+  }
+
+  updateCount() {
+    const countEl = this.content.querySelector('#matrix-active-count');
+    const summaryEl = this.content.querySelector('#matrix-summary-line');
+    if (!countEl || !summaryEl) return;
+
+    const active = this.slots.filter(s => s.active).length;
+    countEl.textContent = String(active).padStart(2, '0');
+
+    if (active === 0) {
+      summaryEl.textContent = 'NO ACTIVE ROUTES';
+      return;
+    }
+
+    const strongest = this.slots
+      .filter(s => s.active)
+      .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
+
+    if (strongest?.source && strongest?.target) {
+      summaryEl.textContent = `${strongest.source} → ${strongest.target}`;
+    } else {
+      summaryEl.textContent = `${active} ACTIVE ROUTES`;
+    }
+  }
+
+  updateActivityFromSlots() {
+    const led = this.content.querySelector('#matrix-activity-led') as HTMLElement | null;
+    if (!led) return;
+
+    const activeSlots = this.slots.filter(s => s.active);
+    const total = activeSlots.reduce((acc, s) => acc + Math.abs(s.amount || 0), 0);
+    const avg = activeSlots.length ? total / activeSlots.length : 0;
+
+    this.activityValue += (avg - this.activityValue) * 0.22;
+    led.style.setProperty('--matrix-activity', this.activityValue.toFixed(3));
+    led.classList.toggle('is-active', this.activityValue > 0.02);
+  }
+
+  onStateUpdate(state: any) {
+    this.state = state;
+    this.slots = this.normalizeSlots(state?.preset?.modMatrix || state?.modMatrix || []);
+    this.updateCount();
+    this.updateActivityFromSlots();
+  }
+
+  destroy() {
+    if (this.pulseRaf) cancelAnimationFrame(this.pulseRaf);
+  }
+}
+
+window.ModuleModMatrix = ModuleModMatrix;
+export default ModuleModMatrix;
+2. matrixstore.ts
+Aquí mantienes el estado efímero del overlay. El preset sigue siendo la SOT persistente, pero la UI necesita selección, filtros, drafts y estados momentáneos como mute/solo. Ese reparto está alineado con tu arquitectura reciente, donde el ValueTree persiste el sonido y la WebUI mantiene el estado visual/contextual por separado.
+
+ts
+// stores/matrixstore.ts
+
+export type ModMatrixSlot = {
+  active: boolean;
+  source: string;
+  target: string;
+  amount: number;
+  via: string;
+  viaAmount: number;
+};
+
+export type MatrixMode = 'compose' | 'overview';
+
+export type MatrixFilterState = {
+  showActiveOnly: boolean;
+  source: string | null;
+  target: string | null;
+  onlyWithVia: boolean;
+};
+
+export type MatrixUiState = {
+  open: boolean;
+  mode: MatrixMode;
+  selectedSlotIndex: number | null;
+  lastEditedSlotIndex: number | null;
+  soloSlotIndex: number | null;
+  mutedSlots: Set<number>;
+  filters: MatrixFilterState;
+  pendingWrites: Set<string>;
+};
+
+export class MatrixStore {
+  slots: ModMatrixSlot[] = [];
+  ui: MatrixUiState = {
+    open: false,
+    mode: 'compose',
+    selectedSlotIndex: null,
+    lastEditedSlotIndex: null,
+    soloSlotIndex: null,
+    mutedSlots: new Set(),
+    filters: {
+      showActiveOnly: true,
+      source: null,
+      target: null,
+      onlyWithVia: false
+    },
+    pendingWrites: new Set()
+  };
+
+  loadSlots(raw: any[]) {
+    this.slots = [];
+    for (let i = 0; i < 32; i++) {
+      const slot = raw?.[i] || {};
+      this.slots.push({
+        active: !!slot.active,
+        source: slot.source || '',
+        target: slot.target || '',
+        amount: typeof slot.amount === 'number' ? slot.amount : 0,
+        via: slot.via || '',
+        viaAmount: typeof slot.viaAmount === 'number' ? slot.viaAmount : 0
+      });
+    }
+  }
+
+  getAllSlots() {
+    return this.slots.map((slot, index) => ({
+      ...slot,
+      index,
+      isMuted: this.ui.mutedSlots.has(index),
+      isSolo: this.ui.soloSlotIndex === index,
+      isSelected: this.ui.selectedSlotIndex === index,
+      isPending: this.ui.pendingWrites.has(String(index))
+    }));
+  }
+
+  getActiveCount() {
+    return this.slots.filter(s => s.active).length;
+  }
+
+  getSelectedSlot() {
+    const idx = this.ui.selectedSlotIndex;
+    return idx == null ? null : { ...this.slots[idx], index: idx };
+  }
+
+  getComposeSlots() {
+    let rows = this.getAllSlots();
+
+    if (this.ui.filters.showActiveOnly) {
+      rows = rows.filter(s => s.active || s.index === this.ui.selectedSlotIndex);
+    }
+    if (this.ui.filters.source) {
+      rows = rows.filter(s => s.source === this.ui.filters.source);
+    }
+    if (this.ui.filters.target) {
+      rows = rows.filter(s => s.target === this.ui.filters.target);
+    }
+    if (this.ui.filters.onlyWithVia) {
+      rows = rows.filter(s => !!s.via);
+    }
+
+    return rows;
+  }
+
+  getOverviewSlots() {
+    return this.getAllSlots();
+  }
+
+  getFirstFreeSlotIndex() {
+    const index = this.slots.findIndex(s => !s.active && !s.source && !s.target);
+    return index >= 0 ? index : null;
+  }
+
+  selectSlot(index: number | null) {
+    this.ui.selectedSlotIndex = index;
+  }
+
+  setMode(mode: MatrixMode) {
+    this.ui.mode = mode;
+  }
+
+  createDraftAtFirstFree() {
+    const idx = this.getFirstFreeSlotIndex();
+    if (idx == null) return null;
+
+    this.slots[idx] = {
+      active: true,
+      source: '',
+      target: '',
+      amount: 0,
+      via: '',
+      viaAmount: 0
+    };
+
+    this.ui.selectedSlotIndex = idx;
+    this.ui.lastEditedSlotIndex = idx;
+    return idx;
+  }
+
+  patchSlot(index: number, patch: Partial<ModMatrixSlot>) {
+    this.slots[index] = { ...this.slots[index], ...patch };
+    this.ui.lastEditedSlotIndex = index;
+  }
+
+  clearSlot(index: number) {
+    this.slots[index] = {
+      active: false,
+      source: '',
+      target: '',
+      amount: 0,
+      via: '',
+      viaAmount: 0
+    };
+    this.ui.mutedSlots.delete(index);
+    if (this.ui.soloSlotIndex === index) this.ui.soloSlotIndex = null;
+  }
+
+  duplicateSlot(index: number) {
+    const free = this.getFirstFreeSlotIndex();
+    if (free == null) return null;
+    this.slots[free] = { ...this.slots[index] };
+    this.ui.selectedSlotIndex = free;
+    this.ui.lastEditedSlotIndex = free;
+    return free;
+  }
+
+  toggleMute(index: number) {
+    if (this.ui.mutedSlots.has(index)) this.ui.mutedSlots.delete(index);
+    else this.ui.mutedSlots.add(index);
+  }
+
+  toggleSolo(index: number) {
+    this.ui.soloSlotIndex = this.ui.soloSlotIndex === index ? null : index;
+  }
+
+  markPending(index: number) {
+    this.ui.pendingWrites.add(String(index));
+  }
+
+  clearPending(index: number) {
+    this.ui.pendingWrites.delete(String(index));
+  }
+}
+3. matrixrpc.ts
+Tu ModuleModMatrix actual ya usa getModulationMetadata y updateModMatrixSlot, así que aquí no reinventaría nada: solo encapsularía esos nombres en un adaptador limpio.
+
+ts
+// services/matrixrpc.ts
+
+export class MatrixRpcAdapter {
+  async getMetadata() {
+    if (!window.omegaRPC) return { sources: [], targets: [] };
+
+    const resp = await window.omegaRPC.call('getModulationMetadata', {});
+    const payload = resp?.payload || resp || {};
+    return {
+      sources: payload.sources || [],
+      targets: payload.targets || []
+    };
+  }
+
+  async getMatrixState() {
+    if (!window.omegaRPC) return [];
+    const state = await window.omegaRPC.send('getState', {});
+    return state?.preset?.modMatrix || state?.modMatrix || [];
+  }
+
+  async updateSlotKey(index: number, key: string, value: any) {
+    if (!window.omegaRPC) return false;
+    await window.omegaRPC.call('updateModMatrixSlot', {
+      slot: index,
+      key,
+      value
+    });
+    return true;
+  }
+
+  async replaceSlot(index: number, slot: any) {
+    await this.updateSlotKey(index, 'source', slot.source || '');
+    await this.updateSlotKey(index, 'target', slot.target || '');
+    await this.updateSlotKey(index, 'amount', slot.amount || 0);
+    await this.updateSlotKey(index, 'via', slot.via || '');
+    await this.updateSlotKey(index, 'viaAmount', slot.viaAmount || 0);
+    await this.updateSlotKey(index, 'active', !!slot.active);
+    return true;
+  }
+
+  async clearSlot(index: number) {
+    return this.replaceSlot(index, {
+      active: false,
+      source: '',
+      target: '',
+      amount: 0,
+      via: '',
+      viaAmount: 0
+    });
+  }
+}
+4. MatrixOverlayController.ts
+Este archivo es el centro real. La idea encaja con tu patrón reciente de controladores especializados y con el hecho de que la UI rica debe cargarse de forma lazy al abrir la herramienta.
+
+ts
+// components/MatrixOverlayController.ts
+
+import { MatrixStore } from '../stores/matrixstore';
+import { MatrixRpcAdapter } from '../services/matrixrpc';
+import { MatrixComposeView } from './MatrixComposeView';
+import { MatrixOverviewView } from './MatrixOverviewView';
+import { MatrixInspectorView } from './MatrixInspectorView';
+
+export class MatrixOverlayController {
+  store: MatrixStore;
+  rpc: MatrixRpcAdapter;
+  root: HTMLElement | null = null;
+  composeView: MatrixComposeView | null = null;
+  overviewView: MatrixOverviewView | null = null;
+  inspectorView: MatrixInspectorView | null = null;
+  dictionaries = { sources: [], targets: [] };
+  initialized = false;
+
+  constructor() {
+    this.store = new MatrixStore();
+    this.rpc = new MatrixRpcAdapter();
+  }
+
+  async init() {
+    if (this.initialized) return;
+    this.ensureRoot();
+    this.bindGlobalEvents();
+    this.initialized = true;
+  }
+
+  ensureRoot() {
+    let root = document.getElementById('omega-matrix-overlay');
+    if (!root) {
+      root = document.createElement('div');
+      root.id = 'omega-matrix-overlay';
+      root.className = 'omega-matrix-overlay hidden';
+      root.innerHTML = `
+        <div class="omega-matrix-backdrop"></div>
+        <section class="omega-matrix-panel" role="dialog" aria-modal="true" aria-labelledby="omega-matrix-title">
+          <header class="omega-matrix-header">
+            <div class="omega-matrix-header__titles">
+              <h2 id="omega-matrix-title">MODULATION MATRIX</h2>
+              <div class="omega-matrix-header__subtitle" id="matrix-header-subtitle">0 active / 32 slots</div>
+            </div>
+
+            <div class="omega-matrix-header__actions">
+              <button data-mode="compose" class="matrix-mode-btn active">COMPOSE</button>
+              <button data-mode="overview" class="matrix-mode-btn">OVERVIEW</button>
+              <button id="matrix-add-route-btn">+ ROUTE</button>
+              <button id="matrix-close-btn" aria-label="Close">×</button>
+            </div>
+          </header>
+
+          <div class="omega-matrix-toolbar" id="matrix-toolbar"></div>
+
+          <div class="omega-matrix-body">
+            <main class="omega-matrix-main" id="matrix-main"></main>
+            <aside class="omega-matrix-inspector" id="matrix-inspector"></aside>
+          </div>
+        </section>
+      `;
+      document.body.appendChild(root);
+    }
+    this.root = root;
+  }
+
+  bindGlobalEvents() {
+    window.addEventListener('omega:matrix-open', async (e: any) => {
+      await this.open(e?.detail?.mode || 'compose');
+    });
+
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && this.store.ui.open) this.close();
+    });
+
+    const closeBtn = this.root?.querySelector('#matrix-close-btn') as HTMLButtonElement | null;
+    const backdrop = this.root?.querySelector('.omega-matrix-backdrop') as HTMLElement | null;
+    const addBtn = this.root?.querySelector('#matrix-add-route-btn') as HTMLButtonElement | null;
+
+    closeBtn && (closeBtn.onclick = () => this.close());
+    backdrop && (backdrop.onclick = () => this.close());
+    addBtn && (addBtn.onclick = () => this.handleAddRoute());
+
+    this.root?.querySelectorAll('.matrix-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = (btn as HTMLElement).dataset.mode as 'compose' | 'overview';
+        this.store.setMode(mode);
+        this.render();
+      });
+    });
+  }
+
+  async open(mode: 'compose' | 'overview' = 'compose') {
+    await this.init();
+
+    this.store.ui.open = true;
+    this.store.setMode(mode);
+
+    this.dictionaries = await this.rpc.getMetadata();
+    const slots = await this.rpc.getMatrixState();
+    this.store.loadSlots(slots);
+
+    if (this.store.ui.selectedSlotIndex == null) {
+      const firstActive = this.store.slots.findIndex(s => s.active);
+      this.store.selectSlot(firstActive >= 0 ? firstActive : 0);
+    }
+
+    this.root?.classList.remove('hidden');
+    this.render();
+  }
+
+  close() {
+    this.store.ui.open = false;
+    this.root?.classList.add('hidden');
+  }
+
+  renderToolbar() {
+    const toolbar = this.root?.querySelector('#matrix-toolbar');
+    if (!toolbar) return;
+
+    const subtitle = this.root?.querySelector('#matrix-header-subtitle');
+    if (subtitle) {
+      subtitle.textContent = `${this.store.getActiveCount()} active / 32 slots`;
+    }
+
+    toolbar.innerHTML = `
+      <label><input type="checkbox" id="filter-active-only" ${this.store.ui.filters.showActiveOnly ? 'checked' : ''}> Active only</label>
+      <label><input type="checkbox" id="filter-via-only" ${this.store.ui.filters.onlyWithVia ? 'checked' : ''}> With via</label>
+    `;
+
+    const activeOnly = toolbar.querySelector('#filter-active-only') as HTMLInputElement | null;
+    const viaOnly = toolbar.querySelector('#filter-via-only') as HTMLInputElement | null;
+
+    activeOnly && (activeOnly.onchange = () => {
+      this.store.ui.filters.showActiveOnly = activeOnly.checked;
+      this.render();
+    });
+
+    viaOnly && (viaOnly.onchange = () => {
+      this.store.ui.filters.onlyWithVia = viaOnly.checked;
+      this.render();
+    });
+  }
+
+  render() {
+    this.renderToolbar();
+
+    this.root?.querySelectorAll('.matrix-mode-btn').forEach(btn => {
+      btn.classList.toggle('active', (btn as HTMLElement).dataset.mode === this.store.ui.mode);
+    });
+
+    const main = this.root?.querySelector('#matrix-main') as HTMLElement | null;
+    const inspector = this.root?.querySelector('#matrix-inspector') as HTMLElement | null;
+    if (!main || !inspector) return;
+
+    if (this.store.ui.mode === 'compose') {
+      this.composeView = new MatrixComposeView(main, this.store);
+      this.composeView.render();
+      this.composeView.bind({
+        onAddRoute: () => this.handleAddRoute(),
+        onSelectSlot: (index) => this.handleSlotSelect(index),
+        onPatchInline: (index, patch) => this.handleSlotPatch(index, patch),
+        onClearSlot: (index) => this.handleSlotClear(index),
+        onDuplicateSlot: (index) => this.handleSlotDuplicate(index),
+        onMuteSlot: (index) => this.handleSlotMute(index),
+        onSoloSlot: (index) => this.handleSlotSolo(index)
+      });
+    } else {
+      this.overviewView = new MatrixOverviewView(main, this.store);
+      this.overviewView.render();
+      this.overviewView.bind({
+        onSelectSlot: (index) => this.handleSlotSelect(index),
+        onCreateAtSlot: (index) => this.handleCreateAt(index)
+      });
+    }
+
+    this.inspectorView = new MatrixInspectorView(inspector, this.store, this.dictionaries);
+    this.inspectorView.render();
+    this.inspectorView.bind({
+      onPatchSlot: (index, patch) => this.handleSlotPatch(index, patch),
+      onDuplicateSlot: (index) => this.handleSlotDuplicate(index),
+      onClearSlot: (index) => this.handleSlotClear(index),
+      onMuteSlot: (index) => this.handleSlotMute(index),
+      onSoloSlot: (index) => this.handleSlotSolo(index)
+    });
+  }
+
+  handleSlotSelect(index: number) {
+    this.store.selectSlot(index);
+    this.render();
+  }
+
+  async handleAddRoute() {
+    const idx = this.store.createDraftAtFirstFree();
+    if (idx == null) return;
+    await this.rpc.replaceSlot(idx, this.store.slots[idx]);
+    this.render();
+  }
+
+  async handleCreateAt(index: number) {
+    if (this.store.slots[index]?.active) {
+      this.handleSlotSelect(index);
+      return;
+    }
+
+    this.store.patchSlot(index, {
+      active: true,
+      source: '',
+      target: '',
+      amount: 0,
+      via: '',
+      viaAmount: 0
+    });
+    this.store.selectSlot(index);
+    await this.rpc.replaceSlot(index, this.store.slots[index]);
+    this.render();
+  }
+
+  async handleSlotPatch(index: number, patch: any) {
+    this.store.patchSlot(index, patch);
+    this.store.markPending(index);
+    this.render();
+
+    const entries = Object.entries(patch);
+    for (const [key, value] of entries) {
+      await this.rpc.updateSlotKey(index, key, value);
+    }
+
+    this.store.clearPending(index);
+    this.render();
+  }
+
+  async handleSlotClear(index: number) {
+    this.store.clearSlot(index);
+    this.store.markPending(index);
+    this.render();
+
+    await this.rpc.clearSlot(index);
+
+    this.store.clearPending(index);
+    this.render();
+  }
+
+  async handleSlotDuplicate(index: number) {
+    const newIndex = this.store.duplicateSlot(index);
+    if (newIndex == null) return;
+    await this.rpc.replaceSlot(newIndex, this.store.slots[newIndex]);
+    this.render();
+  }
+
+  handleSlotMute(index: number) {
+    this.store.toggleMute(index);
+    this.render();
+  }
+
+  handleSlotSolo(index: number) {
+    this.store.toggleSolo(index);
+    this.render();
+  }
+}
+5. MatrixComposeView.ts
+Esta vista sustituye la lista vertical técnica por una colección de cards editables. Eso mejora muchísimo la lectura frente al módulo actual, que hoy renderiza filas tipo tabla con select/select/range/select/range.
+
+ts
+// components/MatrixComposeView.ts
+
+export class MatrixComposeView {
+  container: HTMLElement;
+  store: any;
+
+  constructor(container: HTMLElement, store: any) {
+    this.container = container;
+    this.store = store;
+  }
+
+  render() {
+    const rows = this.store.getComposeSlots();
+
+    this.container.innerHTML = `
+      <div class="omega-matrix-compose">
+        <div class="omega-matrix-compose__grid">
+          <button class="omega-matrix-add-card" id="matrix-add-card">
+            <span>+</span>
+            <span>ADD MODULATION</span>
+          </button>
+
+          ${rows.map((slot: any) => `
+            <article class="
+              omega-matrix-slot
+              ${slot.active ? 'is-active' : 'is-empty'}
+              ${slot.isSelected ? 'is-selected' : ''}
+              ${slot.isMuted ? 'is-muted' : ''}
+              ${slot.isSolo ? 'is-solo' : ''}
+              ${slot.isPending ? 'is-pending' : ''}
+            " data-slot-index="${slot.index}">
+              <header class="omega-matrix-slot__head">
+                <span class="omega-matrix-slot__index">${String(slot.index + 1).padStart(2, '0')}</span>
+                <span class="omega-matrix-slot__state">${slot.active ? 'ACTIVE' : 'EMPTY'}</span>
+              </header>
+
+              <div class="omega-matrix-slot__route">
+                <button class="slot-pick slot-source" data-action="select" data-slot-index="${slot.index}">
+                  ${slot.source || 'SOURCE'}
+                </button>
+                <span class="slot-arrow">→</span>
+                <button class="slotPerfecto. Te dejo un **blueprint de implementación real
+
+
+Tienes razón, me quedé cortado en mitad de MatrixComposeView. Termino la spec de vistas de forma compacta para que la puedas usar como guía, sin reescribir lo anterior.
+
+MatrixComposeView (terminado)
+ts
+// components/MatrixComposeView.ts
+
+type ComposeHandlers = {
+  onAddRoute: () => void;
+  onSelectSlot: (index: number) => void;
+  onPatchInline: (index: number, patch: any) => void;
+  onClearSlot: (index: number) => void;
+  onDuplicateSlot: (index: number) => void;
+  onMuteSlot: (index: number) => void;
+  onSoloSlot: (index: number) => void;
+};
+
+export class MatrixComposeView {
+  container: HTMLElement;
+  store: any;
+  handlers: ComposeHandlers | null = null;
+
+  constructor(container: HTMLElement, store: any) {
+    this.container = container;
+    this.store = store;
+  }
+
+  render() {
+    const rows = this.store.getComposeSlots();
+
+    this.container.innerHTML = `
+      <div class="omega-matrix-compose">
+        <div class="omega-matrix-compose__grid">
+          <button class="omega-matrix-add-card" id="matrix-add-card">
+            <span class="omega-matrix-add-card__plus">+</span>
+            <span class="omega-matrix-add-card__label">ADD MODULATION</span>
+          </button>
+
+          ${rows.map((slot: any) => `
+            <article class="
+              omega-matrix-slot
+              ${slot.active ? 'is-active' : 'is-empty'}
+              ${slot.isSelected ? 'is-selected' : ''}
+              ${slot.isMuted ? 'is-muted' : ''}
+              ${slot.isSolo ? 'is-solo' : ''}
+              ${slot.isPending ? 'is-pending' : ''}
+            " data-slot-index="${slot.index}">
+              <header class="omega-matrix-slot__head">
+                <span class="omega-matrix-slot__index">${String(slot.index + 1).padStart(2, '0')}</span>
+                <span class="omega-matrix-slot__state">${slot.active ? 'ACTIVE' : 'EMPTY'}</span>
+              </header>
+
+              <div class="omega-matrix-slot__route">
+                <button class="slot-pill slot-pill--source" data-action="select" data-slot-index="${slot.index}">
+                  ${slot.source || 'SOURCE'}
+                </button>
+                <span class="slot-arrow">→</span>
+                <button class="slot-pill slot-pill--target" data-action="select" data-slot-index="${slot.index}">
+                  ${slot.target || 'TARGET'}
+                </button>
+              </div>
+
+              <div class="omega-matrix-slot__depth">
+                <input
+                  type="range"
+                  min="-1"
+                  max="1"
+                  step="0.01"
+                  value="${slot.amount}"
+                  data-field="amount"
+                  data-slot-index="${slot.index}"
+                />
+                <span class="omega-matrix-slot__depth-value">
+                  ${slot.amount >= 0 ? '+' : ''}${slot.amount.toFixed(2)}
+                </span>
+              </div>
+
+              <div class="omega-matrix-slot__via">
+                <span class="omega-matrix-slot__via-label">via</span>
+                <button class="slot-pill slot-pill--via" data-action="select" data-slot-index="${slot.index}">
+                  ${slot.via || 'NONE'}
+                </button>
+                <span class="omega-matrix-slot__via-value">
+                  ${slot.viaAmount >= 0 ? '+' : ''}${slot.viaAmount.toFixed(2)}
+                </span>
+              </div>
+
+              <footer class="omega-matrix-slot__actions">
+                <button data-action="mute" data-slot-index="${slot.index}">Mute</button>
+                <button data-action="solo" data-slot-index="${slot.index}">Solo</button>
+                <button data-action="duplicate" data-slot-index="${slot.index}">Duplicate</button>
+                <button data-action="clear" data-slot-index="${slot.index}">Clear</button>
+              </footer>
+            </article>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  bind(handlers: ComposeHandlers) {
+    this.handlers = handlers;
+
+    const addCard = this.container.querySelector('#matrix-add-card') as HTMLButtonElement | null;
+    if (addCard) addCard.onclick = () => handlers.onAddRoute();
+
+    this.container.onclick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const slotEl = target.closest('.omega-matrix-slot') as HTMLElement | null;
+      if (!slotEl) return;
+
+      const index = Number(slotEl.dataset.slotIndex ?? -1);
+      if (index < 0) return;
+
+      const action = target.dataset.action;
+      if (action === 'select') {
+        handlers.onSelectSlot(index);
+        return;
+      }
+
+      const actionBtn = target.closest('button[data-action]') as HTMLElement | null;
+      if (!actionBtn) return;
+
+      const actionName = actionBtn.dataset.action;
+      if (!actionName) return;
+
+      switch (actionName) {
+        case 'mute':      handlers.onMuteSlot(index); break;
+        case 'solo':      handlers.onSoloSlot(index); break;
+        case 'duplicate': handlers.onDuplicateSlot(index); break;
+        case 'clear':     handlers.onClearSlot(index); break;
+      }
+    };
+
+    this.container.querySelectorAll<HTMLInputElement>('input[type="range"][data-field="amount"]').forEach(slider => {
+      slider.oninput = () => {
+        const idx = Number(slider.dataset.slotIndex ?? -1);
+        if (idx < 0) return;
+        const value = parseFloat(slider.value);
+        handlers.onPatchInline(idx, { amount: value });
+
+        const valueLabel = slider.parentElement?.querySelector('.omega-matrix-slot__depth-value');
+        if (valueLabel) {
+          valueLabel.textContent = `${value >= 0 ? '+' : ''}${value.toFixed(2)}`;
+        }
+      };
+
+      slider.onchange = () => {
+        const idx = Number(slider.dataset.slotIndex ?? -1);
+        if (idx < 0) return;
+        const value = parseFloat(slider.value);
+        handlers.onPatchInline(idx, { amount: value });
+      };
+    });
+  }
+}
+MatrixOverviewView
+Vista 8×4 que actúa como mapa rápido. No edita, solo selecciona/crea.
+
+ts
+// components/MatrixOverviewView.ts
+
+type OverviewHandlers = {
+  onSelectSlot: (index: number) => void;
+  onCreateAtSlot: (index: number) => void;
+};
+
+export class MatrixOverviewView {
+  container: HTMLElement;
+  store: any;
+
+  constructor(container: HTMLElement, store: any) {
+    this.container = container;
+    this.store = store;
+  }
+
+  render() {
+    const slots = this.store.getOverviewSlots();
+
+    this.container.innerHTML = `
+      <div class="omega-matrix-overview">
+        <div class="omega-matrix-grid">
+          ${slots.map((slot: any) => `
+            <button
+              class="
+                omega-matrix-grid__cell
+                ${slot.active ? 'is-active' : 'is-empty'}
+                ${slot.isSelected ? 'is-selected' : ''}
+              "
+              data-slot-index="${slot.index}"
+              title="${slot.active ? `${slot.source || '…'} → ${slot.target || '…'}` : 'Empty slot'}"
+            >
+              <span class="omega-matrix-grid__index">${slot.index + 1}</span>
+              <span class="omega-matrix-grid__icon">
+                ${slot.active ? '●' : '·'}
+              </span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  bind(handlers: OverviewHandlers) {
+    this.container.onclick = (e: MouseEvent) => {
+      const btn = (e.target as HTMLElement).closest('.omega-matrix-grid__cell') as HTMLElement | null;
+      if (!btn) return;
+      const index = Number(btn.dataset.slotIndex ?? -1);
+      if (index < 0) return;
+
+      const slot = this.store.slots[index];
+      if (slot?.active) handlers.onSelectSlot(index);
+      else handlers.onCreateAtSlot(index);
+    };
+  }
+}
+MatrixInspectorView
+Inspector contextual para el slot seleccionado, aprovechando los diccionarios sources/targets que te da el engine por metadata RPC.
+
+ts
+// components/MatrixInspectorView.ts
+
+type InspectorHandlers = {
+  onPatchSlot: (index: number, patch: any) => void;
+  onDuplicateSlot: (index: number) => void;
+  onClearSlot: (index: number) => void;
+  onMuteSlot: (index: number) => void;
+  onSoloSlot: (index: number) => void;
+};
+
+export class MatrixInspectorView {
+  container: HTMLElement;
+  store: any;
+  sources: any[];
+  targets: any[];
+  handlers: InspectorHandlers | null = null;
+
+  constructor(container: HTMLElement, store: any, dictionaries: { sources: any[]; targets: any[] }) {
+    this.container = container;
+    this.store = store;
+    this.sources = dictionaries.sources || [];
+    this.targets = dictionaries.targets || [];
+  }
+
+  render() {
+    const slot = this.store.getSelectedSlot();
+
+    if (!slot) {
+      this.container.innerHTML = `
+        <div class="omega-matrix-inspector__empty">
+          <p>Select a modulation slot to edit its routing.</p>
+        </div>
+      `;
+      return;
+    }
+
+    this.container.innerHTML = `
+      <section class="omega-matrix-inspector-panel">
+        <header class="omega-matrix-inspector-panel__head">
+          <h3>SLOT ${String(slot.index + 1).padStart(2, '0')}</h3>
+          <p>${slot.source || 'SOURCE'} → ${slot.target || 'TARGET'}</p>
+        </header>
+
+        <div class="omega-matrix-inspector-panel__body">
+          <label class="matrix-field">
+            <span>Source</span>
+            <select data-field="source">
+              <option value="">None</option>
+              ${this.sources.map(s => `
+                <option value="${s.id}" ${s.id === slot.source ? 'selected' : ''}>
+                  ${s.label}
+                </option>
+              `).join('')}
+            </select>
+          </label>
+
+          <label class="matrix-field">
+            <span>Target</span>
+            <select data-field="target">
+              <option value="">None</option>
+              ${this.targets.map(t => `
+                <option value="${t.id}" ${t.id === slot.target ? 'selected' : ''}>
+                  ${t.label}
+                </option>
+              `).join('')}
+            </select>
+          </label>
+
+          <label class="matrix-field">
+            <span>Depth</span>
+            <input type="range" min="-1" max="1" step="0.01" data-field="amount" value="${slot.amount}">
+            <span class="matrix-field__value">
+              ${slot.amount >= 0 ? '+' : ''}${slot.amount.toFixed(2)}
+            </span>
+          </label>
+
+          <label class="matrix-field">
+            <span>Via Source</span>
+            <select data-field="via">
+              <option value="">None</option>
+              ${this.sources.map(s => `
+                <option value="${s.id}" ${s.id === slot.via ? 'selected' : ''}>
+                  ${s.label}
+                </option>
+              `).join('')}
+            </select>
+          </label>
+
+          <label class="matrix-field">
+            <span>Via Depth</span>
+            <input type="range" min="0" max="1" step="0.01" data-field="viaAmount" value="${slot.viaAmount}">
+            <span class="matrix-field__value">
+              ${slot.viaAmount.toFixed(2)}
+            </span>
+          </label>
+        </div>
+
+        <footer class="omega-matrix-inspector-panel__footer">
+          <button data-action="mute">${this.store.ui.mutedSlots.has(slot.index) ? 'Unmute' : 'Mute'}</button>
+          <button data-action="solo">${this.store.ui.soloSlotIndex === slot.index ? 'Unsolo' : 'Solo'}</button>
+          <button data-action="duplicate">Duplicate</button>
+          <button data-action="clear">Clear</button>
+        </footer>
+      </section>
+    `;
+  }
+
+  bind(handlers: InspectorHandlers) {
+    this.handlers = handlers;
+    const slot = this.store.getSelectedSlot();
+    if (!slot) return;
+
+    const controls = this.container.querySelectorAll<HTMLElement>('[data-field]');
+    controls.forEach(ctrl => {
+      const field = ctrl.dataset.field!;
+      if (ctrl.tagName === 'SELECT') {
+        (ctrl as HTMLSelectElement).onchange = () => {
+          const value = (ctrl as HTMLSelectElement).value;
+          handlers.onPatchSlot(slot.index, { [field]: value });
+        };
+      } else if (ctrl.tagName === 'INPUT' && (ctrl as HTMLInputElement).type === 'range') {
+        const range = ctrl as HTMLInputElement;
+        const valueLabel = range.parentElement?.querySelector('.matrix-field__value') as HTMLElement | null;
+
+        range.oninput = () => {
+          const v = parseFloat(range.value);
+          if (valueLabel) {
+            valueLabel.textContent = field === 'amount'
+              ? `${v >= 0 ? '+' : ''}${v.toFixed(2)}`
+              : v.toFixed(2);
+          }
+        };
+
+        range.onchange = () => {
+          const v = parseFloat(range.value);
+          handlers.onPatchSlot(slot.index, { [field]: v });
+        };
+      }
+    });
+
+    this.container.querySelectorAll<HTMLButtonElement>('footer button[data-action]').forEach(btn => {
+      const action = btn.dataset.action;
+      if (!action) return;
+      btn.onclick = () => {
+        switch (action) {
+          case 'mute':      handlers.onMuteSlot(slot.index); break;
+          case 'solo':      handlers.onSoloSlot(slot.index); break;
+          case 'duplicate': handlers.onDuplicateSlot(slot.index); break;
+          case 'clear':     handlers.onClearSlot(slot.index); break;
+        }
+      };
+    });
+  }
+}
+Con esto tienes el conjunto completo: launcher compacto, store, adaptador RPC, controlador de overlay y tres vistas (compose, overview, inspector) con firmas claras para mapearlas a tu omegaRPC y al ValueTree.modMatrix.
+
+¿Te gustaría que el siguiente paso sea bajar esto a un diffs-style (“cambia X en ModuleModMatrix actual, añade Y en index.js, etc.”) ajustado a los nombres exactos que ya tienes en tu repo, para que el refactor sea casi copy‑paste?
+
+
+Sí. Te dejo ya los diffs conceptuales concretos, ajustados a los nombres reales que aparecen en tu bundle: componentsModuleModMatrix.js, modulemanager.js, index.js y el patrón window.omegaRPC.call(...). En tu código actual, ModuleModMatrix ya renderiza una grilla técnica de 32 filas, pide metadata con getModulationMetadata, y ModuleManager lo inyecta cuando el tipo contiene matrix o modmatrix, así que el refactor consiste en reducir ModuleModMatrix a launcher y añadir una capa overlay separada, no en rehacer el pipeline entero.
+
+1. Cambiar componentsModuleModMatrix.js
+Ahora mismo ese archivo contiene el editor completo de 32 filas, con renderBase(), renderSlots(), attachListeners() y sendUpdate(slot,key,value). La modificación principal es eliminar la edición inline masiva y dejar un módulo compacto con contador, summary line y botón MATRIX, manteniendo onStateUpdate(state) para leer preset.modMatrix igual que ahora.
+
+Qué quitar
+renderSlots()
+
+generateOptions()
+
+attachListeners()
+
+la tabla de 32 filas
+
+CSS inline de .matrix-slot-row, .matrix-header, etc.
+
+Qué dejar
+loadMetadata() solo si quieres mostrar un pequeño resumen contextual; si no, incluso puedes quitarlo.
+
+onStateUpdate(state)
+
+lectura de state?.preset?.modMatrix
+
+Sustitución aproximada
+js
+// componentsModuleModMatrix.js
+
+class ModuleModMatrix {
+  constructor(el, content, options) {
+    this.el = el;
+    this.content = content;
+    this.options = options;
+    this.state = null;
+    this.slots = [];
+    this.renderBase();
+    this.injectStyle();
+  }
+
+  async init() {
+    this.bind();
+    if (window.moduleManager?.lastState) {
+      this.onStateUpdate(window.moduleManager.lastState);
+    }
+  }
+
+  renderBase() {
+    this.content.innerHTML = `
+      <div class="omega-matrix-launcher">
+        <div class="omega-matrix-launcher-top">
+          <div class="omega-matrix-launcher-display" id="matrix-active-count">00</div>
+          <div class="omega-matrix-launcher-led" id="matrix-activity-led"></div>
+        </div>
+
+        <div class="omega-matrix-launcher-meta">
+          <div class="omega-matrix-launcher-title">MOD MATRIX</div>
+          <div class="omega-matrix-launcher-summary" id="matrix-summary-line">NO ACTIVE ROUTES</div>
+        </div>
+
+        <button class="omega-matrix-launcher-btn" id="matrix-open-btn">MATRIX</button>
+      </div>
+    `;
+  }
+
+  injectStyle() {
+    if (document.getElementById('matrix-launcher-style')) return;
+    const style = document.createElement('style');
+    style.id = 'matrix-launcher-style';
+    style.innerHTML = `
+      .omega-matrix-launcher {
+        display:flex;
+        flex-direction:column;
+        height:100%;
+        padding:10px;
+        gap:10px;
+        background:#0a0a0f;
+        color:#00f0ff;
+        font-family:'Microgramma',sans-serif;
+      }
+      .omega-matrix-launcher-top {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      }
+      .omega-matrix-launcher-display {
+        min-width:54px;
+        height:34px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:#111827;
+        border:1px solid #1d4ed8;
+        font-size:18px;
+        font-weight:bold;
+        letter-spacing:2px;
+      }
+      .omega-matrix-launcher-led {
+        width:14px;
+        height:14px;
+        border-radius:50%;
+        background:#0f172a;
+        border:1px solid #0ea5e9;
+        box-shadow:0 0 0 rgba(0,240,255,0);
+        transition:all .15s ease;
+      }
+      .omega-matrix-launcher-led.is-active {
+        background:#00f0ff;
+        box-shadow:0 0 12px rgba(0,240,255,.9);
+      }
+      .omega-matrix-launcher-meta {
+        display:flex;
+        flex-direction:column;
+        gap:4px;
+      }
+      .omega-matrix-launcher-title {
+        font-size:10px;
+        letter-spacing:2px;
+        opacity:.85;
+      }
+      .omega-matrix-launcher-summary {
+        font-size:10px;
+        color:#8be9ff;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+      }
+      .omega-matrix-launcher-btn {
+        margin-top:auto;
+        height:32px;
+        background:linear-gradient(180deg,#1a1a2e 0%, #0f172a 100%);
+        color:#fff;
+        border:1px solid rgba(0,240,255,.35);
+        cursor:pointer;
+        letter-spacing:2px;
+        font-size:11px;
+        font-weight:bold;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  bind() {
+    const btn = this.content.querySelector('#matrix-open-btn');
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
+      const mode = e.shiftKey ? 'overview' : 'compose';
+      window.dispatchEvent(new CustomEvent('omega:matrix-open', {
+        detail: { mode }
+      }));
+    });
+  }
+
+  onStateUpdate(state) {
+    this.state = state;
+    const matrix = state?.preset?.modMatrix || state?.modMatrix || [];
+    this.slots = Array.from({ length: 32 }, (_, i) => ({
+      active: !!matrix[i]?.active,
+      source: matrix[i]?.source || '',
+      target: matrix[i]?.target || '',
+      amount: typeof matrix[i]?.amount === 'number' ? matrix[i].amount : 0,
+      via: matrix[i]?.via || '',
+      viaAmount: typeof matrix[i]?.viaAmount === 'number' ? matrix[i].viaAmount : 0
+    }));
+
+    this.updateDisplay();
+  }
+
+  updateDisplay() {
+    const countEl = this.content.querySelector('#matrix-active-count');
+    const ledEl = this.content.querySelector('#matrix-activity-led');
+    const summaryEl = this.content.querySelector('#matrix-summary-line');
+    if (!countEl || !ledEl || !summaryEl) return;
+
+    const activeSlots = this.slots.filter(s => s.active);
+    countEl.textContent = String(activeSlots.length).padStart(2, '0');
+
+    const activity = activeSlots.length
+      ? activeSlots.reduce((a, s) => a + Math.abs(s.amount || 0), 0) / activeSlots.length
+      : 0;
+
+    ledEl.classList.toggle('is-active', activity > 0.03);
+
+    const strongest = [...activeSlots].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
+    summaryEl.textContent = strongest?.source && strongest?.target
+      ? `${strongest.source} → ${strongest.target}`
+      : activeSlots.length ? `${activeSlots.length} ACTIVE ROUTES` : 'NO ACTIVE ROUTES';
+  }
+}
+
+window.ModuleModMatrix = ModuleModMatrix;
+export default ModuleModMatrix;
+2. Añadir componentsMatrixOverlayController.js
+Tu index.js ya importa componentes dedicados (ModuleOscilloscope, ModuleMidiTrigger, ModuleMidiViewer, ModuleModMatrix) y los expone en window, así que esta nueva pieza debe seguir el mismo patrón. No la integraría dentro de ModuleManager, porque no es un módulo de rack sino un workspace global.
+
+Archivo nuevo
+js
+// componentsMatrixOverlayController.js
+
+import { MatrixStore } from './matrixstore.js';
+import { MatrixRpcAdapter } from './matrixrpc.js';
+import { MatrixComposeView } from './componentsMatrixComposeView.js';
+import { MatrixOverviewView } from './componentsMatrixOverviewView.js';
+import { MatrixInspectorView } from './componentsMatrixInspectorView.js';
+
+class MatrixOverlayController {
+  constructor() {
+    this.store = new MatrixStore();
+    this.rpc = new MatrixRpcAdapter();
+    this.root = null;
+    this.dictionaries = { sources: [], targets: [] };
+    this.initialized = false;
+  }
+
+  async init() {
+    if (this.initialized) return;
+    this.ensureRoot();
+    this.bindGlobalEvents();
+    this.initialized = true;
+  }
+
+  ensureRoot() {
+    if (document.getElementById('omega-matrix-overlay')) {
+      this.root = document.getElementById('omega-matrix-overlay');
+      return;
+    }
+
+    const root = document.createElement('div');
+    root.id = 'omega-matrix-overlay';
+    root.className = 'omega-matrix-overlay hidden';
+    root.innerHTML = `
+      <div class="omega-matrix-backdrop"></div>
+      <section class="omega-matrix-panel">
+        <header class="omega-matrix-header">
+          <div>
+            <h2 id="omega-matrix-title">MODULATION MATRIX</h2>
+            <div id="matrix-header-subtitle">0 active / 32 slots</div>
+          </div>
+          <div class="omega-matrix-header-actions">
+            <button class="matrix-mode-btn active" data-mode="compose">COMPOSE</button>
+            <button class="matrix-mode-btn" data-mode="overview">OVERVIEW</button>
+            <button id="matrix-add-route-btn">+ ROUTE</button>
+            <button id="matrix-close-btn">×</button>
+          </div>
+        </header>
+
+        <div class="omega-matrix-toolbar" id="matrix-toolbar"></div>
+
+        <div class="omega-matrix-body">
+          <main id="matrix-main" class="omega-matrix-main"></main>
+          <aside id="matrix-inspector" class="omega-matrix-inspector"></aside>
+        </div>
+      </section>
+    `;
+    document.body.appendChild(root);
+    this.root = root;
+  }
+
+  bindGlobalEvents() {
+    window.addEventListener('omega:matrix-open', async (e) => {
+      await this.open(e?.detail?.mode || 'compose');
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.store.ui.open) this.close();
+    });
+
+    this.root.querySelector('.omega-matrix-backdrop').onclick = () => this.close();
+    this.root.querySelector('#matrix-close-btn').onclick = () => this.close();
+    this.root.querySelector('#matrix-add-route-btn').onclick = () => this.handleAddRoute();
+
+    this.root.querySelectorAll('.matrix-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.store.setMode(btn.dataset.mode);
+        this.render();
+      });
+    });
+  }
+
+  async open(mode = 'compose') {
+    await this.init();
+    this.store.ui.open = true;
+    this.store.setMode(mode);
+
+    this.dictionaries = await this.rpc.getMetadata();
+    this.store.loadSlots(await this.rpc.getMatrixState());
+
+    if (this.store.ui.selectedSlotIndex == null) {
+      const firstActive = this.store.slots.findIndex(s => s.active);
+      this.store.selectSlot(firstActive >= 0 ? firstActive : 0);
+    }
+
+    this.root.classList.remove('hidden');
+    this.render();
+  }
+
+  close() {
+    this.store.ui.open = false;
+    this.root.classList.add('hidden');
+  }
+
+  render() {
+    const subtitle = this.root.querySelector('#matrix-header-subtitle');
+    subtitle.textContent = `${this.store.getActiveCount()} active / 32 slots`;
+
+    this.root.querySelectorAll('.matrix-mode-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === this.store.ui.mode);
+    });
+
+    const main = this.root.querySelector('#matrix-main');
+    const inspector = this.root.querySelector('#matrix-inspector');
+
+    if (this.store.ui.mode === 'compose') {
+      const view = new MatrixComposeView(main, this.store);
+      view.render();
+      view.bind({
+        onAddRoute: () => this.handleAddRoute(),
+        onSelectSlot: (index) => this.handleSlotSelect(index),
+        onPatchInline: (index, patch) => this.handleSlotPatch(index, patch),
+        onClearSlot: (index) => this.handleSlotClear(index),
+        onDuplicateSlot: (index) => this.handleSlotDuplicate(index),
+        onMuteSlot: (index) => this.handleSlotMute(index),
+        onSoloSlot: (index) => this.handleSlotSolo(index)
+      });
+    } else {
+      const view = new MatrixOverviewView(main, this.store);
+      view.render();
+      view.bind({
+        onSelectSlot: (index) => this.handleSlotSelect(index),
+        onCreateAtSlot: (index) => this.handleCreateAt(index)
+      });
+    }
+
+    const inspectorView = new MatrixInspectorView(inspector, this.store, this.dictionaries);
+    inspectorView.render();
+    inspectorView.bind({
+      onPatchSlot: (index, patch) => this.handleSlotPatch(index, patch),
+      onDuplicateSlot: (index) => this.handleSlotDuplicate(index),
+      onClearSlot: (index) => this.handleSlotClear(index),
+      onMuteSlot: (index) => this.handleSlotMute(index),
+      onSoloSlot: (index) => this.handleSlotSolo(index)
+    });
+  }
+
+  handleSlotSelect(index) {
+    this.store.selectSlot(index);
+    this.render();
+  }
+
+  async handleAddRoute() {
+    const idx = this.store.createDraftAtFirstFree();
+    if (idx == null) return;
+    await this.rpc.replaceSlot(idx, this.store.slots[idx]);
+    this.render();
+  }
+
+  async handleCreateAt(index) {
+    this.store.patchSlot(index, {
+      active: true, source: '', target: '', amount: 0, via: '', viaAmount: 0
+    });
+    this.store.selectSlot(index);
+    await this.rpc.replaceSlot(index, this.store.slots[index]);
+    this.render();
+  }
+
+  async handleSlotPatch(index, patch) {
+    this.store.patchSlot(index, patch);
+    this.render();
+    for (const [key, value] of Object.entries(patch)) {
+      await this.rpc.updateSlotKey(index, key, value);
+    }
+    this.render();
+  }
+
+  async handleSlotClear(index) {
+    this.store.clearSlot(index);
+    await this.rpc.clearSlot(index);
+    this.render();
+  }
+
+  async handleSlotDuplicate(index) {
+    const newIndex = this.store.duplicateSlot(index);
+    if (newIndex == null) return;
+    await this.rpc.replaceSlot(newIndex, this.store.slots[newIndex]);
+    this.render();
+  }
+
+  handleSlotMute(index) {
+    this.store.toggleMute(index);
+    this.render();
+  }
+
+  handleSlotSolo(index) {
+    this.store.toggleSolo(index);
+    this.render();
+  }
+}
+
+window.MatrixOverlayController = MatrixOverlayController;
+export default MatrixOverlayController;
+3. Añadir matrixstore.js y matrixrpc.js
+Esto evita meter lógica de estado en el DOM component. Encaja con la evolución del proyecto hacia capas más claras y bridge desacoplado.
+
+matrixstore.js
+js
+export class MatrixStore {
+  constructor() {
+    this.slots = [];
+    this.ui = {
+      open: false,
+      mode: 'compose',
+      selectedSlotIndex: null,
+      lastEditedSlotIndex: null,
+      soloSlotIndex: null,
+      mutedSlots: new Set(),
+      filters: { showActiveOnly: true, source: null, target: null, onlyWithVia: false }
+    };
+  }
+
+  loadSlots(raw) {
+    this.slots = Array.from({ length: 32 }, (_, i) => ({
+      active: !!raw?.[i]?.active,
+      source: raw?.[i]?.source || '',
+      target: raw?.[i]?.target || '',
+      amount: typeof raw?.[i]?.amount === 'number' ? raw[i].amount : 0,
+      via: raw?.[i]?.via || '',
+      viaAmount: typeof raw?.[i]?.viaAmount === 'number' ? raw[i].viaAmount : 0
+    }));
+  }
+
+  getActiveCount() { return this.slots.filter(s => s.active).length; }
+  setMode(mode) { this.ui.mode = mode; }
+  selectSlot(index) { this.ui.selectedSlotIndex = index; }
+
+  getSelectedSlot() {
+    const i = this.ui.selectedSlotIndex;
+    return i == null ? null : { ...this.slots[i], index: i };
+  }
+
+  getComposeSlots() {
+    let rows = this.slots.map((slot, index) => ({
+      ...slot,
+      index,
+      isSelected: this.ui.selectedSlotIndex === index,
+      isMuted: this.ui.mutedSlots.has(index),
+      isSolo: this.ui.soloSlotIndex === index
+    }));
+    if (this.ui.filters.showActiveOnly) {
+      rows = rows.filter(s => s.active || s.index === this.ui.selectedSlotIndex);
+    }
+    if (this.ui.filters.onlyWithVia) {
+      rows = rows.filter(s => !!s.via);
+    }
+    return rows;
+  }
+
+  getOverviewSlots() {
+    return this.slots.map((slot, index) => ({
+      ...slot,
+      index,
+      isSelected: this.ui.selectedSlotIndex === index
+    }));
+  }
+
+  getFirstFreeSlotIndex() {
+    const idx = this.slots.findIndex(s => !s.active && !s.source && !s.target);
+    return idx >= 0 ? idx : null;
+  }
+
+  createDraftAtFirstFree() {
+    const idx = this.getFirstFreeSlotIndex();
+    if (idx == null) return null;
+    this.slots[idx] = { active: true, source: '', target: '', amount: 0, via: '', viaAmount: 0 };
+    this.ui.selectedSlotIndex = idx;
+    return idx;
+  }
+
+  patchSlot(index, patch) { this.slots[index] = { ...this.slots[index], ...patch }; }
+  clearSlot(index) { this.slots[index] = { active:false, source:'', target:'', amount:0, via:'', viaAmount:0 }; }
+  duplicateSlot(index) {
+    const free = this.getFirstFreeSlotIndex();
+    if (free == null) return null;
+    this.slots[free] = { ...this.slots[index] };
+    this.ui.selectedSlotIndex = free;
+    return free;
+  }
+
+  toggleMute(index) {
+    this.ui.mutedSlots.has(index) ? this.ui.mutedSlots.delete(index) : this.ui.mutedSlots.add(index);
+  }
+
+  toggleSolo(index) {
+    this.ui.soloSlotIndex = this.ui.soloSlotIndex === index ? null : index;
+  }
+}
+matrixrpc.js
+Tu frontend actual usa window.omegaRPC.call('getModulationMetadata', {}) y window.omegaRPC.call('updateModMatrixSlot', { slot, key, value }), así que mantengo eso tal cual.
+
+js
+export class MatrixRpcAdapter {
+  async getMetadata() {
+    const resp = await window.omegaRPC.call('getModulationMetadata', {});
+    return {
+      sources: resp?.payload?.sources || [],
+      targets: resp?.payload?.targets || []
+    };
+  }
+
+  async getMatrixState() {
+    const state = await window.omegaRPC.send('getState', {});
+    return state?.preset?.modMatrix || state?.modMatrix || [];
+  }
+
+  async updateSlotKey(index, key, value) {
+    await window.omegaRPC.call('updateModMatrixSlot', { slot: index, key, value });
+    return true;
+  }
+
+  async replaceSlot(index, slot) {
+    await this.updateSlotKey(index, 'source', slot.source || '');
+    await this.updateSlotKey(index, 'target', slot.target || '');
+    await this.updateSlotKey(index, 'amount', slot.amount || 0);
+    await this.updateSlotKey(index, 'via', slot.via || '');
+    await this.updateSlotKey(index, 'viaAmount', slot.viaAmount || 0);
+    await this.updateSlotKey(index, 'active', !!slot.active);
+    return true;
+  }
+
+  async clearSlot(index) {
+    return this.replaceSlot(index, {
+      active: false, source: '', target: '', amount: 0, via: '', viaAmount: 0
+    });
+  }
+}
+4. Añadir imports a index.js
+Tu index.js ya es el punto donde registras globals como .ModuleOscilloscope, .ModuleMidiViewer, .ModuleModMatrix, así que aquí solo hay que extender ese patrón.
+
+Diff conceptual
+text
+ import ModuleModMatrix from './componentsModuleModMatrix.js'
++import MatrixOverlayController from './componentsMatrixOverlayController.js'
+
+ .ModuleModMatrix = ModuleModMatrix
++.MatrixOverlayController = MatrixOverlayController
+Y dentro de DOMContentLoaded:
+
+text
+ addEventListener('DOMContentLoaded', async () => {
+   console.log('OMEGA Booting Synth UI...')
+   setupJuceShim()
++  window.matrixOverlayController = new MatrixOverlayController()
++  await window.matrixOverlayController.init()
+   ...
+ })
+Con esto no tocas el flujo de ModuleManager, solo añades un singleton global parecido a otros subsistemas UI.
+
+5. No tocar modulemanager.js salvo mínimo
+En realidad, aquí casi no hace falta cambiar nada. ModuleManager ya crea ModuleModMatrix cuando detecta tipos con matrix o modmatrix, y sigue llamando init() y onStateUpdate(lastState) sobre la instancia; eso es justo lo que quieres para el launcher.
+
+Lo único opcional
+Si quieres abrir el overlay automáticamente al hacer doble click en header o poner alguna prop especial, podrías pasar una opción extra, pero no es necesario. El flujo actual ya sirve.
+
+6. Añadir CSS del overlay
+No lo mezclaría dentro de ModuleModMatrix. Mejor inyectarlo desde componentsMatrixOverlayController.js o meter un archivo matrix-overlay.css si tu bundler ya lo soporta. Tu proyecto ya tiene modales complejas con estilo dedicado, así que esto sigue la misma lógica de separación visual.
+
+Bloque base mínimo
+css
+.omega-matrix-overlay.hidden { display:none; }
+.omega-matrix-overlay {
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.omega-matrix-backdrop {
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(10px);
+}
+.omega-matrix-panel {
+  position:relative;
+  width:min(1400px, 94vw);
+  height:min(820px, 88vh);
+  background:linear-gradient(180deg, rgba(18,18,28,.94), rgba(10,10,18,.96));
+  border:1px solid rgba(0,240,255,.16);
+  box-shadow:0 20px 80px rgba(0,0,0,.65);
+  display:flex;
+  flex-direction:column;
+  color:#dffaff;
+}
+.omega-matrix-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 20px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.omega-matrix-body {
+  display:grid;
+  grid-template-columns: 1.6fr .9fr;
+  gap:16px;
+  padding:16px;
+  min-height:0;
+  flex:1;
+}
+.omega-matrix-main,
+.omega-matrix-inspector {
+  min-height:0;
+  overflow:auto;
+}
+7. Orden exacto para que no se rompa nada
+Te recomiendo este orden de integración:
+
+Refactoriza componentsModuleModMatrix.js a launcher.
+
+Verifica que ModuleManager sigue instanciándolo bien en upper/lower rack.
+
+Añade matrixstore.js y matrixrpc.js.
+
+Añade componentsMatrixOverlayController.js.
+
+Añade componentsMatrixComposeView.js, componentsMatrixOverviewView.js, componentsMatrixInspectorView.js.
+
+Registra el controller en index.js.
+
+Solo después refina estilos y filtros.
+
+8. Mi recomendación final de refactor
+El cambio clave no es técnico sino de frontera de responsabilidad: ModuleModMatrix deja de ser “editor” y pasa a ser “entry point”. Eso es lo más coherente con tu arquitectura actual porque ModuleManager sigue gestionando módulos de rack como hasta ahora, mientras que la experiencia compleja vive en un controlador global lazy-loaded, igual que otras vistas avanzadas y modales ya existentes en OMEGA.
+
+La consecuencia práctica es buena: tocas poco el core del sistema, reutilizas getState, getModulationMetadata y updateModMatrixSlot, y evitas que el rack principal vuelva a convertirse en una tabla de mantenimiento.
+
+El siguiente paso útil sería darte el contenido completo de los tres archivos de vista (componentsMatrixComposeView.js, componentsMatrixOverviewView.js, componentsMatrixInspectorView.js) con formato ya 100% JS como el resto de tu repo, para que literalmente los pegues.

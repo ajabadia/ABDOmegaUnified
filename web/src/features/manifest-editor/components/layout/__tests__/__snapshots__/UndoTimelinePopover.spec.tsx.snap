@@ -1,0 +1,1324 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`UndoTimelinePopover — snapshots should match snapshot for empty state 1`] = `
+<div
+  class="fixed z-[300] w-[280px] max-h-[340px] flex flex-col rounded-xs border wb-outline wb-surface backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+  style="bottom: 272px; right: 124px;"
+>
+  <div
+    class="flex items-center justify-between px-3 py-1.5 border-b wb-outline"
+  >
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-history w-3 h-3 text-primary"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+        />
+        <path
+          d="M3 3v5h5"
+        />
+        <path
+          d="M12 7v5l4 2"
+        />
+      </svg>
+      <span
+        class="text-[8px] font-black uppercase tracking-[0.15em] wb-text"
+      >
+        History
+      </span>
+    </div>
+    <span
+      class="text-[7px] font-mono text-white/30"
+    >
+      0
+       step
+      s
+    </span>
+  </div>
+  <div
+    class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"
+  >
+    <div
+      class="flex items-center justify-center py-8 text-[8px] text-white/20 italic select-none"
+    >
+      No history yet
+    </div>
+  </div>
+  <div
+    class="flex border-t wb-outline"
+  >
+    <button
+      aria-label="Undo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all border-r wb-outline hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+      disabled=""
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-undo2 lucide-undo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9 14 4 9l5-5"
+        />
+        <path
+          d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"
+        />
+      </svg>
+      Undo
+    </button>
+    <button
+      aria-label="Redo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+      disabled=""
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-redo2 lucide-redo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m15 14 5-5-5-5"
+        />
+        <path
+          d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"
+        />
+      </svg>
+      Redo
+    </button>
+  </div>
+</div>
+`;
+
+exports[`UndoTimelinePopover — snapshots should match snapshot with all event types in one list 1`] = `
+<div
+  class="fixed z-[300] w-[280px] max-h-[340px] flex flex-col rounded-xs border wb-outline wb-surface backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+  style="bottom: 272px; right: 124px;"
+>
+  <div
+    class="flex items-center justify-between px-3 py-1.5 border-b wb-outline"
+  >
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-history w-3 h-3 text-primary"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+        />
+        <path
+          d="M3 3v5h5"
+        />
+        <path
+          d="M12 7v5l4 2"
+        />
+      </svg>
+      <span
+        class="text-[8px] font-black uppercase tracking-[0.15em] wb-text"
+      >
+        History
+      </span>
+    </div>
+    <span
+      class="text-[7px] font-mono text-white/30"
+    >
+      7
+       step
+      s
+    </span>
+  </div>
+  <div
+    class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"
+  >
+    <button
+      aria-label="Current: RECOVERY POINT"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all bg-primary/10 border-l-2 border-primary cursor-default"
+      data-history-index="0"
+      disabled=""
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-primary shadow-[0_0_6px_rgba(0,242,255,0.5)]"
+      />
+      <span
+        class="shrink-0 text-primary/60"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-shield w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-primary font-bold"
+      >
+        RECOVERY POINT
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        6m ago
+      </span>
+    </button>
+    <button
+      aria-label="Undo to: SNAPSHOT"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10"
+      data-history-index="1"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-white/50"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-camera w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"
+          />
+          <circle
+            cx="12"
+            cy="13"
+            r="3"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        SNAPSHOT
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        5m ago
+      </span>
+    </button>
+    <button
+      aria-label="Undo to: MODE CHANGE"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10"
+      data-history-index="2"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-emerald-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-eye w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+          />
+          <circle
+            cx="12"
+            cy="12"
+            r="3"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        MODE CHANGE
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        4m ago
+      </span>
+    </button>
+    <button
+      aria-label="Undo to: UI LAYOUT RATIO"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10"
+      data-history-index="3"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-amber-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-columns2 lucide-columns-2 w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            height="18"
+            rx="2"
+            width="18"
+            x="3"
+            y="3"
+          />
+          <path
+            d="M12 3v18"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        UI LAYOUT RATIO
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        3m ago
+      </span>
+    </button>
+    <button
+      aria-label="Undo to: UI PINNING"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10"
+      data-history-index="4"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-violet-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-pin w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 17v5"
+          />
+          <path
+            d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        UI PINNING
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        2m ago
+      </span>
+    </button>
+    <button
+      aria-label="Undo to: UI SELECTION"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10"
+      data-history-index="5"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-blue-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-mouse-pointer w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.586 12.586 19 19"
+          />
+          <path
+            d="M3.688 3.037a.497.497 0 0 0-.651.651l6.5 15.999a.501.501 0 0 0 .947-.062l1.569-6.083a2 2 0 0 1 1.448-1.479l6.124-1.579a.5.5 0 0 0 .063-.947z"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        UI SELECTION
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        1m ago
+      </span>
+    </button>
+    <button
+      aria-label="Undo to: CONTENT CHANGE"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10"
+      data-history-index="6"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-cyan-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-pencil w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+          />
+          <path
+            d="m15 5 4 4"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        CONTENT CHANGE
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        just now
+      </span>
+    </button>
+  </div>
+  <div
+    class="flex border-t wb-outline"
+  >
+    <button
+      aria-label="Undo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all border-r wb-outline hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-undo2 lucide-undo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9 14 4 9l5-5"
+        />
+        <path
+          d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"
+        />
+      </svg>
+      Undo
+    </button>
+    <button
+      aria-label="Redo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+      disabled=""
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-redo2 lucide-redo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m15 14 5-5-5-5"
+        />
+        <path
+          d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"
+        />
+      </svg>
+      Redo
+    </button>
+  </div>
+</div>
+`;
+
+exports[`UndoTimelinePopover — snapshots should match snapshot with batch entries 1`] = `
+<div
+  class="fixed z-[300] w-[280px] max-h-[340px] flex flex-col rounded-xs border wb-outline wb-surface backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+  style="bottom: 272px; right: 124px;"
+>
+  <div
+    class="flex items-center justify-between px-3 py-1.5 border-b wb-outline"
+  >
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-history w-3 h-3 text-primary"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+        />
+        <path
+          d="M3 3v5h5"
+        />
+        <path
+          d="M12 7v5l4 2"
+        />
+      </svg>
+      <span
+        class="text-[8px] font-black uppercase tracking-[0.15em] wb-text"
+      >
+        History
+      </span>
+    </div>
+    <span
+      class="text-[7px] font-mono text-white/30"
+    >
+      5
+       step
+      s
+    </span>
+  </div>
+  <div
+    class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"
+  >
+    <button
+      aria-label="Current: Edited module"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all bg-primary/10 border-l-2 border-primary cursor-default"
+      data-history-index="0"
+      disabled=""
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-primary shadow-[0_0_6px_rgba(0,242,255,0.5)]"
+      />
+      <span
+        class="shrink-0 text-cyan-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-pencil w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+          />
+          <path
+            d="m15 5 4 4"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-primary font-bold"
+      >
+        Edited module
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        2m ago
+      </span>
+    </button>
+    <div
+      class="flex items-center gap-2 px-3 py-1"
+    >
+      <div
+        class="flex-1 h-px bg-amber-400/20"
+      />
+      <span
+        class="text-[6px] font-mono uppercase tracking-widest text-amber-400/50"
+      >
+        Batch
+      </span>
+      <div
+        class="flex-1 h-px bg-amber-400/20"
+      />
+    </div>
+    <button
+      aria-label="Undo batch: 3 hidden"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all border-l-2 hover:bg-white/5 border-transparent cursor-pointer active:bg-white/10 border-red-400/40 bg-red-400/5 text-red-400/80"
+      data-history-index="1"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-amber-400/60"
+      />
+      <span
+        class="text-[7px] shrink-0 opacity-60"
+      >
+        ↶
+      </span>
+      <span
+        class="flex-1 truncate text-[7px] font-black uppercase tracking-widest leading-tight"
+      >
+        3 hidden
+      </span>
+      <span
+        class="shrink-0 text-[6px] font-mono opacity-50"
+      >
+        13:59:30
+      </span>
+    </button>
+    <button
+      aria-label="Undo batch: 2 locked"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all border-l-2 hover:bg-white/5 border-transparent cursor-pointer active:bg-white/10 border-amber-400/40 bg-amber-400/5 text-amber-400/80"
+      data-history-index="2"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-amber-400/60"
+      />
+      <span
+        class="text-[7px] shrink-0 opacity-60"
+      >
+        ↶
+      </span>
+      <span
+        class="flex-1 truncate text-[7px] font-black uppercase tracking-widest leading-tight"
+      >
+        2 locked
+      </span>
+      <span
+        class="shrink-0 text-[6px] font-mono opacity-50"
+      >
+        13:59:40
+      </span>
+    </button>
+    <button
+      aria-label="Undo batch: 4 grouped"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all border-l-2 hover:bg-white/5 border-transparent cursor-pointer active:bg-white/10 border-sky-400/40 bg-sky-400/5 text-sky-400/80"
+      data-history-index="3"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-amber-400/60"
+      />
+      <span
+        class="text-[7px] shrink-0 opacity-60"
+      >
+        ↶
+      </span>
+      <span
+        class="flex-1 truncate text-[7px] font-black uppercase tracking-widest leading-tight"
+      >
+        4 grouped
+      </span>
+      <span
+        class="shrink-0 text-[6px] font-mono opacity-50"
+      >
+        13:59:50
+      </span>
+    </button>
+    <button
+      aria-label="Batch: 1 ungrouped"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all border-l-2 border-transparent cursor-default opacity-50 border-fuchsia-400/40 bg-fuchsia-400/5 text-fuchsia-400/80"
+      data-history-index="4"
+      disabled=""
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/10"
+      />
+      <span
+        class="text-[7px] shrink-0 opacity-60"
+      >
+        —
+      </span>
+      <span
+        class="flex-1 truncate text-[7px] font-black uppercase tracking-widest leading-tight"
+      >
+        1 ungrouped
+      </span>
+      <span
+        class="shrink-0 text-[6px] font-mono opacity-50"
+      >
+        13:59:55
+      </span>
+    </button>
+  </div>
+  <div
+    class="flex border-t wb-outline"
+  >
+    <button
+      aria-label="Undo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all border-r wb-outline hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-undo2 lucide-undo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9 14 4 9l5-5"
+        />
+        <path
+          d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"
+        />
+      </svg>
+      Undo
+    </button>
+    <button
+      aria-label="Redo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+      disabled=""
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-redo2 lucide-redo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m15 14 5-5-5-5"
+        />
+        <path
+          d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"
+        />
+      </svg>
+      Redo
+    </button>
+  </div>
+</div>
+`;
+
+exports[`UndoTimelinePopover — snapshots should match snapshot with past and future entries 1`] = `
+<div
+  class="fixed z-[300] w-[280px] max-h-[340px] flex flex-col rounded-xs border wb-outline wb-surface backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+  style="bottom: 272px; right: 124px;"
+>
+  <div
+    class="flex items-center justify-between px-3 py-1.5 border-b wb-outline"
+  >
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-history w-3 h-3 text-primary"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+        />
+        <path
+          d="M3 3v5h5"
+        />
+        <path
+          d="M12 7v5l4 2"
+        />
+      </svg>
+      <span
+        class="text-[8px] font-black uppercase tracking-[0.15em] wb-text"
+      >
+        History
+      </span>
+    </div>
+    <span
+      class="text-[7px] font-mono text-white/30"
+    >
+      3
+       step
+      s
+    </span>
+  </div>
+  <div
+    class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"
+  >
+    <button
+      aria-label="Current: Current state"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all bg-primary/10 border-l-2 border-primary cursor-default"
+      data-history-index="0"
+      disabled=""
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-primary shadow-[0_0_6px_rgba(0,242,255,0.5)]"
+      />
+      <span
+        class="shrink-0 text-cyan-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-pencil w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+          />
+          <path
+            d="m15 5 4 4"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-primary font-bold"
+      >
+        Current state
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        10s ago
+      </span>
+    </button>
+    <div
+      class="flex items-center gap-2 px-3 py-1"
+    >
+      <div
+        class="flex-1 h-px bg-white/10"
+      />
+      <span
+        class="text-[6px] font-mono uppercase tracking-widest text-white/20"
+      >
+        Redo
+      </span>
+      <div
+        class="flex-1 h-px bg-white/10"
+      />
+    </div>
+    <button
+      aria-label="Redo: Future change"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10 opacity-50"
+      data-history-index="1"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-cyan-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-pencil w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+          />
+          <path
+            d="m15 5 4 4"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        Future change
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        just now
+      </span>
+    </button>
+    <button
+      aria-label="Redo: Mode switch"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10 opacity-50"
+      data-history-index="2"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-emerald-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-eye w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+          />
+          <circle
+            cx="12"
+            cy="12"
+            r="3"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        Mode switch
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        just now
+      </span>
+    </button>
+  </div>
+  <div
+    class="flex border-t wb-outline"
+  >
+    <button
+      aria-label="Undo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all border-r wb-outline hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-undo2 lucide-undo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9 14 4 9l5-5"
+        />
+        <path
+          d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"
+        />
+      </svg>
+      Undo
+    </button>
+    <button
+      aria-label="Redo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-redo2 lucide-redo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m15 14 5-5-5-5"
+        />
+        <path
+          d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"
+        />
+      </svg>
+      Redo
+    </button>
+  </div>
+</div>
+`;
+
+exports[`UndoTimelinePopover — snapshots should match snapshot with past entries only 1`] = `
+<div
+  class="fixed z-[300] w-[280px] max-h-[340px] flex flex-col rounded-xs border wb-outline wb-surface backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+  style="bottom: 272px; right: 124px;"
+>
+  <div
+    class="flex items-center justify-between px-3 py-1.5 border-b wb-outline"
+  >
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-history w-3 h-3 text-primary"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+        />
+        <path
+          d="M3 3v5h5"
+        />
+        <path
+          d="M12 7v5l4 2"
+        />
+      </svg>
+      <span
+        class="text-[8px] font-black uppercase tracking-[0.15em] wb-text"
+      >
+        History
+      </span>
+    </div>
+    <span
+      class="text-[7px] font-mono text-white/30"
+    >
+      3
+       step
+      s
+    </span>
+  </div>
+  <div
+    class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"
+  >
+    <button
+      aria-label="Current: Pinned parameter"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all bg-primary/10 border-l-2 border-primary cursor-default"
+      data-history-index="0"
+      disabled=""
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-primary shadow-[0_0_6px_rgba(0,242,255,0.5)]"
+      />
+      <span
+        class="shrink-0 text-violet-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-pin w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 17v5"
+          />
+          <path
+            d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-primary font-bold"
+      >
+        Pinned parameter
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        30s ago
+      </span>
+    </button>
+    <button
+      aria-label="Undo to: Selected node"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10"
+      data-history-index="1"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-blue-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-mouse-pointer w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12.586 12.586 19 19"
+          />
+          <path
+            d="M3.688 3.037a.497.497 0 0 0-.651.651l6.5 15.999a.501.501 0 0 0 .947-.062l1.569-6.083a2 2 0 0 1 1.448-1.479l6.124-1.579a.5.5 0 0 0 .063-.947z"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        Selected node
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        1m ago
+      </span>
+    </button>
+    <button
+      aria-label="Undo to: Edited module"
+      class="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10"
+      data-history-index="2"
+      tabindex="-1"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full shrink-0 bg-white/20"
+      />
+      <span
+        class="shrink-0 text-cyan-400"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-pencil w-2.5 h-2.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+          />
+          <path
+            d="m15 5 4 4"
+          />
+        </svg>
+      </span>
+      <span
+        class="flex-1 truncate text-[8px] font-medium leading-tight text-white/70"
+      >
+        Edited module
+      </span>
+      <span
+        class="shrink-0 text-[7px] font-mono text-white/25"
+      >
+        2m ago
+      </span>
+    </button>
+  </div>
+  <div
+    class="flex border-t wb-outline"
+  >
+    <button
+      aria-label="Undo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all border-r wb-outline hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-undo2 lucide-undo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9 14 4 9l5-5"
+        />
+        <path
+          d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"
+        />
+      </svg>
+      Undo
+    </button>
+    <button
+      aria-label="Redo last action"
+      class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-all hover:bg-white/5 active:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+      disabled=""
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-redo2 lucide-redo-2 w-2.5 h-2.5"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m15 14 5-5-5-5"
+        />
+        <path
+          d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"
+        />
+      </svg>
+      Redo
+    </button>
+  </div>
+</div>
+`;

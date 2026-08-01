@@ -1,0 +1,110 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-06-25 12:16:05
+   ================================================================= */
+
+/* ═══════════════════════════════════════════════
+   OMEGA ERA 7.2.3 — ASEPTIC SKIN SYSTEM
+   (Decoupled from Core — Governed by Manifest)
+   ═══════════════════════════════════════════════ */
+
+:root {
+    --carbon-texture: radial-gradient(#222 20%, transparent 20%), radial-gradient(#222 20%, transparent 20%);
+    --carbon-bg: #0a0a0a;
+    --glass-blur: 12px;
+    --glass-bg: rgba(20, 25, 30, 0.4);
+    --industrial-bg: #1a1c1e;
+    --industrial-border: var(--wb-outline);
+}
+
+[data-ui-theme="light"] {
+    --carbon-texture: radial-gradient(#e2e8f0 20%, transparent 20%), radial-gradient(#e2e8f0 20%, transparent 20%);
+    --carbon-bg: #f1f5f9;
+    --glass-bg: rgba(241, 245, 249, 0.6);
+    --industrial-bg: #ffffff;
+}
+
+/* ALL SKINS NOW INHERIT FROM MANIFEST TOKENS */
+[class^="skin-"] {
+    background-color: var(--omega-surface) !important;
+    border-color: var(--omega-weak) !important;
+    color: var(--omega-text) !important;
+    
+    /* Global Physics Propagation */
+    --primitive-accent: var(--omega-accent);
+    --primitive-bg: var(--omega-surface);
+    --primitive-border: 1px solid var(--omega-weak);
+    --primitive-shadow: var(--omega-comp-shadow-x, 0) var(--omega-comp-shadow-y, 0) var(--omega-blur, 4px) var(--omega-shadow-color, rgba(0,0,0,0.5));
+}
+
+/* SKIN: CARBON (Tactical Texture) */
+.skin-carbon {
+    background-image: 
+        linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.01) 1px, transparent 1px) !important;
+    background-size: 20px 20px !important;
+    --primitive-bg: #000;
+    --primitive-border: 1px solid #222;
+}
+
+[data-ui-theme="light"] .skin-carbon {
+    background-image: 
+        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(0,0,0,0.03) 1px, transparent 1px) !important;
+    --primitive-bg: var(--primitive-bg-dark);
+    --primitive-border: 1px solid var(--wb-outline);
+}
+
+/* SKIN: GLASS (Atmospheric Blur) */
+.skin-glass {
+    backdrop-filter: blur(25px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8) !important;
+    --primitive-bg: rgba(255, 255, 255, 0.03);
+}
+
+[data-ui-theme="light"] .skin-glass {
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1) !important;
+    --primitive-bg: rgba(255, 255, 255, 0.6);
+}
+
+/* SKIN: INDUSTRIAL (Standard) */
+.skin-industrial {
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%) !important;
+    --primitive-bg: #111;
+    --primitive-border: 2px solid #333;
+}
+
+[data-ui-theme="light"] .skin-industrial {
+    background-image: linear-gradient(180deg, rgba(0,0,0,0.02) 0%, transparent 100%) !important;
+    --primitive-bg: var(--primitive-bg);
+    --primitive-border: 2px solid var(--wb-outline);
+}
+
+/* SKIN: MINIMAL (Flat Laboratory) */
+.skin-minimal {
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.1) !important;
+    --primitive-marker-glow: none;
+}
+
+[data-ui-theme="light"] .skin-minimal {
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.03) !important;
+}
+
+/* SKIN: CUSTOM (Designers Workspace) */
+.skin-custom {
+    background-image: none !important;
+    
+    /* Screw Overrides */
+    --screw-bg: var(--omega-weak);
+    --screw-slot-bg: var(--omega-surface);
+
+    --primitive-radius-flat: 2px;
+    --primitive-radius-round: 50%;
+    
+    /* Typography Overrides */
+    --font-primary: var(--omega-font-default, 'Inter');
+}

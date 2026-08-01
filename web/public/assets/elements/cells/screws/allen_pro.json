@@ -1,0 +1,10 @@
+{
+  "type": "rack-screw",
+  "label": "Allen Pro Industrial",
+  "aesthetics": {
+    "asset": "/assets/elements/hardware/screws/industrial_screw_head_allen.png",
+    "fitting": "contain",
+    "color": "#00f2ff"
+  },
+  "attachments": []
+}

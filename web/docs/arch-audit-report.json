@@ -1,0 +1,1036 @@
+{
+  "timestamp": "2026-06-22T22:59:24.787Z",
+  "counts": {
+    "high": 0,
+    "medium": 18,
+    "low": 152,
+    "total": 170
+  },
+  "details": {
+    "HIGH": [],
+    "MEDIUM": [
+      {
+        "file": "src\\components\\ui\\contact\\useContactForm.ts",
+        "line": 66,
+        "content": "throw new Error(result.error || t(\"error\"));",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\attachments\\AttachmentTypeAnchor.tsx",
+        "line": 28,
+        "content": "const allowedIds = hostDef?.allowedFragments || [];",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\BlueprintLibraryPanel.tsx",
+        "line": 95,
+        "content": "if (!res.ok) throw new Error(`Catalog fetch failed: ${res.status}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\BlueprintLibraryPanel.tsx",
+        "line": 102,
+        "content": "if (!bpRes.ok) throw new Error(`Blueprint fetch failed: ${bpRes.status}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\ToastContainer.tsx",
+        "line": 39,
+        "content": "if (!ctx) throw new Error('useToast must be used within a ToastProvider');",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\viewport\\NumericResizePopover.tsx",
+        "line": 172,
+        "content": "else if (e.key === 'Enter') { e.preventDefault(); validateAndCommit(); }",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\viewport\\NumericRotatePopover.tsx",
+        "line": 83,
+        "content": "const angle = validateAngle(angleStr);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\viewport\\NumericRotatePopover.tsx",
+        "line": 145,
+        "content": "value={validateAngle(angleStr) ?? 0}",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\viewport\\NumericRotatePopover.tsx",
+        "line": 160,
+        "content": "Math.abs((validateAngle(angleStr) ?? 0) - a) < 1",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\io\\useBundleTransfer.ts",
+        "line": 282,
+        "content": "const validation = validateManifestSchema(parsed);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\io\\useManifestTransfer.ts",
+        "line": 36,
+        "content": "if (!parsed || typeof parsed !== 'object') throw new Error(\"Invalid manifest format.\");",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\io\\useManifestTransfer.ts",
+        "line": 215,
+        "content": "if (req !== 'granted') throw new Error('File system write permission denied.');",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\io\\useWasmTransfer.ts",
+        "line": 108,
+        "content": "throw new Error(\"Missing mandatory 'id' or 'ports' fields in contract.\");",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\orchestrator\\useDocumentTransactions.ts",
+        "line": 47,
+        "content": "BlueprintValidator.validate(doc.manifest.ui.tree, doc.manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\orchestrator\\useSessionPersistence.ts",
+        "line": 32,
+        "content": "BlueprintValidator.validate(persisted.graph, { id: persisted.id });",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\services\\StructuralAuditor.ts",
+        "line": 309,
+        "content": "const circularityIssues = CircularityAuditor.validate(manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\utils\\blueprintUtils.ts",
+        "line": 33,
+        "content": "throw new Error(`[BLUEPRINT] Invalid ModuleTemplate: Missing ID or Base Node.`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\utils\\blueprintUtils.ts",
+        "line": 112,
+        "content": "export function validateBlueprint(blueprint: BlueprintDefinition): { valid: boolean; errors: string[] } {",
+        "pattern": "validate"
+      }
+    ],
+    "LOW": [
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\aesthetic\\styles\\library\\GuildNavigator.tsx",
+        "line": 13,
+        "content": "import type { ElementCategory } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\aesthetic\\styles\\ModuleStyleLibrary.tsx",
+        "line": 16,
+        "content": "import { OMEGA_ELEMENT_CATALOG, type ElementCategory, getElementDefinition } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\attachments\\AttachmentTypeAnchor.tsx",
+        "line": 16,
+        "content": "import { OMEGA_ELEMENT_CATALOG, getElementDefinition } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\sections\\AestheticSection.tsx",
+        "line": 23,
+        "content": "import { getElementDefinition } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\sections\\LogicSection.tsx",
+        "line": 20,
+        "content": "import { OMEGA_ELEMENT_CATALOG } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\sections\\SpatialSection.tsx",
+        "line": 21,
+        "content": "import { getElementDefinition } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\aesthetic\\GovernanceRegistry.ts",
+        "line": 11,
+        "content": "import type { AestheticCapability } from \"@/omega-ui-core/governance/ElementCatalog\";",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\aesthetic\\IdentityGovernance.tsx",
+        "line": 14,
+        "content": "import type { AestheticCapability } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\aesthetic\\IdentityGovernance.tsx",
+        "line": 15,
+        "content": "import { OMEGA_ELEMENT_CATALOG } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\aesthetic\\UnifiedGraphicGovernance.tsx",
+        "line": 14,
+        "content": "import { getElementDefinition } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\CanonicalStylePreview.tsx",
+        "line": 21,
+        "content": "import { getElementDefinition } from \"@/omega-ui-core/governance/ElementCatalog\";",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\IndustrialGovernanceConsole.tsx",
+        "line": 16,
+        "content": "import { getElementDefinition } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\StyleEditorModal.tsx",
+        "line": 20,
+        "content": "import { getElementDefinition } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\lab\\CellStudioContentArea.tsx",
+        "line": 14,
+        "content": "import { OMEGA_ELEMENT_CATALOG } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\lab\\CellStudioToolbar.tsx",
+        "line": 15,
+        "content": "import { OMEGA_ELEMENT_CATALOG } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\utils\\governanceUtils.ts",
+        "line": 12,
+        "content": "import type { ElementCategory } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\utils\\governanceUtils.ts",
+        "line": 13,
+        "content": "import { OMEGA_ELEMENT_CATALOG } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\omega-ui-core\\di\\ServiceContainer.ts",
+        "line": 34,
+        "content": "throw new Error(`Service not registered: ${token}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 20,
+        "content": "* - 'capabilities' and 'allowedFragments' are soft suggestions for UI filtering.",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 87,
+        "content": "* `allowedFragments` is advisory only. Use it for editor UX suggestions (e.g. \"+ Add\" menus),",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 90,
+        "content": "allowedFragments?: string[]; // IDs of elements that can be attached to this host",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 106,
+        "content": "allowedFragments: ['rack-screw', 'label', 'illustration'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 117,
+        "content": "allowedFragments: ['label', 'illustration', 'led']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 127,
+        "content": "allowedFragments: ['label', 'illustration', 'container', 'group', 'cell']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 139,
+        "content": "allowedFragments: ['label', 'led', 'port', 'switch', 'stepper', 'graphic-fragment'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 150,
+        "content": "allowedFragments: ['label', 'led', 'port', 'graphic-fragment'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 161,
+        "content": "allowedFragments: ['label', 'led', 'port', 'graphic-fragment'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 172,
+        "content": "allowedFragments: ['label', 'led'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 183,
+        "content": "allowedFragments: ['label'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 194,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 204,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 214,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 226,
+        "content": "allowedFragments: ['label', 'led']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 247,
+        "content": "allowedFragments: ['label', 'stepper']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 257,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 267,
+        "content": "allowedFragments: ['label', 'illustration', 'led']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 286,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 327,
+        "content": "allowedFragments: []",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 348,
+        "content": "allowedFragments: ['label', 'led', 'graphic-fragment'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 377,
+        "content": "allowedFragments: ['label', 'led', 'illustration', 'rack-screw', 'graphic-fragment'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 392,
+        "content": "allowedFragments: ['label', 'illustration']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 37,
+        "content": "throw new Error(`[BLUEPRINT VALIDATION FAILED]\\n${errors.join('\\n')}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 26,
+        "content": "public static validate(nodes: OmegaNode | OmegaNode[], manifest: Partial<OMEGA_Manifest>): void {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\utils\\manifestValidator.ts",
+        "line": 19,
+        "content": "*   const result = validateManifestSchema(parsed);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\utils\\manifestValidator.ts",
+        "line": 52,
+        "content": "export function validateManifestSchema(obj: unknown): ValidationResult | ValidationError {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\auditService.ts",
+        "line": 21,
+        "content": "const issues = ValidationService.validate(manifest, contract);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 159,
+        "content": "throw new Error(`Cannot convert node with children to PrimitiveNode: ${node.id}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 355,
+        "content": "throw new Error('Unknown cell node type');",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 437,
+        "content": "export function validateCompositeSlots(cell: CompositeCell): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 467,
+        "content": "export function validatePrimitive(primitive: PrimitiveNode): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 482,
+        "content": "export function validateStructuralModule(module: StructuralModule): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-043-unified-cell-blueprint-governance.md",
+        "line": 75,
+        "content": "import { OMEGA_ELEMENT_CATALOG } from '@/omega-ui-core/governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-043-unified-cell-blueprint-governance.md",
+        "line": 83,
+        "content": "throw new Error(`Unknown cell type: ${node.cellRef}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "docs\\adr\\ADR-043-unified-cell-blueprint-governance.md",
+        "line": 78,
+        "content": "validate(nodes, manifest) {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-043-unified-cell-blueprint-governance.md",
+        "line": 103,
+        "content": "static validate(nodes: OmegaNode[], context: UCAValidationContext): void {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 71,
+        "content": "static validateQuietly(",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 95,
+        "content": "function validateBehavior(cell: CompositeCell, manifest: OMEGA_Manifest): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 156,
+        "content": "function validateLayerOrdering(recipe: LayerRecipe): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 170,
+        "content": "function validateBlendMode(layer: LayerRecipe['layers'][0], assetDef: OMEGA_Asset): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 226,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 229,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, manifest, {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 240,
+        "content": "const behaviorResult = validateBehavior(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-045-cell-studio-architecture-refactor.md",
+        "line": 96,
+        "content": "BlueprintValidator.validateQuietly(entityToNode(cellData), { resources: manifest?.resources }),",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 12,
+        "content": "Phase 20.4 introduced the BlueprintValidator class for OMEGA UCA structural integrity and invariant compliance. As OMEGA evolved through ADR-043 (ElementCatalog Enrichment) and ADR-046 (Cell Types), the need arose to validate node styles against the catalog's `validationRules` before instantiation.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 30,
+        "content": "Integrate BlueprintValidator with ElementCatalog to perform runtime validation of node styles, variants, behaviors, and slot mappings against the enriched catalog definitions.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 66,
+        "content": "| `src/omega-ui-core/governance/ElementCatalog.ts` | Enhanced with validation helpers |",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 68,
+        "content": "### Imports from ElementCatalog",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 80,
+        "content": "} from '../governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 87,
+        "content": "Validates a node's style against the ElementCatalog:",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 308,
+        "content": "2. **Centralized validation logic**: `validateValueAgainstRule()` is defined once and used by both ElementCatalog (for standalone style validation) and BlueprintValidator (for node validation).",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 322,
+        "content": "3. **Tight coupling**: BlueprintValidator now depends on ElementCatalog's internal structure.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 332,
+        "content": "- [ADR-043: ElementCatalog Enrichment](./ADR-043-Catalog-Enrichment.md)",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 336,
+        "content": "- `src/omega-ui-core/governance/ElementCatalog.ts`",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 35,
+        "content": "BlueprintValidator.validateQuietly()",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 37,
+        "content": "└── validateStyleAgainstCatalog()  ← NEW",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 39,
+        "content": "├── validateValueAgainstRule() for each rule",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 47,
+        "content": "1. **Schema-based validation (no functions in catalog)**: The catalog stores `ValidationRule` objects with serializable configs. The `validateValueAgainstRule()` function is implemented in code, not stored in the catalog.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 85,
+        "content": "#### `validateStyleAgainstCatalog(node, errors, warnings)`",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 91,
+        "content": "- Call `validateValueAgainstRule(value, rule)`",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 251,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 267,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 282,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 308,
+        "content": "2. **Centralized validation logic**: `validateValueAgainstRule()` is defined once and used by both ElementCatalog (for standalone style validation) and BlueprintValidator (for node validation).",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\adr\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 342,
+        "content": "- The `validateValueAgainstRule()` function uses a switch on `rule.type` with schema-based validation, avoiding function storage in the catalog.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-011.md",
+        "line": 54,
+        "content": "- **Drag and drop insertion** into compatible containers, with visible acceptance or rejection states according to compatibility metadata and structural rules.",
+        "pattern": "reject"
+      },
+      {
+        "file": "docs\\ADR-027-transactional-editing.md",
+        "line": 16,
+        "content": "4. **Automatic Rollback**: If validation fails or the bridge rejects the committed state, the transaction is discarded, and the system reverts to the state prior to `startTransaction()`.",
+        "pattern": "reject"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-011.md",
+        "line": 54,
+        "content": "- **Drag and drop insertion** into compatible containers, with visible acceptance or rejection states according to compatibility metadata and structural rules.",
+        "pattern": "reject"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-027-transactional-editing.md",
+        "line": 16,
+        "content": "4. **Automatic Rollback**: If validation fails or the bridge rejects the committed state, the transaction is discarded, and the system reverts to the state prior to `startTransaction()`.",
+        "pattern": "reject"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 154,
+        "content": "throw new Error(result.errors.join('\\n')); // Just use validate()!",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 10,
+        "content": "During Phase 20.4 (Blueprint Runtime Instantiation), the `BlueprintValidator` class was refactored to support two distinct validation modes. Previously, the validator only offered a `validate()` method that throws on any validation error. This was appropriate for blocking/gatekeeper scenarios, but inadequate for use cases where the user needs to see all validation issues at once (e.g., import wizards, pre-flight checks, auditing).",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 18,
+        "content": "### 1. `validate()` — Blocking/Gatekeeper Mode",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 21,
+        "content": "public static validate(nodes: OmegaNode | OmegaNode[], manifest: Partial<OMEGA_Manifest>): void",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 37,
+        "content": "BlueprintValidator.validate(canonicalGraph, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 42,
+        "content": "### 2. `validateQuietly()` — Non-Fatal/Informational Mode",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 45,
+        "content": "public static validateQuietly(nodes: OmegaNode | OmegaNode[], manifest: Partial<OMEGA_Manifest>): {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 75,
+        "content": "const result = BlueprintValidator.validateQuietly(userBlueprint, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 113,
+        "content": "- **Backward Compatibility**: Existing `validate()` callers continue to work unchanged",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 114,
+        "content": "- **Testability**: `validateQuietly()` returns structured data easily assertable in unit tests",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 121,
+        "content": "- **Warnings May Be Ignored**: Callers using `validateQuietly()` might not handle warnings — consider logging warnings even when `valid=true` to ensure they're captured",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 129,
+        "content": "1. **Backward Compatibility**: All existing `validate()` callers work unchanged (omegaRPCBridge, historyRestore, useDocumentOrchestrator)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 136,
+        "content": "### When to Use `validate()` (Blocking)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 141,
+        "content": "### When to Use `validateQuietly()` (Non-Fatal)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 148,
+        "content": "Do NOT use `validateQuietly()` then manually throw based on `result.valid` — this adds complexity without benefit:",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 152,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 154,
+        "content": "throw new Error(result.errors.join('\\n')); // Just use validate()!",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 157,
+        "content": "// CORRECT: Use validate() directly for gatekeeper scenarios",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-041-dual-mode-validation.md",
+        "line": 158,
+        "content": "BlueprintValidator.validate(nodes, manifest); // Simpler, same effect",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 26,
+        "content": "const { valid, errors } = validateBlueprint(blueprint);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 34,
+        "content": "**Validator:** `validateBlueprint()` from blueprintUtils.ts",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 49,
+        "content": "const validationResult = BlueprintValidator.validateQuietly(blueprint.rootNode, manifestWithResources);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 53,
+        "content": "**Validator:** `BlueprintValidator.validateQuietly()` with manifest resources",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 70,
+        "content": "Phase 1: validateBlueprint() (structural)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 79,
+        "content": "Phase 2: BlueprintValidator.validateQuietly() (deep)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 112,
+        "content": "const { valid, errors } = validateBlueprint(blueprint);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 120,
+        "content": "const validationResult = BlueprintValidator.validateQuietly(",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 197,
+        "content": "- **ADR-041 (Dual-Mode Validation)**: Phase 2 uses `validateQuietly()` instead of `validate()` to enable warning handling",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 198,
+        "content": "- **ADR-024 (Blueprint Runtime Instantiation)**: Runtime validation uses `validate()` (blocking) instead, appropriate for gatekeeper scenarios",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 207,
+        "content": "BlueprintValidator.validateQuietly(blueprint.rootNode, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-adrs\\ADR-042-two-phase-validation.md",
+        "line": 214,
+        "content": "const { valid, errors } = validateBlueprint(blueprint);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 22,
+        "content": "allowedFragments?: string[];   // Advisory only - not enforced",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 68,
+        "content": "- Current: `allowedFragments` is advisory string array only",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 122,
+        "content": "// Slot definitions (replaces allowedFragments advisory)",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 220,
+        "content": "// Replace allowedFragments with proper slot definitions",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 227,
+        "content": "// Remove allowedFragments (or deprecate it)",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 271,
+        "content": "1. **Backward Compatibility**: `allowedFragments` kept as deprecated, `slots` takes precedence",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 292,
+        "content": "1. Should `allowedFragments` be deprecated or kept for backward compatibility?",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 210,
+        "content": "// In ElementCatalog.ts - add primitiveType field to each element",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 279,
+        "content": "1. `src/omega-ui-core/governance/ElementCatalog.ts`",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 253,
+        "content": "if (!def) throw new Error(`Unknown cell type: ${node.cellRef}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 258,
+        "content": "if (error) throw new Error(error);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 187,
+        "content": "function validateAgainstRule(node: OmegaNode, rule: ValidationRule): string | null {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 250,
+        "content": "static validate(nodes: OmegaNode[], manifest: OMEGA_Manifest) {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 257,
+        "content": "const error = validateAgainstRule(node, rule);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\cell_analisis.md",
+        "line": 59,
+        "content": "- ✅ **ElementCatalog**: Governance unificado ADR-043/046 (1100 líneas).",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\MIGRATION_PLAN_CELLSTUDIO_STEPPER.md",
+        "line": 56,
+        "content": "BlueprintValidator.validateQuietly(entityToNode(cellData), manifest),",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\MIGRATION_PLAN_CELLSTUDIO_STEPPER.md",
+        "line": 148,
+        "content": "BlueprintValidator.validateQuietly(entityToNode(cellData), { resources: manifest?.resources }),",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\OMEGA_Remediation_Map.md",
+        "line": 24,
+        "content": "*   **Decoupled UX**: `allowedFragments` and `capabilities` are UI hints. If a node in the UCA tree contains non-standard data, it must be rendered and persisted regardless of catalog state.",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\archive\\implemented-plans\\OMEGA_Remediation_Map.md",
+        "line": 17,
+        "content": "| `src/omega-ui-core/governance/ElementCatalog.ts` | Low | Keep explicit warnings and maintain it as a consultative inventory. | **Low** | ✅ Documented |",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\drift_report.md",
+        "line": 354,
+        "content": "- `src/omega-ui-core/governance/ElementCatalog.ts` (missing: English)",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\OMEGA_Remediation_Map.md",
+        "line": 24,
+        "content": "*   **Decoupled UX**: `allowedFragments` and `capabilities` are UI hints. If a node in the UCA tree contains non-standard data, it must be rendered and persisted regardless of catalog state.",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\OMEGA_Remediation_Map.md",
+        "line": 17,
+        "content": "| `src/omega-ui-core/governance/ElementCatalog.ts` | Low | Keep explicit warnings and maintain it as a consultative inventory. | **Low** | ✅ Documented |",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\specs-and-architecture\\SIMPLIFIED_MODEL_PROPOSAL.md",
+        "line": 165,
+        "content": "### ElementCatalog (se conserva)",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\specs-and-architecture\\SIMPLIFIED_MODEL_PROPOSAL.md",
+        "line": 167,
+        "content": "El `ElementCatalog.ts` (1100 LOC) define para cada tipo de componente: variantes disponibles, slots de composición, reglas de validación, capacidades estéticas. Es dato valioso que se conserva y se usa para:",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\specs-and-architecture\\SIMPLIFIED_MODEL_PROPOSAL.md",
+        "line": 282,
+        "content": "Los selects de variante se pueblan desde `ElementCatalog` (ej: para `knob`, busca las variants del elemento `knob` en el catálogo: `A_cyan`, `B_amber`, `C_ruby`, `D_jade`).",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\specs-and-architecture\\SIMPLIFIED_MODEL_PROPOSAL.md",
+        "line": 502,
+        "content": "| **ElementCatalog** | `governance/ElementCatalog.ts` | 1,100 | Variantes, validaciones, slots, capacidades — fuente de datos para editores |",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\specs-and-architecture\\SIMPLIFIED_MODEL_PROPOSAL.md",
+        "line": 603,
+        "content": "- **3.2–3.9**: Cada editor usa controles nativos (select para variante, color picker para color, input para bind, etc.). Los selects de variante se pueblan desde `ElementCatalog` (ej: para `knob`, busca las variants del elemento `knob` en el catálogo).",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\specs-and-architecture\\SIMPLIFIED_MODEL_PROPOSAL.md",
+        "line": 639,
+        "content": "| 5.1 Eliminar UCA tree (excepto ElementCatalog) | `uca/` ~17 files | ~2,150 | 2.3, 3.12 |",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "scripts\\document-codebase.mjs",
+        "line": 345,
+        "content": "throw new Error(`Ollama returned status ${response.status}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "scripts\\document-codebase.mjs",
+        "line": 407,
+        "content": "throw new Error(\"All cloud providers failed.\");",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "scripts\\document-codebase.mjs",
+        "line": 424,
+        "content": "throw new Error(`Failed to generate description: both local Ollama and cloud providers failed.`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "scripts\\document-codebase.mjs",
+        "line": 427,
+        "content": "throw new Error(`Failed to generate description: local Ollama failed and no cloud providers are configured.`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "scripts\\document-codebase.mjs",
+        "line": 443,
+        "content": "throw new Error(`Failed to generate description: both cloud providers and local Ollama failed.`);",
+        "pattern": "throw new Error"
+      }
+    ]
+  }
+}

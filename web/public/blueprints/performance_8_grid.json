@@ -1,0 +1,46 @@
+{
+  "blueprintId": "performance_8_grid",
+  "version": "1.0.0",
+  "name": "Performance 8-Grid",
+  "description": "8-Knob macro grid for live performance control.",
+  "origin": "system",
+  "category": "control",
+  "family": "OMEGA Essentials",
+  "tags": ["macro", "knob", "performance", "grid"],
+  "compatibility": {
+    "allowedParentKinds": ["rack", "container", "group", "face"],
+    "deniedParentKinds": ["cell"]
+  },
+  "rootNode": {
+    "id": "macro_grid_8",
+    "kind": "container",
+    "role": "structure",
+    "layout": { "pos": { "x": 0, "y": 0 }, "mode": "stack-h", "padding": 20, "gap": 20 },
+    "children": [
+      {
+        "id": "col_1",
+        "kind": "container",
+        "role": "structure",
+        "layout": { "pos": { "x": 0, "y": 0 }, "mode": "stack-v", "gap": 10 },
+        "children": [
+          { "id": "m1", "kind": "cell", "role": "control", "cellRef": "knob", "bind": "macro_1", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 50, "height": 50 } } },
+          { "id": "m2", "kind": "cell", "role": "control", "cellRef": "knob", "bind": "macro_2", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 50, "height": 50 } } },
+          { "id": "m3", "kind": "cell", "role": "control", "cellRef": "knob", "bind": "macro_3", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 50, "height": 50 } } },
+          { "id": "m4", "kind": "cell", "role": "control", "cellRef": "knob", "bind": "macro_4", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 50, "height": 50 } } }
+        ]
+      },
+      {
+        "id": "col_2",
+        "kind": "container",
+        "role": "structure",
+        "layout": { "pos": { "x": 0, "y": 0 }, "mode": "stack-v", "gap": 10 },
+        "children": [
+          { "id": "m5", "kind": "cell", "role": "control", "cellRef": "knob", "bind": "macro_5", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 50, "height": 50 } } },
+          { "id": "m6", "kind": "cell", "role": "control", "cellRef": "knob", "bind": "macro_6", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 50, "height": 50 } } },
+          { "id": "m7", "kind": "cell", "role": "control", "cellRef": "knob", "bind": "macro_7", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 50, "height": 50 } } },
+          { "id": "m8", "kind": "cell", "role": "control", "cellRef": "knob", "bind": "macro_8", "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 50, "height": 50 } } }
+        ]
+      }
+    ]
+  }
+}

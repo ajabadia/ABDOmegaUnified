@@ -1,0 +1,32 @@
+{
+  "hardware": {
+    "screws": [
+      { "id": "philips_standard", "name": "Philips Standard", "path": "/assets/elements/statics/hardware/screws/philips_standard.svg", "type": "svg" },
+      { "id": "allen_industrial", "name": "Allen Industrial", "path": "/assets/elements/statics/hardware/screws/allen_industrial.svg", "type": "svg" },
+      { "id": "torx_security", "name": "Torx Security", "path": "/assets/elements/statics/hardware/screws/torx_security.svg", "type": "svg" },
+      { "id": "industrial_screw_head", "name": "Industrial Screw Head", "path": "/assets/elements/statics/hardware/screws/industrial_screw_head.png", "type": "png" },
+      { "id": "industrial_screw_head_allen", "name": "Industrial Screw Head Allen", "path": "/assets/elements/statics/hardware/screws/industrial_screw_head_allen.png", "type": "png" }
+    ],
+    "faceplates": [
+      { "id": "brushed_aluminum", "name": "Brushed Aluminum", "path": "/assets/elements/statics/hardware/faceplates/brushed_aluminum.svg", "type": "svg" },
+      { "id": "dark_carbon", "name": "Dark Carbon", "path": "/assets/elements/statics/hardware/faceplates/dark_carbon.svg", "type": "svg" },
+      { "id": "jp8000", "name": "JP8000 Chassis", "path": "/assets/elements/statics/hardware/faceplates/jp8000.png", "type": "png" }
+    ]
+  },
+  "branding": {
+    "logos": [
+      { "id": "abd_logo", "name": "ABD Brand Logo", "path": "/assets/elements/statics/logo/abd_brand_logo.svg", "type": "svg" }
+    ]
+  },
+  "cells": {
+    "knobs": [],
+    "sequences": [
+      { "id": "moog_knob_sm", "name": "Moog Knob SM", "path": "/assets/elements/sequences/moog_knob_sm.png", "type": "png", "frames": 101, "orientation": "v", "frameWidth": 30, "frameHeight": 29 },
+      { "id": "simple_knob", "name": "Simple Knob", "path": "/assets/elements/sequences/simple_knob.png", "type": "png", "frames": 101, "orientation": "v", "frameWidth": 48, "frameHeight": 48 }
+    ],
+    "jacks": [],
+    "screws": [],
+    "displays": [],
+    "branding": []
+  }
+}

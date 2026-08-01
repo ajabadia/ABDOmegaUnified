@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ModalActionButton — snapshots should match snapshot for disabled state 1`] = `
+<button
+  class="px-6 py-2.5 rounded-xs border wb-outline wb-text-muted hover:wb-text hover:bg-white/5 text-[9px] font-black uppercase tracking-widest transition-all duration-200"
+  disabled=""
+>
+  Disabled
+</button>
+`;
+
+exports[`ModalActionButton — snapshots should match snapshot for enabled state 1`] = `
+<button
+  class="px-6 py-2.5 rounded-xs border wb-outline wb-text-muted hover:wb-text hover:bg-white/5 text-[9px] font-black uppercase tracking-widest transition-all duration-200"
+>
+  Dismiss View
+</button>
+`;

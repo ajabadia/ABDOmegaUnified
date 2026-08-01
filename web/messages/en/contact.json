@@ -1,0 +1,34 @@
+{
+  "title": "Get in",
+  "highlight": "Touch",
+  "description": "Whether you need technical support for an alpha engine or want to discuss a research collaboration, our uplink is open.",
+  "terminal": "Contact Terminal",
+  "form": {
+    "name": "Operator Name",
+    "namePlaceholder": "Identity Required",
+    "email": "Return Address (Email)",
+    "emailPlaceholder": "name@domain.com",
+    "subject": "Transmission Subject",
+    "subjectPlaceholder": "Purpose of contact",
+    "message": "Data Payload (Message)",
+    "messagePlaceholder": "Compose your inquiry...",
+    "challenge": "Human Verification",
+    "challengeLoading": "Calculating...",
+    "challengeError": "Verification failed. Are you human?",
+    "submit": "Dispatch Transmission",
+    "security": "Zero-coupling encryption enabled. All data packets are filtered for industrial integrity.",
+    "successTitle": "Transmission Successful",
+    "successDesc": "Your message has been encoded and dispatched. A confirmation transcript has been sent to your inbox.",
+    "newTransmission": "New Transmission",
+    "error": "System failure. Transmission aborted. Please try again later."
+  },
+  "info": {
+    "inquiries": "Inquiries",
+    "community": "Community",
+    "lab": "Boutique Lab",
+    "origin": "Origin",
+    "remote": "Remote Operations Only",
+    "global": "Global Digital Matrix",
+    "quote": "\"We believe in aseptic communication. Minimal data, maximum resonance.\""
+  }
+}

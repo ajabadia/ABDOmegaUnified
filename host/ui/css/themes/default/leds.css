@@ -1,0 +1,21 @@
+/* OMEGA DEFAULT LEDS */
+
+.theme-default .led.variant-A { 
+    width: 16px; 
+    height: 16px; 
+    background: var(--module-accent); 
+    box-shadow: 0 0 15px var(--module-accent);
+}
+
+.theme-default .led.variant-B { 
+    width: 8px; 
+    height: 8px; 
+    background: var(--module-accent); 
+    opacity: 0.8; 
+}
+
+.theme-default .led.variant-C { 
+    width: 6px; 
+    height: 6px; 
+    background: #666; 
+}

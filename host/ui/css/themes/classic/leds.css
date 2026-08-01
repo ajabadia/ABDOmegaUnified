@@ -1,0 +1,30 @@
+/* OMEGA CLASSIC LEDS (Studio Jewel Aesthetics) */
+
+.theme-classic .led {
+  border-radius: 50%;
+  background: #1a1c20;
+  border: 1px solid #2d323a;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Variation A: Large Jewel Lamp */
+.theme-classic .led.variant-A {
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle at 30% 30%, #4d94ff, #003366);
+  box-shadow: 0 0 12px rgba(77, 148, 255, 0.5), inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+/* Variation B: Indicator dot */
+.theme-classic .led.variant-B {
+  width: 8px;
+  height: 8px;
+  background: var(--module-accent);
+}
+
+/* Variation C: Tiny grain */
+.theme-classic .led.variant-C {
+  width: 5px;
+  height: 5px;
+  background: #444;
+}

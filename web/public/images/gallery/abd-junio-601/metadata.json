@@ -1,0 +1,64 @@
+{
+  "images": {
+    "classic.png": {
+      "en": {
+        "caption": "Classic Theme",
+        "description": "The iconic layout inspired by the original 1984 hardware synthesizer panel."
+      },
+      "es": {
+        "caption": "Tema Clásico",
+        "description": "El diseño icónico inspirado en el panel del sintetizador hardware original de 1984."
+      }
+    },
+    "808.png": {
+      "en": {
+        "caption": "TR-808 Theme",
+        "description": "A vibrant skin utilizing the legendary color palette of the classic Roland TR-808 drum machine."
+      },
+      "es": {
+        "caption": "Tema TR-808",
+        "description": "Una interfaz vibrante que utiliza la legendaria paleta cromática de la clásica caja de ritmos Roland TR-808."
+      }
+    },
+    "2600.png": {
+      "en": {
+        "caption": "ARP 2600 Theme",
+        "description": "Industrial, bold design style inspired by the semimodular ARP 2600 synthesizer aesthetics."
+      },
+      "es": {
+        "caption": "Tema ARP 2600",
+        "description": "Estilo de diseño industrial y audaz inspirado en la estética del sintetizador semimodular ARP 2600."
+      }
+    },
+    "dark.png": {
+      "en": {
+        "caption": "SH-101 Dark Theme",
+        "description": "High-contrast dark mode inspired by the sleek gray and red lines of the Roland SH-101."
+      },
+      "es": {
+        "caption": "Tema SH-101 Oscuro",
+        "description": "Modo oscuro de alto contraste inspirado en las líneas grises y rojas del Roland SH-101."
+      }
+    },
+    "deepmind.png": {
+      "en": {
+        "caption": "Deepmind 12 Theme",
+        "description": "Modern look inspired by the wood-accented Behringer Deepmind 12 analog synthesizer."
+      },
+      "es": {
+        "caption": "Tema Deepmind 12",
+        "description": "Aspecto moderno inspirado en el sintetizador analógico Behringer Deepmind 12 con acabados de madera."
+      }
+    },
+    "re201.png": {
+      "en": {
+        "caption": "Space Echo RE-201 Theme",
+        "description": "Vintage vibe honoring the iconic green-accented control panel of the Roland RE-201 tape delay."
+      },
+      "es": {
+        "caption": "Tema Space Echo RE-201",
+        "description": "Vibras vintage que rinden homenaje al icónico panel verde del delay de cinta Roland RE-201."
+      }
+    }
+  }
+}

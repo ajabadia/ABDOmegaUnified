@@ -1,0 +1,1990 @@
+{
+  "timestamp": "2026-06-03T08:59:44.637Z",
+  "counts": {
+    "high": 0,
+    "medium": 17,
+    "low": 312,
+    "total": 329
+  },
+  "details": {
+    "HIGH": [],
+    "MEDIUM": [
+      {
+        "file": "src\\components\\ui\\contact\\useContactForm.ts",
+        "line": 55,
+        "content": "throw new Error(result.error || t(\"error\"));",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\BlueprintLibraryPanel.tsx",
+        "line": 6,
+        "content": "import { validateBlueprint } from '../../utils/blueprintUtils';",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\BlueprintLibraryPanel.tsx",
+        "line": 106,
+        "content": "const { valid, errors } = validateBlueprint(blueprint);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\BlueprintLibraryPanel.tsx",
+        "line": 114,
+        "content": "const validationResult = BlueprintValidator.validateQuietly(blueprint.rootNode as OmegaNode, manifestWithResources);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\aesthetic\\map.md",
+        "line": 2,
+        "content": "Componentes modulares de gobernanza estética impulsados por el ElementCatalog.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\aesthetic\\SequenceIngestionLab.tsx",
+        "line": 42,
+        "content": "return new Promise<HTMLImageElement>((resolve, reject) => {",
+        "pattern": "reject"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\aesthetic\\SequenceIngestionLab.tsx",
+        "line": 45,
+        "content": "img.onerror = reject;",
+        "pattern": "reject"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\components\\inspector\\shared\\map.md",
+        "line": 5,
+        "content": "- [IndustrialGovernanceConsole.tsx](file:///d:/desarrollos/ABDSynthsWeb/abd-ia_synths/src/components/tools/manifest-editor/inspector/shared/IndustrialGovernanceConsole.tsx): Orquestador dinámico que compone la interfaz de edición basándose en las capacidades del ElementCatalog.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\io\\useBundleTransfer.ts",
+        "line": 133,
+        "content": "await new Promise((resolve, reject) => {",
+        "pattern": "reject"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\io\\useBundleTransfer.ts",
+        "line": 137,
+        "content": "script.onerror = reject;",
+        "pattern": "reject"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\io\\useWasmTransfer.ts",
+        "line": 95,
+        "content": "throw new Error(\"Missing mandatory 'id' or 'ports' fields in contract.\");",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\useAuditEngine.ts",
+        "line": 57,
+        "content": "const baseIssues = ValidationService.validate(manifest, contract as Parameters<typeof ValidationService.validate>[1]) || [];",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\useDocumentOrchestrator.ts",
+        "line": 371,
+        "content": "BlueprintValidator.validate(persisted.graph, { id: persisted.id });",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\useDocumentOrchestrator.ts",
+        "line": 532,
+        "content": "BlueprintValidator.validate(doc.manifest.ui.tree, doc.manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\hooks\\useSimulationBridge.ts",
+        "line": 94,
+        "content": "throw new Error('Deployment failed at runtime');",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\services\\StructuralAuditor.ts",
+        "line": 299,
+        "content": "const circularityIssues = CircularityAuditor.validate(manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\features\\manifest-editor\\utils\\blueprintUtils.ts",
+        "line": 8,
+        "content": "export function validateBlueprint(blueprint: BlueprintDefinition): { valid: boolean; errors: string[] } {",
+        "pattern": "validate"
+      }
+    ],
+    "LOW": [
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 10,
+        "content": "* - 'capabilities' and 'allowedFragments' are soft suggestions for UI filtering.",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 47,
+        "content": "* Catalog slot definition - replaces allowedFragments advisory",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 242,
+        "content": "* `allowedFragments` is advisory only. Use it for editor UX suggestions (e.g. \"+ Add\" menus),",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 246,
+        "content": "allowedFragments?: string[]; // IDs of elements that can be attached to this host",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 250,
+        "content": "* Replaces allowedFragments advisory with proper slot-based composition",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 287,
+        "content": "allowedFragments: ['rack-screw', 'label', 'illustration'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 298,
+        "content": "allowedFragments: ['label', 'illustration', 'led']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 308,
+        "content": "allowedFragments: ['label', 'illustration', 'container', 'group', 'cell']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 406,
+        "content": "allowedFragments: ['label'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 417,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 427,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 437,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 497,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 540,
+        "content": "allowedFragments: ['label']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 610,
+        "content": "allowedFragments: ['label', 'led', 'graphic-fragment'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 639,
+        "content": "allowedFragments: ['label', 'led', 'illustration', 'rack-screw', 'graphic-fragment'],",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 654,
+        "content": "allowedFragments: ['label', 'illustration']",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 958,
+        "content": "// Fallback to allowedFragments for backward compatibility",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 720,
+        "content": "export function validateCell(cell: CellValidationContext): UnifiedValidationResult {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 742,
+        "content": "const error = validateValueAgainstRule(value, rule);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 988,
+        "content": "export const validateValueAgainstRule = (",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 1041,
+        "content": "export const validateStyleAgainstCatalog = (",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\governance\\ElementCatalog.ts",
+        "line": 1052,
+        "content": "const error = validateValueAgainstRule(value, rule);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 110,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 154,
+        "content": "const result = BlueprintValidator.validateQuietly(root, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 200,
+        "content": "const result = BlueprintValidator.validateQuietly(root, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 230,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 243,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 258,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 275,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 292,
+        "content": "const result = BlueprintValidator.validateQuietly(validNode, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 306,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 319,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 333,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 342,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 359,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 368,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 389,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 401,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 413,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 429,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 441,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 454,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 485,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 507,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 530,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 551,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 658,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 687,
+        "content": "const result = BlueprintValidator.validateQuietly(root, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 720,
+        "content": "const result = BlueprintValidator.validateQuietly(root, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 742,
+        "content": "BlueprintValidator.validate(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 754,
+        "content": "BlueprintValidator.validate(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 768,
+        "content": "BlueprintValidator.validate(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.integration.test.ts",
+        "line": 340,
+        "content": "it('should reject rotary behavior for slider', () => {",
+        "pattern": "reject"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 37,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 51,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 68,
+        "content": "const result = BlueprintValidator.validateQuietly(root, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 91,
+        "content": "const result = BlueprintValidator.validateQuietly(root, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 103,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 117,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 133,
+        "content": "const result = BlueprintValidator.validateQuietly(container, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 155,
+        "content": "const result = BlueprintValidator.validateQuietly(root, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 168,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 191,
+        "content": "const result = BlueprintValidator.validateQuietly(root, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 208,
+        "content": "const result = BlueprintValidator.validateQuietly(cycleNode, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 223,
+        "content": "const result = BlueprintValidator.validateQuietly(nodeA, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 240,
+        "content": "BlueprintValidator.validateQuietly(cycleNode, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 253,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 266,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 279,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 296,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 311,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 326,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 344,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 361,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 374,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 390,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 410,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 423,
+        "content": "const result = BlueprintValidator.validateQuietly(container, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 438,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 454,
+        "content": "const result = BlueprintValidator.validateQuietly(container, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 479,
+        "content": "const result = BlueprintValidator.validateQuietly(root, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 498,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 512,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 524,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 547,
+        "content": "const result = BlueprintValidator.validateQuietly(root, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 570,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 584,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 598,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 612,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 626,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 640,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 656,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 671,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 686,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 701,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 716,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 733,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 748,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 763,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 780,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 797,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 811,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 825,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 839,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 853,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 868,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 883,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 898,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 915,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 930,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 945,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 965,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 981,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 996,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1013,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1029,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1044,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1058,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1072,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1086,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1101,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1115,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1132,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1148,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1163,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1177,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1191,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1207,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1225,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1333,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'container');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1342,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'container');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1357,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'container');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1369,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'rack');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1381,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'face');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1393,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'cell');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1407,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'container');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1421,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'cell');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1435,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'container');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1447,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'rack');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1459,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'cell');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1473,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'group');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1487,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'cell');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1502,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'container');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1516,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'cell');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1529,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'face');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1543,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, 'cell');",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1562,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, null);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1574,
+        "content": "const result = BlueprintValidator.validateBlueprintCompatibility(blueprint, null);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1655,
+        "content": "BlueprintValidator.validate(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1671,
+        "content": "const result = BlueprintValidator.validateQuietly(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.test.ts",
+        "line": 1681,
+        "content": "BlueprintValidator.validate(node, createMinimalManifest());",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 11,
+        "content": "} from '../governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 21,
+        "content": "* 4. Catalog integration validates style values against ElementCatalog validationRules.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 125,
+        "content": "* Validates node style properties against ElementCatalog validationRules.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 33,
+        "content": "throw new Error(`[BLUEPRINT VALIDATION FAILED]\\n${result.errors.join('\\n')}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 7,
+        "content": "validateValueAgainstRule,",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 30,
+        "content": "public static validate(nodes: OmegaNode | OmegaNode[], manifest: Partial<OMEGA_Manifest>): void {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 31,
+        "content": "const result = this.validateQuietly(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 42,
+        "content": "public static validateQuietly(nodes: OmegaNode | OmegaNode[], manifest: Partial<OMEGA_Manifest>): {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 107,
+        "content": "this.validateStyleAgainstCatalog(node, errors, warnings);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 128,
+        "content": "private static validateStyleAgainstCatalog(",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 151,
+        "content": "const error = validateValueAgainstRule(value, rule);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\blueprintValidator.ts",
+        "line": 217,
+        "content": "public static validateBlueprintCompatibility(",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\circularity.test.ts",
+        "line": 13,
+        "content": "const issues = CircularityAuditor.validate(dagManifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\circularity.test.ts",
+        "line": 25,
+        "content": "const issues = CircularityAuditor.validate(cycleManifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\circularity.test.ts",
+        "line": 38,
+        "content": "const issues = CircularityAuditor.validate(complexCycleManifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\circularity.test.ts",
+        "line": 50,
+        "content": "const issues = CircularityAuditor.validate(pathCycleManifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\circularity.test.ts",
+        "line": 62,
+        "content": "const issues = CircularityAuditor.validate(multiLevelManifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\ucaInjection.ts",
+        "line": 66,
+        "content": "const compatibilityIssues = validateBlueprintCompatibility(blueprint, request.strategy.targetParentNodeId, activeManifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\ucaInjection.ts",
+        "line": 215,
+        "content": "function validateBlueprintCompatibility(",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\ucaTemplateTest.ts",
+        "line": 115,
+        "content": "function validateDSPCompatibility(template: ModuleTemplate, instance: OmegaNode): boolean {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\ucaTemplateTest.ts",
+        "line": 133,
+        "content": "validateDSPCompatibility(mockTemplate, instance); // Should pass",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\ucaTemplateTest.ts",
+        "line": 134,
+        "content": "validateDSPCompatibility(mockTemplate, { id: 'bad', kind: 'container', role: 'structure', layout: { pos: { x: 0, y: 0 } } } as OmegaNode); // Should fail",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\utils\\circularityAuditor.ts",
+        "line": 16,
+        "content": "static validate(manifest: OMEGA_Manifest): ValidationIssue[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\utils\\ucaPathResolver.ts",
+        "line": 47,
+        "content": "throw new Error(`[HPA] Node ${nodeId} not found in the provided tree context.`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\omega-ui-core\\uca\\utils\\ucaPathResolver.ts",
+        "line": 93,
+        "content": "static validatePathStability(path: string): boolean {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\auditService.ts",
+        "line": 11,
+        "content": "const issues = ValidationService.validate(manifest, contract);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\historyRestore.ts",
+        "line": 30,
+        "content": "BlueprintValidator.validate(entry.manifest.ui.tree, entry.manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\rpc\\omegaRPCBridge.ts",
+        "line": 111,
+        "content": "BlueprintValidator.validate(canonicalGraph, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\rpc\\omegaRPCBridge.ts",
+        "line": 216,
+        "content": "return new Promise((resolve, reject) => {",
+        "pattern": "reject"
+      },
+      {
+        "file": "src\\services\\rpc\\omegaRPCBridge.ts",
+        "line": 225,
+        "content": "this.pendingAcks.set(id, { resolve, reject, timeout });",
+        "pattern": "reject"
+      },
+      {
+        "file": "src\\services\\rpc\\omegaRPCBridge.ts",
+        "line": 248,
+        "content": "if (response.error) ack.reject(response.error);",
+        "pattern": "reject"
+      },
+      {
+        "file": "src\\services\\validation\\industrialRules.ts",
+        "line": 7,
+        "content": "static validate(manifest: OMEGA_Manifest, contract: (OmegaContract | OMEGA_Contract) | null): ValidationIssue[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validation\\industrialRules.ts",
+        "line": 72,
+        "content": "const validateEntity = (entity: ManifestEntity | OmegaNode, path: string) => {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validation\\industrialRules.ts",
+        "line": 193,
+        "content": "allTreeNodes.forEach((n) => validateEntity(n, `/ui/tree/node/${n.id}`));",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validation\\industrialRules.ts",
+        "line": 195,
+        "content": "(manifest.ui?.controls || []).forEach((e, idx) => validateEntity(e, `/ui/controls/${idx}`));",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validation\\industrialRules.ts",
+        "line": 196,
+        "content": "(manifest.ui?.jacks || []).forEach((e, idx) => validateEntity(e, `/ui/jacks/${idx}`));",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validation\\industrialRules.ts",
+        "line": 200,
+        "content": "const circularityIssues = CircularityAuditor.validate(manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validation\\schemaValidator.ts",
+        "line": 17,
+        "content": "const validateV6 = ajv.compile(era6Schema);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validation\\schemaValidator.ts",
+        "line": 18,
+        "content": "const validateV7 = ajv.compile(era7Schema);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validation\\schemaValidator.ts",
+        "line": 21,
+        "content": "static validate(manifest: OMEGA_Manifest): ValidationIssue[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validation\\schemaValidator.ts",
+        "line": 23,
+        "content": "const validator = isV7 ? validateV7 : validateV6;",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validationService.ts",
+        "line": 11,
+        "content": "static validate(manifest: OMEGA_Manifest, contract: (OmegaContract | OMEGA_Contract) | null = null): ValidationIssue[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validationService.ts",
+        "line": 13,
+        "content": "const schemaIssues = SchemaValidator.validate(manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\validationService.ts",
+        "line": 16,
+        "content": "const industrialIssues = IndustrialRules.validate(manifest, contract);",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\services\\wasmLoader.ts",
+        "line": 66,
+        "content": "throw new Error(\"WASM module is not OMEGA-compliant (missing 'omega_get_contract' export).\");",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\services\\wasmLoader.ts",
+        "line": 106,
+        "content": "throw new Error(`LinkError: Binary requires host functions or is corrupted. Details: ${message}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\services\\wasmRuntime.ts",
+        "line": 126,
+        "content": "throw new Error(result.error || 'Engine rejected snapshot or timed out');",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\services\\wasmRuntime.ts",
+        "line": 133,
+        "content": "throw new Error(`Materialization failed: ${instance.error}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\services\\wasmRuntime.ts",
+        "line": 126,
+        "content": "throw new Error(result.error || 'Engine rejected snapshot or timed out');",
+        "pattern": "reject"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 149,
+        "content": "throw new Error(`Cannot convert node with children to PrimitiveNode: ${node.id}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 345,
+        "content": "throw new Error('Unknown cell node type');",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 427,
+        "content": "export function validateCompositeSlots(cell: CompositeCell): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 457,
+        "content": "export function validatePrimitive(primitive: PrimitiveNode): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "src\\types\\cell-conversion.ts",
+        "line": 472,
+        "content": "export function validateStructuralModule(module: StructuralModule): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-009.md",
+        "line": 33,
+        "content": "3. **Phase 9.3 — Advanced Templating (Blueprint Injection):** Formalize blueprint/template injection with validated schemas, collision-safe ID regeneration, and a reusable library UI for rapid composition of common synth structures.[cite:333][cite:335]",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-011.md",
+        "line": 54,
+        "content": "- **Drag and drop insertion** into compatible containers, with visible acceptance or rejection states according to compatibility metadata and structural rules.",
+        "pattern": "reject"
+      },
+      {
+        "file": "docs\\ADR-024_Blueprint_Runtime_Instantiation.md",
+        "line": 56,
+        "content": "> A Blueprint does not exist in runtime until it has been validated, canonicalized, and materialized as a complete instance.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-025-runtime-observability-metrics.md",
+        "line": 7,
+        "content": "After Phase 20.4, the runtime pipeline is deterministic, atomic, and blocked by validated Blueprints before materialization. The next operational risk is not correctness of instantiation, but lack of visibility when latency, buffering, heartbeat drift, or instantiation failures occur in production.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-026-persistence-recovery.md",
+        "line": 13,
+        "content": "1. **Canonical State Snapshots**: Only the normalized, validated output from the `BlueprintResolver` (the \"Canonical Graph\") is persisted. Editable/intermediate states are excluded to prevent drift.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-027-transactional-editing.md",
+        "line": 15,
+        "content": "3. **Atomic Validation & Sync**: Upon `commitTransaction()`, the final resulting state is validated via `BlueprintValidator`. If valid, the entire block is synchronized to the bridge in a single `syncSnapshot` operation.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-027-transactional-editing.md",
+        "line": 16,
+        "content": "4. **Automatic Rollback**: If validation fails or the bridge rejects the committed state, the transaction is discarded, and the system reverts to the state prior to `startTransaction()`.",
+        "pattern": "reject"
+      },
+      {
+        "file": "docs\\ADR-032-history-capture.md",
+        "line": 13,
+        "content": "1. **Capture on Significant Events**: Record history entries on transaction commit, validated structural snapshot, and recovery point creation.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-034-time-travel-restore.md",
+        "line": 11,
+        "content": "The system will implement a Time-Travel Restore layer that restores a selected historical revision through validated orchestration.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-034-time-travel-restore.md",
+        "line": 17,
+        "content": "4. **Read-Then-Activate Flow**: The system will load the historical revision, validate it, and only then promote it into active editor state.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-036-phase-21-closure.md",
+        "line": 7,
+        "content": "After Phase 21 introduced History Capture, Semantic Diff, Time-Travel Restore, and Historical Observability, the system has a complete historical subsystem that can record evolution, explain change, restore revisions, and audit its own behavior. At this point the remaining task is not new capability, but closure: define how the history stack is finalized, validated, documented, and handed off as a stable product boundary.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-037-history-vs-undo-redo.md",
+        "line": 46,
+        "content": "4. **Validation Gate**: Restoring a historical revision MUST always pass through `historyRestore.ts` validation, whereas an `undo` operation may be optimized for speed if the state was recently validated.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 154,
+        "content": "throw new Error(result.errors.join('\\n')); // Just use validate()!",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 10,
+        "content": "During Phase 20.4 (Blueprint Runtime Instantiation), the `BlueprintValidator` class was refactored to support two distinct validation modes. Previously, the validator only offered a `validate()` method that throws on any validation error. This was appropriate for blocking/gatekeeper scenarios, but inadequate for use cases where the user needs to see all validation issues at once (e.g., import wizards, pre-flight checks, auditing).",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 21,
+        "content": "public static validate(nodes: OmegaNode | OmegaNode[], manifest: Partial<OMEGA_Manifest>): void",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 37,
+        "content": "BlueprintValidator.validate(canonicalGraph, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 45,
+        "content": "public static validateQuietly(nodes: OmegaNode | OmegaNode[], manifest: Partial<OMEGA_Manifest>): {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 75,
+        "content": "const result = BlueprintValidator.validateQuietly(userBlueprint, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 129,
+        "content": "1. **Backward Compatibility**: All existing `validate()` callers work unchanged (omegaRPCBridge, historyRestore, useDocumentOrchestrator)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 148,
+        "content": "Do NOT use `validateQuietly()` then manually throw based on `result.valid` — this adds complexity without benefit:",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 152,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 154,
+        "content": "throw new Error(result.errors.join('\\n')); // Just use validate()!",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-041-dual-mode-validation.md",
+        "line": 158,
+        "content": "BlueprintValidator.validate(nodes, manifest); // Simpler, same effect",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 10,
+        "content": "When users import custom JSON blueprints in the BlueprintLibraryPanel, we need to validate them thoroughly before accepting them into the system. A single validation pass is insufficient because different validation concerns operate at different levels:",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 24,
+        "content": "import { validateBlueprint } from '../../utils/blueprintUtils';",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 26,
+        "content": "const { valid, errors } = validateBlueprint(blueprint);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 49,
+        "content": "const validationResult = BlueprintValidator.validateQuietly(blueprint.rootNode, manifestWithResources);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 70,
+        "content": "Phase 1: validateBlueprint() (structural)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 79,
+        "content": "Phase 2: BlueprintValidator.validateQuietly() (deep)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 112,
+        "content": "const { valid, errors } = validateBlueprint(blueprint);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 120,
+        "content": "const validationResult = BlueprintValidator.validateQuietly(",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 207,
+        "content": "BlueprintValidator.validateQuietly(blueprint.rootNode, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-042-two-phase-validation.md",
+        "line": 214,
+        "content": "const { valid, errors } = validateBlueprint(blueprint);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-043-unified-cell-blueprint-governance.md",
+        "line": 83,
+        "content": "throw new Error(`Unknown cell type: ${node.cellRef}`);",
+        "pattern": "throw new Error"
+      },
+      {
+        "file": "docs\\ADR-043-unified-cell-blueprint-governance.md",
+        "line": 78,
+        "content": "validate(nodes, manifest) {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-043-unified-cell-blueprint-governance.md",
+        "line": 103,
+        "content": "static validate(nodes: OmegaNode[], context: UCAValidationContext): void {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 10,
+        "content": "Currently, `BlueprintValidator` validates structural aspects of blueprints:",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 16,
+        "content": "However, it does NOT validate:",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 25,
+        "content": "Extend `BlueprintValidator` to validate behavioral aspects of blueprints by adding a third validation phase:",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 35,
+        "content": "Phase 2: SEMANTIC (existing, via validateQuietly)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 71,
+        "content": "static validateQuietly(",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 75,
+        "content": "validateBehavior?: boolean;  // Default: true",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 76,
+        "content": "validateRecipes?: boolean;   // Default: true",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 95,
+        "content": "function validateBehavior(cell: CompositeCell, manifest: OMEGA_Manifest): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 156,
+        "content": "function validateLayerOrdering(recipe: LayerRecipe): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 170,
+        "content": "function validateBlendMode(layer: LayerRecipe['layers'][0], assetDef: OMEGA_Asset): string[] {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 226,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 229,
+        "content": "const result = BlueprintValidator.validateQuietly(nodes, manifest, {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 230,
+        "content": "validateBehavior: false,",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 231,
+        "content": "validateRecipes: false",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 239,
+        "content": "if (options?.validateBehavior !== false) {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-044-validate-behavior-recipes-in-blueprints.md",
+        "line": 240,
+        "content": "const behaviorResult = validateBehavior(nodes, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-045-cell-studio-architecture-refactor.md",
+        "line": 61,
+        "content": "│   └── Step 4: REVIEW (preview + validate)",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-045-cell-studio-architecture-refactor.md",
+        "line": 96,
+        "content": "BlueprintValidator.validateQuietly(entityToNode(cellData), { resources: manifest?.resources }),",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-045-cell-studio-architecture-refactor.md",
+        "line": 124,
+        "content": "validateStyle: (style: Partial<OmegaStyleNode>) => ValidationResult;",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 12,
+        "content": "Phase 20.4 introduced the BlueprintValidator class for OMEGA UCA structural integrity and invariant compliance. As OMEGA evolved through ADR-043 (ElementCatalog Enrichment) and ADR-046 (Cell Types), the need arose to validate node styles against the catalog's `validationRules` before instantiation.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 30,
+        "content": "Integrate BlueprintValidator with ElementCatalog to perform runtime validation of node styles, variants, behaviors, and slot mappings against the enriched catalog definitions.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 66,
+        "content": "| `src/omega-ui-core/governance/ElementCatalog.ts` | Enhanced with validation helpers |",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 68,
+        "content": "### Imports from ElementCatalog",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 80,
+        "content": "} from '../governance/ElementCatalog';",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 87,
+        "content": "Validates a node's style against the ElementCatalog:",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 308,
+        "content": "2. **Centralized validation logic**: `validateValueAgainstRule()` is defined once and used by both ElementCatalog (for standalone style validation) and BlueprintValidator (for node validation).",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 322,
+        "content": "3. **Tight coupling**: BlueprintValidator now depends on ElementCatalog's internal structure.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 332,
+        "content": "- [ADR-043: ElementCatalog Enrichment](./ADR-043-Catalog-Enrichment.md)",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 336,
+        "content": "- `src/omega-ui-core/governance/ElementCatalog.ts`",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 12,
+        "content": "Phase 20.4 introduced the BlueprintValidator class for OMEGA UCA structural integrity and invariant compliance. As OMEGA evolved through ADR-043 (ElementCatalog Enrichment) and ADR-046 (Cell Types), the need arose to validate node styles against the catalog's `validationRules` before instantiation.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 14,
+        "content": "The BlueprintValidator previously validated:",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 20,
+        "content": "But it did **not** validate:",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 35,
+        "content": "BlueprintValidator.validateQuietly()",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 37,
+        "content": "└── validateStyleAgainstCatalog()  ← NEW",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 39,
+        "content": "├── validateValueAgainstRule() for each rule",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 40,
+        "content": "├── getElementVariants() → validate variant",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 41,
+        "content": "├── getAllowedBehaviors() → validate behavior",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 42,
+        "content": "└── getElementSlots() → validate slot mappings",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 47,
+        "content": "1. **Schema-based validation (no functions in catalog)**: The catalog stores `ValidationRule` objects with serializable configs. The `validateValueAgainstRule()` function is implemented in code, not stored in the catalog.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 76,
+        "content": "validateValueAgainstRule,",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 251,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 267,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 282,
+        "content": "const result = BlueprintValidator.validateQuietly(node, manifest);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 306,
+        "content": "1. **Runtime validation before instantiation**: Blueprints are validated against the catalog before materialization, catching configuration errors early.",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ADR-047-BlueprintValidator-Catalog-Integration.md",
+        "line": 308,
+        "content": "2. **Centralized validation logic**: `validateValueAgainstRule()` is defined once and used by both ElementCatalog (for standalone style validation) and BlueprintValidator (for node validation).",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 22,
+        "content": "allowedFragments?: string[];   // Advisory only - not enforced",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 68,
+        "content": "- Current: `allowedFragments` is advisory string array only",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 122,
+        "content": "// Slot definitions (replaces allowedFragments advisory)",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 220,
+        "content": "// Replace allowedFragments with proper slot definitions",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 227,
+        "content": "// Remove allowedFragments (or deprecate it)",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 271,
+        "content": "1. **Backward Compatibility**: `allowedFragments` kept as deprecated, `slots` takes precedence",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 292,
+        "content": "1. Should `allowedFragments` be deprecated or kept for backward compatibility?",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 210,
+        "content": "// In ElementCatalog.ts - add primitiveType field to each element",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 279,
+        "content": "1. `src/omega-ui-core/governance/ElementCatalog.ts`",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 187,
+        "content": "function validateAgainstRule(node: OmegaNode, rule: ValidationRule): string | null {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 247,
+        "content": "import { validateAgainstRule } from './validationFunctions';",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 250,
+        "content": "static validate(nodes: OmegaNode[], manifest: OMEGA_Manifest) {",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\ANALYSIS-element-catalog-enrichment.md",
+        "line": 257,
+        "content": "const error = validateAgainstRule(node, rule);",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\cell-studio\\ASSET_BEHAVIOR_LAB_ADR.md",
+        "line": 70,
+        "content": "3. **DRY Design**: Reuses `AssetSelector`, `CellRenderer`, and `ElementCatalog` as sovereign registries.",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\cell_analisis.md",
+        "line": 59,
+        "content": "- ✅ **ElementCatalog**: Governance unificado ADR-043/046 (1100 líneas).",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\MIGRATION_PLAN_CELLSTUDIO_STEPPER.md",
+        "line": 56,
+        "content": "BlueprintValidator.validateQuietly(entityToNode(cellData), manifest),",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\MIGRATION_PLAN_CELLSTUDIO_STEPPER.md",
+        "line": 113,
+        "content": "validateStyle: (style: Partial<OmegaStyleNode>) => ValidationResult;",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\MIGRATION_PLAN_CELLSTUDIO_STEPPER.md",
+        "line": 148,
+        "content": "BlueprintValidator.validateQuietly(entityToNode(cellData), { resources: manifest?.resources }),",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\MIGRATION_PLAN_CELLSTUDIO_STEPPER.md",
+        "line": 311,
+        "content": "validateStyle: (style: Partial<OmegaStyleNode>) => ValidationResult;",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\OMEGA_History_Architecture.md",
+        "line": 31,
+        "content": "| **Time Travel** | History Engine | Navigating by version/ID rather than steps. Requires validated restoration. |",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\OMEGA_History_Architecture.md",
+        "line": 32,
+        "content": "| **Recovery** | History Engine | Session recovery points must be durable and validated. |",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\OMEGA_Remediation_Map.md",
+        "line": 24,
+        "content": "*   **Decoupled UX**: `allowedFragments` and `capabilities` are UI hints. If a node in the UCA tree contains non-standard data, it must be rendered and persisted regardless of catalog state.",
+        "pattern": "allowedFragments"
+      },
+      {
+        "file": "docs\\OMEGA_Remediation_Map.md",
+        "line": 17,
+        "content": "| `src/omega-ui-core/governance/ElementCatalog.ts` | Low | Keep explicit warnings and maintain it as a consultative inventory. | **Low** | ✅ Documented |",
+        "pattern": "ElementCatalog"
+      },
+      {
+        "file": "docs\\OMEGA_Remediation_Map.md",
+        "line": 10,
+        "content": "| `src/features/manifest-editor/components/inspector/attachments/AttachmentTypeAnchor.tsx` | Medium | Maintain as a UX filter; document that it does not validate structure. | **High** | 🔍 Monitoring |",
+        "pattern": "validate"
+      },
+      {
+        "file": "docs\\performance-report.md",
+        "line": 4,
+        "content": "This report documents the performance profile of the OMEGA Manifest Editor as of May 11, 2026. The goal was to validate that the industrialization of the state management and diagnostic pipeline did not introduce overhead that would hinder the user experience.",
+        "pattern": "validate"
+      }
+    ]
+  }
+}

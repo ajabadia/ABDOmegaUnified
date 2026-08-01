@@ -1,0 +1,686 @@
+Lo más robusto es diseñar desde ya una capa de “input expression” neutral y luego colgarle MIDI 1.0, MPE y MIDI 2.0 como adaptadores. Así evitas refactors gordos después.
+
+1. Capa de entrada: ExpressionLayer neutra
+Antes de pensar en MIDI 1.0/2.0, define un modelo interno de control que el motor entiende:
+
+Por voz (noteId): pitch, velocity, timbre, pressure, per‑note macros…
+
+Por canal/layer: modWheel, channelPressure, macro1..N, pedal, etc.
+
+Ejemplo de interfaz conceptual:
+
+text
+OmegaInput
+ ├─ noteOn(layer, noteId, pitch, velocity, channel)
+ ├─ noteOff(layer, noteId, releaseVelocity)
+ ├─ perNoteExpression(noteId, type, value)   // pitch, pressure, timbre, etc.
+ └─ channelExpression(layer, type, value)    // modWheel, CC, pedal, macro
+El motor (VoiceManager + ModulationGraph) solo ve esto, nunca “CC1”, “UMP”, etc.
+
+Luego creas adaptadores:
+
+Midi1InputAdapter → traduce MIDI 1.0 normal/MPE a OmegaInput.
+
+Midi2InputAdapter → traduce UMP/MIDI 2.0 a OmegaInput, con más resolución y per‑note controllers.
+
+2. MIDI 1.0: canal clásico + MPE
+2.1 Canal clásico
+Un MidiQueue lock‑free (como ya usas) recoge mensajes desde JUCE.
+
+Midi1InputAdapter procesa por bloque y llama a OmegaInput:
+
+NoteOn/Off → noteOn/noteOff con noteId = (channel, noteNumber) o un id propio.
+
+Pitch bend canal → channelExpression(layer, PitchBend, valueNorm)
+
+CCs mapeables (modwheel, breath, expression, etc.) → channelExpression(layer, type, valueNorm).
+
+Define un mapa de asignación CC→tipo interno (configurable) para no acoplarte a números MIDI.
+
+2.2 MPE sobre MIDI 1.0
+MPE es solo una convención de canales:
+
+Reservas un “master channel” por zona, el resto son canales per‑note.
+
+Midi1InputAdapter en modo MPE:
+
+Cada NoteOn en un canal “member” abre una voz atada a ese canal.
+
+Pitch bend, CC74, channel pressure en ese canal → perNoteExpression(noteId, type, value) de esa voz.
+
+Mensajes en master channel (sustain, global bend) → channelExpression.
+
+Conviene que tu OmegaInput soporte:
+
+noteId independiente de (channel, noteNumber); internamente puedes guardar el channel MPE para rutear los per‑note messages.
+
+3. MIDI 2.0: UMP, per‑note control y Property Exchange
+3.1 Transporte y UMP
+En JUCE moderno tendrás tipos tipo ump::Input/ump::Output para UMP.
+
+Midi2InputAdapter recibe UMP (Universal MIDI Packet) y los decodifica a:
+
+NoteOn/Off 2.0 (con 16/32‑bit velocity y pitch).
+
+Per‑Note Controllers (PPE – per‑note pitch, pressure, timbre).
+
+Channel controllers de alta resolución.
+
+Convención interna:
+
+Normaliza todo a 0..1 o a unidades musicales (semitonos, etc.) antes de llamar a OmegaInput.
+
+3.2 Profiles y Property Exchange (MIDI‑CI)
+A medio plazo, interesante para ACE:
+
+MIDI‑CI Profile Configuration: declaras que tu sinte soporta el “Profile” de sintetizador (cuando exista estándar) para que controladores se autoconfiguren.
+
+Property Exchange:
+
+Publicas propiedades como:
+
+Lista de controles (macro1, cutoff, resonance, etc.) con rangos y nombres.
+
+Lista de presets ACE (nombres, ids).
+
+Esto encaja genial con tu catálogo ACE y Git‑for‑Sounds: puedes exponerlos por MIDI 2.0 para integración hardware.
+
+A nivel de diseño:
+
+Crea una capa OmegaMidiDeviceInfo que:
+
+Lee tu catálogo ACE y presets.
+
+Genera descripciones de controles/parametros/presets para Property Exchange.
+
+Así no mezclas lógica de MIDI‑CI con el DSP.
+
+4. UI técnica y gráfica: cómo estructurarla
+4.1 Arquitectura de UI
+Divide en tres capas:
+
+Control Surface / Controllers
+
+Página donde ves qué controles MIDI (CC, per‑note, macros) llegan y a qué se mapean en OMEGA.
+
+Visual: lista de macros, cutoff global, etc., con indicador de “aprendizaje” (MIDI learn).
+
+Mapping Layer (MIDI → Modulation Sources)
+
+Por encima del ModulationGraph:
+
+MidiSource.ModWheel → OmegaInput.channelExpression → fuente ModWheel en tu ModGraph.
+​
+
+Per‑note controllers (MIDI 2.0/PPE o MPE) → fuentes per‑voz (NoteExpressionPitch, NoteExpressionTimbre…).
+
+Engine Views
+
+Paneles Juno/MS‑20/JP para osc/filt/env.
+
+Modulation view (grafo) que ya tienes conceptualmente.
+​
+
+4.2 Organización gráfica
+Para no rediseñar cada vez:
+
+Panel “Performance” fijo:
+
+Pitch bend, modwheel, macros, layer mix, sustain, etc.
+
+Estado MIDI 2.0 (profile activo, hi‑res enabled, per‑note on/off).
+
+Panel “Mapping”:
+
+Lista de fuentes internas (ENV1, LFO1, ModWheel, PerNotePitch, NotePressure…).
+​
+
+Para cada fuente, indicar origen MIDI actual (CC1, MPE channel, MIDI 2.0 controller, etc.).
+
+Panel “ACE Components”:
+
+Selección de componentId por slot (osc, filter…).
+
+Estas tres vistas son bastante estables aunque cambien motores o añadas más componentes.
+
+5. Enlace de controles con el motor (sin deuda técnica)
+Claves de diseño para no refactorizar después:
+
+No dejes que el motor sepa de MIDI
+
+Solo ve OmegaInput (noteOn/off, perNoteExpression, channelExpression).
+
+Todo lo demás (CC, UMP, MPE) queda en adaptadores.
+
+Fuentes de modulación abstractas
+
+Internamente usas enums ModSource::ModWheel, ModSource::NotePitch, ModSource::NoteTimbre, etc.
+​
+
+MIDI 1.0 y 2.0 solo rellenan esas fuentes, no hablan con destinos directamente.
+
+Tabla de mappings configurable
+
+Un MidiMapping que diga:
+
+CC xx (o UMP controller id X) → ModSource::Macro1
+
+MPE channel expression → ModSource::NoteTimbre
+
+Guardado como parte del preset o como perfil global, pero no harcoded.
+
+Separar “state” de “transport”
+
+MIDI 2.0 (UMP, MIDI‑CI) es transporte/protocolo.
+
+OMEGA Input/Modulation es modelo de estado.
+
+ACE/Preset/EngineConfig es configuración estática.
+
+Alta resolución interna desde el principio
+
+Aunque MIDI 1.0 dé 7/14 bits, internamente usa floats con buena precisión y escalado consistente.
+
+Así, cuando llegue MIDI 2.0 hi‑res, solo cambias el adaptador, no el motor.
+
+Testing decente de adaptadores
+
+Tests unitarios que alimentan Midi1InputAdapter y Midi2InputAdapter con mensajes y verifican qué llamadas hace a OmegaInput.
+
+Esto reduce el miedo a tocar los adaptadores cuando evolucione MIDI 2.0/JUCE.
+​
+​
+
+6. Resumen de mejores prácticas para evitar deuda
+Modelo de expresión neutro (OmegaInput) ← adaptadores MIDI 1.0/MPE/MIDI 2.0.
+
+ModulationGraph solo conoce fuentes/destinos abstractos, nunca CCs ni UMP.
+​
+
+Catálogo ACE y presets no dependen de MIDI; MIDI puede usar Property Exchange para descubrirlos, pero la relación es unidireccional.
+
+UI estructurada en Performance / Mapping / Components, para que la gráfica crezca sin romper la lógica.
+
+Empieza con MIDI 1.0 + MPE bien diseñados; deja preparado el hueco para Midi2InputAdapter cuando la rama midi2 de JUCE esté madura
+
+
+
+Te propongo una tabla de fuentes internas (ModSource) estable, y cómo mapearlas desde MIDI 1.0, MPE y MIDI 2.0. Así el motor nunca ve CC ni UMP, solo estas fuentes.
+
+1. Lista base de ModSource internos
+Nivel por voz (per‑note):
+
+NotePitch (desviación en semitonos).
+​
+
+NoteVelocity (0..1).
+​
+
+NoteReleaseVelocity (0..1).
+​
+
+NotePressure (poly aftertouch / per‑note pressure).
+
+NoteTimbre (MPE CC74 / MIDI 2.0 per‑note timbre).
+
+NoteMacro1..4 (slots libres para per‑note control avanzado).
+​
+
+Nivel canal/layer:
+
+ModWheel
+
+ChannelPressure
+
+PitchBend (global)
+
+Expression (CC11)
+
+Breath (CC2)
+
+Sustain (CC64, 0/1)
+
+Macro1..8 (performance knobs desasociados de CC concretos).
+​
+
+RandomPerNote (generado internamente al noteOn).
+​
+
+Con esto cubres MPE, MIDI 2.0 per‑note y performance clásico sin tocar el motor cuando cambie el protocolo.
+
+2. Mapeo desde MIDI 1.0 “clásico”
+NoteOn/Off
+NoteOn (channel, note, velocity7bit) →
+
+NoteVelocity = velocity / 127.0
+
+NotePitch = noteNumber en semitonos + global tuning.
+
+NoteId puede ser (channel, note, running index).
+​
+
+NoteOff (releaseVelocity si tu host lo da) →
+
+NoteReleaseVelocity = relVel / 127.0.
+
+Pitch bend (14‑bit)
+Combine MSB/LSB → bend14.
+
+Normaliza: value = (bend14 - 8192) / 8192.0 (−1..+1).
+
+Aplica rango de bend configurado (p.ej. ±2 semitonos) en el módulo de pitch:
+
+NotePitch = base + value * range.
+
+Internamente lo publicas como:
+
+channelExpression(layer, ModSource::PitchBend, valueNorm).
+
+CCs estándar
+Recomendación de default mappings:
+
+CC1 → ModSource::ModWheel
+
+CC2 → ModSource::Breath
+
+CC11 → ModSource::Expression
+
+CC64 → ModSource::Sustain (valor > 63 ⇒ 1.0, si no 0.0)
+
+Y para macros:
+
+Permite al usuario mapear CC arbitrarios a Macro1..8 en tu panel de Mapping:
+
+P.ej. “aprendo” CC21 → Macro1.
+
+Todo esto lo hace Midi1InputAdapter, que solo llama a:
+
+channelExpression(layer, ModSource::X, valueNorm).
+
+3. Mapeo MIDI 1.0 MPE
+MPE es convención de canales: un master y varios note channels.
+
+Cada NoteOn en un “member channel” abre una voz asociada a ese channel.
+
+Per‑channel messages en ese canal se interpretan como per‑note:
+
+Pitch bend (en channel member) → perNoteExpression(noteId, NotePitch, value) (vibrato por nota).
+
+CC74 (timbre) → NoteTimbre.
+
+Channel Pressure → NotePressure.
+
+Mientras:
+
+Pitch bend del master channel → PitchBend global.
+
+CCs en master channel (modwheel, sustain…) → ModWheel, Sustain, etc.
+
+Tu Midi1InputAdapter necesita un pequeño router MPE:
+
+Config: zona inferior/superior, master channel, member range.
+
+Tabla channel → noteId para enviar per‑note expresión al voice correcto.
+
+4. Mapeo desde MIDI 2.0
+Con UMP / MIDI 2.0 tienes:
+
+NoteOn/Off 2.0 con 16/32 bits de pitch y velocity.
+
+Per‑Note Controllers (PPE: Registered/Assignable).
+
+Channel controllers de alta resolución.
+
+NoteOn 2.0
+Note pitch puede tener resolución fraccional:
+
+Mapea a NotePitch con flotante en semitonos (nota base + fracción).
+
+Velocity 16 bits → NoteVelocity = vel16 / 65535.0.
+
+Per‑Note controllers
+Ejemplo de convención:
+
+Per‑Note Pitch 2.0 → NotePitch (microtonal, vibrato per‑note).
+
+Per‑Note Pressure → NotePressure.
+
+Per‑Note Timbre → NoteTimbre.
+
+Otros per‑note assignables → NoteMacro1..4 según mapeo de usuario.
+
+Tu Midi2InputAdapter debe:
+
+Decodificar UMP.
+
+Resolver noteID (MIDI 2.0 separa noteID de canal) y llamar a perNoteExpression(noteId, type, value).
+
+Channel controllers 2.0
+Igual que MIDI 1.0 pero con más bits:
+
+Mapea controllers conocidos (modwheel, expression, etc.) a ModSource globales.
+
+Alta resolución → simplemente mejor precisión en valueNorm.
+
+5. Mejores prácticas para el enlace con el motor
+Tabla ModSource central estática, p.ej.:
+
+text
+enum class ModSource {
+    NotePitch, NoteVelocity, NoteReleaseVelocity,
+    NotePressure, NoteTimbre, NoteMacro1, NoteMacro2,
+    ModWheel, PitchBend, Expression, Breath, Sustain,
+    ChannelPressure, Macro1, Macro2, Macro3, Macro4,
+    RandomPerNote,
+    // LFOs/ENVs son generadores internos, no vienen de MIDI
+};
+ModulationGraph solo conoce estos enums; MIDI 1.0/2.0 nunca toca destinos directamente.
+​
+
+El mapeo CC/UMP → ModSource debe ser configurable y serializable (parte del preset o de un perfil global), pero no disperso por el código.
+
+Con esta tabla de fuentes y mappings, puedes soportar:
+
+MIDI 1.0 clásico.
+
+MPE completo.
+
+MIDI 2.0 per‑note y controllers hi‑res.
+
+Todo sin volver a tocar tu motor ni tu ModulationGraph, solo extendiendo adaptadores y la tabla de mapping.
+
+
+
+
+
+Para la interface (técnica y gráfica) yo lo estructuraría así para no comerte refactors cada vez que toques MIDI o ACE.
+
+1. Interface técnica: capas claras
+Piensa en 4 capas, todas separadas:
+
+MIDI In → Adaptadores
+
+Midi1InputAdapter y Midi2InputAdapter que convierten mensajes MIDI 1.0/2.0 en llamadas a una interface interna OmegaInput (noteOn, noteOff, perNoteExpression, channelExpression).
+
+Estos adaptadores también actualizan fuentes de modulación internas (ModSource::ModWheel, NotePressure, etc.).
+​
+
+OmegaInput (capa de expresión)
+Interface sencilla que el motor entiende:
+
+noteOn(layerId, noteNumber, velocity, channel, noteId)
+
+noteOff(noteId, releaseVelocity)
+
+perNoteExpression(noteId, ModSource, value)
+
+channelExpression(layerId, ModSource, value)
+
+El motor nunca ve CC, canales MIDI ni UMP; solo estas llamadas.
+
+ModulationGraph / Engine
+
+Recibe fuentes (valores ya normalizados por ModSource) y las aplica a destinos (parámetros de ACE/VoiceArchitecture).
+​
+
+No sabe si vienen de MIDI 1.0, 2.0, MPE o de la UI.
+
+UI / APVTS
+
+La UI maneja parámetros de alto nivel (macros, cutoff global, layer level) a través de APVTS.
+
+La UI de mapping (MIDI learn) configura la tabla CC/UMP → ModSource, guardada en ValueTree/preset o en un perfil global.
+
+Esa separación evita que cambies el motor cada vez que añades soporte MIDI nuevo.
+
+2. Interface gráfica: organización estable
+Para no rediseñar:
+
+Página Performance (siempre visible)
+
+Controles “tocar el sinte”:
+
+Macro1..4, ModWheel, PitchBend (visual), Layer A/B mix, Sustain, etc.
+
+Indicadores MIDI:
+
+Modo activo (MIDI 1.0, MPE, MIDI 2.0), actividad de per‑note, estado de profiles MIDI 2.0 si los llegas a implementar.
+
+Página Mapping (MIDI / expresión)
+
+Lista de fuentes internas (ModSource):
+
+ModWheel, Breath, Expression, Macro1..8, NoteTimbre, NotePressure, etc.
+​
+
+Para cada fuente, muestra:
+
+Origen actual: “CC1 ch1”, “MPE per‑note CC74”, “MIDI 2.0 Per‑Note Timbre”, “none”.
+
+Botón “learn”:
+
+El usuario pulsa, mueves un control MIDI, y el adaptador registra ese mensaje como origen de esa fuente.
+
+Esta página no habla de destinos (para eso está el ModGraph), solo de cómo el mundo externo llena tus ModSource.
+
+Página Synth / ACE Components
+
+Panel por layer:
+
+Secciones Osc/Filter/Env/LFO/FX con selector componentId (ACE) en cada slot.
+
+Controles de parámetros (attack, cutoff, detune) ligados a ValueTree/APVTS.
+
+Vista Modulación:
+
+Lista/gráfico de rutas ModGraph (source → destination) usando los nombres LayerA.Filter1.cutoff, etc.
+​
+
+Aquí el usuario no ve CC ni MIDI, solo fuentes/destinos internos.
+
+Con estas tres vistas separas: tocar, mapear, diseñar el patch.
+
+3. Enlazar UI con el motor sin deuda
+Mejores prácticas para no refactorizar cada dos meses:
+
+APVTS solo para parámetros “macro” estables:
+
+Master gain, layer levels, cutoff “main”, env amount, macros.
+
+Todo lo demás (detalle de ACE, arquitectura de voz, rutas de modulación) en ValueTree bajo OmegaPreset.
+
+OmegaPreset como única puerta de entrada al ValueTree:
+
+UI, Validator y Factory usan métodos de OmegaPreset, no strings sueltos.
+
+Bindings claros:
+
+UI ↔ APVTS con Attachments (JUCE).
+
+APVTS/ValueTree ↔ structs de settings en un thread no‑audio, y el audio thread lee solo atomics/caches.
+​
+
+No mezclar MIDI con UI:
+
+MIDI actualiza OmegaInput/ModSource.
+
+UI genera cambios en APVTS/ValueTree.
+
+Si quieres feedback gráfico de MIDI (por ejemplo, ver cómo se mueve ModWheel), enlaza ModSource → UI con otra capa de observación, no directamente con mensajes MIDI.
+
+No hacer “MIDI learn” en audio thread:
+
+Captura el primer mensaje en una cola lock‑free, y resuélvelo en message thread para actualizar la tabla CC/UMP → ModSource.
+
+Si montas así la interface técnica y gráfica, añadir más perfiles MIDI, más componentes ACE o más motores de síntesis será sobre todo cuestión de ampliar catálogos y adaptadores, no de reescribir la estructura base.
+
+
+
+
+Para usar la misma filosofía que en JUNiO 601 (UI web encima del motor JUCE), la clave es formalizar bien el “puente” entre JUCE y la WebUI desde el principio.
+
+1. Arquitectura técnica WebUI sobre JUCE
+Capa UI de OMEGA ya la planteaste como:
+
+Layer 4 UI: “Multi‑modal – Native JUCE primary, WebView React/Vue para interfaces complejas”.
+​
+
+Para WebUI:
+
+Plugin/standalone JUCE = host del DSP y del estado (APVTS + ValueTree OmegaPreset).
+
+WebUI (React/Vue/Svelte) = cliente que habla con el host vía protocolo ligero (JSON RPC sobre WebSocket o MessagePort).
+
+Un “UI bridge” en C++ que:
+
+Exporte el estado necesario (preset, lista ACE, mappings MIDI…).
+
+Reciba acciones de UI (cambiar parámetro, cambiar componente, cambiar ruta de modulación) y las aplique al ValueTree/APVTS.
+
+Así, ni el DSP ni el catálogo ACE saben si los knobs son JUCE nativo o web.
+
+Canal de comunicación
+Opciones habituales:
+
+Standalone:
+
+WebView interno (JUCE + CEF/WebView2) y pasar mensajes vía executeJavascript/native -> JS + JS -> native.
+
+VST/AU:
+
+Similar (ventana de editor con WebView) o UI remota en navegador externo: en ese caso un pequeño servidor HTTP+WebSocket embebido.
+
+Para mantener deuda baja:
+
+Define un protocolo JSON estable (v1) y haz que tanto C++ como React hablen ese lenguaje.
+
+Ejemplo de mensaje UI→Core:
+
+json
+{ "type": "setParam", "layer": "A", "path": "Filter1.cutoff", "value": 1200.0 }
+Core→UI:
+
+json
+{ "type": "paramChanged", "layer": "A", "path": "Filter1.cutoff", "value": 1200.0 }
+2. Estructura gráfica (React/Vue) alineada con OMEGA/ACE
+Sigue la misma organización conceptual que ya hemos definido, pero en componentes web.
+
+Sugiero 3 zonas principales:
+
+PerformanceBar (siempre visible)
+
+Controles globales: master, layer A/B mix, macros, estado MIDI (modo 1.0/MPE/2.0).
+​
+
+Indicadores simples (actividad MIDI, carga CPU si quieres).
+
+MappingView
+
+Lista de ModSource internos (ModWheel, Macro1..8, NoteTimbre, NotePressure…).
+​
+
+Columna “origen MIDI actual” (CC1, MPE CC74, MIDI 2.0 PerNoteTimbre…).
+
+Botón “Learn” por fila:
+
+UI envía {"type": "startLearn", "modSource": "Macro1"}.
+
+El core marca un flag; el siguiente mensaje MIDI que entra se registra como origen de ese ModSource y se devuelve a la UI.
+
+SynthView
+
+Tabs por layer (A, B…).
+
+Dentro de cada layer:
+
+Panel Components:
+
+Lista de slots (Osc1, Osc2, Filter1, Env1/2, Lfo1, Fx1).
+
+En cada slot, selector de componentId ACE (dropdown alimentado por AceCatalog).
+
+Controles UI dinámicos según parameters declarados en el catálogo.
+
+Panel Modulation:
+
+Tabla o grafo con rutas: fuente (ModSource), destino (string tipo LayerA.Filter1.cutoff), amount, curve.
+​
+
+Todo esto habla con el host vía el protocolo JSON, no directamente con APVTS.
+
+3. Enlace WebUI ↔ motor (patrones para no generar deuda)
+3.1. No expongas APVTS directamente
+En el lado C++:
+
+OmegaPreset envuelve el ValueTree del preset y define operaciones de alto nivel (set/get de Osc1 cutoff, cambiar componente, añadir ruta, etc.).
+
+El “UI bridge” solo usa OmegaPreset + un pequeño adaptador APVTS (para macros/master/layer level).
+
+Pseudo‑flujo:
+
+UI manda setParam(layer:"A", path:"Filter1.cutoff", value:1200).
+
+Bridge C++:
+
+Llama a OmegaPreset::setFilterParam("A", 1, "cutoff", 1200).
+
+Si ese parámetro está también en APVTS (p.ej. “main cutoff”), actualiza el parámetro APVTS correspondiente.
+
+El motor, vía sus caches/atomics, ve el cambio en el siguiente bloque.
+​
+
+3.2. Suscripción a cambios
+Para que la UI se sincronice:
+
+El bridge se suscribe al ValueTree y a APVTS (listeners).
+
+Cuando cambia algo relevante:
+
+Mapea el cambio a un mensaje JSON paramChanged y lo manda a la UI.
+
+Así no tienes lógica duplicada; la verdad está en el ValueTree/APVTS.
+
+3.3. Componentes UI generados desde ACE
+Para evitar remaquetar cada vez que añades un componente:
+
+WebUI pide al arrancar: {"type": "getAceCatalog"}.
+
+El core devuelve el catálogo ACE (o una vista condensada para UI).
+
+Cada slot (Osc/Filter/Env…) en React se renderiza leyendo parameters y modulation_targets de ese componentId.
+​
+
+Esto te quita mucho refactor cuando añadas nuevos sintes: el layout se adapta leyendo el YAML del catálogo.
+
+4. MIDI + WebUI
+La WebUI no habla de MIDI “crudo”, solo de ModSources y mappings:
+
+Un componente “MIDI monitor” puede mostrar últimos mensajes, pero eso es decorativo.
+
+La UI de mapping solo ve cosas como “ModWheel está asignado a CC1 canal 1” (que el bridge traduce a texto a partir de tu tabla interna de mapping).
+
+MIDI 1.0 vs 2.0 se resuelve en adaptadores C++; si mañana cambias cómo parseas UMP, la UI no cambia.
+
+5. Buenas prácticas para limitar deuda técnica
+Resumiendo patrones clave:
+
+Un solo modelo de estado → OmegaPreset (ValueTree) + unos pocos parámetros APVTS estables.
+
+Un solo contrato UI‑Core → protocolo JSON (v1) versionado, que habla en términos de:
+
+Layers, slots, componentId, parámetros, ModSources, rutas.
+
+UI auto‑generada desde ACE → no hardcodees knobs por modelo; usa la descripción del catálogo.
+
+Separación clara:
+
+DSP ↔ EngineConfig (snapshots inmutables).
+
+Core ↔ UI (mensajes JSON).
+
+MIDI ↔ Core (adaptadores que entregan OmegaInput/ModSource).
+
+Si montas el WebUI así, reciclado de JUNiO pero mejor formalizado, añadir ACE, MIDI 2.0 o nuevos engines será sobre todo tocar el core y el catálogo, no tirar la UI abajo.
+
+
+

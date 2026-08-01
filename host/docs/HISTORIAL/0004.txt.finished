@@ -1,0 +1,2518 @@
+~~  
+Ahora mismo tienes TODO el diseño de OMEGA repartido en cuatro bloques principales, pero ya bastante coherentes entre sí. Te lo ordeno en “módulos mentales” para que sepas qué es qué y por dónde seguir.
+
+1. Macro‑arquitectura OMEGA
+En 0000.txt defines el OMEGA “ideal”: 6 capas (hardware, voces, DSP engines, core, UI, visualización) con las piezas clave:
+
+ModulationGraph 32×32 audio‑rate.
+
+VoiceFactory/VoiceComposition.
+
+Multi‑engine (VA, spectral, wavetable, granular, PM, neural).
+
+FX rack modular.
+
+Git for Sounds + presets versionados.
+
+UI avanzada y análisis/resíntesis.
+​
+
+Este archivo es el MANIFIESTO de lo que OMEGA debe ser a largo plazo.
+
+2. ACE + multi‑engine + familia de sintes
+En 0001-3.txt aterrizas la idea de no quedar encadenado al Juno:
+
+ACE (Architecture of Emulated Components): catálogo de osciladores/filtros/env/LFO/FX por id (OSC-VA-001, FLT-VA-003, etc.).
+
+~~Engines dedicados (Juno‑VA, MS‑20, JP‑supersaw, Prophecy/MOSS) que reutilizan bloques comunes.~~ [SUPERADO POR ACE]
+
+Diseño del catálogo ACE en YAML/ValueTree y cómo se integra con VoiceArchitecture y VoiceFactory.
+
+~~Plan de MVP de familia: Roland Juno + Korg MS‑20 + JP‑8000 supersaw.~~ [COMPLETADO SPRINT 6]
+​
+
+Este archivo es el bloque de “identidad sonora” y de cómo ACE se sienta encima del motor OMEGA.
+
+3. Plan de proyecto y fases realistas
+En 0003-5.txt haces la síntesis y lo bajas a roadmap:
+
+Fase 0: cimientos (estructura de carpetas, CMake, AceCatalog MVP, OmegaPreset wrapper, tests mínimos).
+
+Fase 1: Engine VA ACE vertical (un Juno‑like completo pasando por todo el pipeline ACE→Engine).
+
+~~Fase 2: componentes híbridos (MS‑20, supersaw, presets híbridos).~~ [COMPLETADO]
+
+Fase 3: ModulationGraph + MPE.
+
+Fase 4: Git for Sounds + WebUI.
+
+Fase 5+: motores extra, GPU, neural, colaboración.
+​
+
+Este es tu TODO ordenado por semanas/fases. Si hoy quieres avanzar, este documento manda.
+
+4. Input/MIDI, WebUI y puente con el motor
+En 0002-4.txt agrupas dos temas importantes:
+
+Capa de expresión neutra (OmegaInput) + adaptadores: MIDI 1.0 clásico, MPE, MIDI 2.0/UMP, con mapping a ModSource internos (NotePitch, NoteTimbre, ModWheel, MacroX…).
+
+Arquitectura de UI:
+
+Motor JUCE + estado (APVTS + OmegaPreset).
+
+WebUI (React/Vue) hablando por JSON sobre WebSocket/WebView.
+
+UI generada a partir del catálogo ACE (slots Osc/Filter/Env/LFO/FX y ModGraph).
+​
+
+Este archivo es la capa de “entrada” (MIDI) y “salida” (UI) limpia encima del core OMEGA.
+
+5. Reglas de arquitectura y estilo
+rules.md-2.txt es el contrato de calidad:
+
+Cero alloc/locks en audio, no exceptions, no ValueTree en el callback.
+
+Estructura de proyecto (Core, DSP, Engines, Voices, Modulation, FX, UI, Plugin).
+
+Naming, tests, comentarios Fidelity/Innovation, etc.
+​
+
+Este documento no diseña features: fija cómo debe estar escrito TODO lo anterior.
+
+Qué hacer con todo esto (en una frase)
+Usa 0003-5.txt como columna vertebral (fases) y trata 0000.txt como visión, 0001-3.txt como capa ACE/familia de sintes, 0002-4.txt como MIDI+UI, y rules.md como “constitución” que condiciona la implementación.
+
+
+Te hago la checklist mínima, centrada en Fase 0 y Fase 1 del VA+ACE.
+
+Fase 0 – Cimientos (sin audio)
+Repo y estructura
+
+Crear árbol de carpetas OMEGA según rules.md (Core, DSP, Voices, Modulation, FX, UI, Plugin, Resources/ace, Tests).
+
+CMake mínimo que compile un plugin vacío + binario de tests.
+​
+
+Catálogo ACE MVP
+
+Crear Resources/ace/aceindex.yaml + aceosc_va_roland_korg.yaml + aceflt_va_roland_korg.yaml + aceenv_lfo_fx_basic.yaml con el contenido MVP (OSC‑VA‑001/002/004, FLT‑VA‑001/003, ENV‑ADSR‑GEN, LFO‑001, FX‑CH‑001, genéricos).
+
+Implementar OmegaACE::AceCatalog::createFromResources() + getComponent(id) + listByFamilyEngine() + getFallback().
+
+OmegaPreset + ValueTree
+
+Definir clase OmegaPreset que envuelve el ValueTree OMEGAPRESET con helpers para: engine global, metadata, capas (LayerA/B), VoiceArchitecture, Modulation.
+
+Implementar OmegaPreset::createEmpty() y OmegaPreset::fromValueTree() / toValueTree().
+​
+
+Validador ACE básico
+
+Implementar OmegaACE::AceValidator::validatePreset(ValueTree) que:
+
+Comprueba componentId contra el catálogo.
+
+Aplica fallbacks por familia/engine cuando falte algo.
+
+Marca estado OK/DEGRADED y devuelve ValidationReport.
+
+Tests mínimos
+
+Test que AceCatalog carga y encuentra OSC-VA-001.
+
+Test que OmegaPreset hace roundtrip ValueTree -> OmegaPreset -> ValueTree.
+
+Test que AceValidator degrada un preset si falta un componentId y usa el fallback.
+​
+
+Objetivo Fase 0: comando tipo .build/omega_tests --run-tests pasa todos, sin audio aún.
+​
+
+Fase 1 – Engine VA ACE vertical
+Engine VA base
+
+Implementar VirtualAnalogEngine (Engine A) con interfaz ISynthesisEngine ya alineada con las reglas (prepare/reset/renderNextBlock, noexcept, sin allocs).
+
+Conectar VirtualAnalogEngine al plugin JUCE (AudioProcessor) usando un EngineConfig snapshot inmutable.
+​
+
+Binding ACE → DSP
+
+Implementar ComponentFactory (o similar) que mapee:
+
+OSC-VA-001 → RolandDcoJuno106.
+
+FLT-VA-001 → Ir3109Lp24.
+
+(Stub sencillo para FX-CH-001 chorus).
+​
+
+Añadir VoiceArchitectureRuntime + VoiceFactory que construyen voces a partir de OmegaPreset validado + ACE.
+
+Modulation mínima
+
+Implementar una “ModMatrix 8×8” simple o el esqueleto de ModulationGraphRuntime pero con pocas fuentes/destinos (ENV1, LFO1, ModWheel → pitch, cutoff, amp).
+
+Resolver nombres LayerA.Filter1.cutoff → índices de parámetros en la voz.
+
+Audio y preset de prueba
+
+Crear un preset Juno‑like (LayerA con OSC-VA-001, FLT-VA-001, ENV-ADSR-GEN, LFO-001, FX-CH-001) en YAML/ValueTree.
+
+Flujo completo: cargar preset → OmegaPreset → AceValidator → VoiceFactory → EngineConfig → suena audio en el plugin.
+​
+
+Tests/criterios de “done” Fase 1
+
+Plugin VST3/AU reproduce al menos 1 preset Juno‑like estable (sin clicks, sin allocs/locks en audio).
+
+Si quitas OSC-VA-001 del catálogo, el preset se degrada (usa OSC-VA-GENERIC) pero sigue sonando.
+
+
+
+
+
+í, si lo ejecutas en ese orden y con ese alcance recortado, es realista que funcione y que no se te hunda bajo su propio peso.
+
+Por qué tiene buena pinta
+El diseño grande (0000) ya está “destilado” a un roadmap con cortes claros Fase 0/1, sin intentar hacer todo a la vez.
+
+ACE está acotado a un MVP pequeño (3 osciladores, 2 filtros, 1 env, 1 LFO, 1 chorus) pero con la misma arquitectura que escalarás luego; no hay que reescribir cuando metas más sintes.
+​
+
+Separas correctamente mundos:
+
+OmegaPreset/ValueTree y validación ACE en message thread.
+
+EngineConfig/VoiceRuntime/ModulationRuntime inmutables en audio.
+
+WebUI/MIDI encima, sin tocar el motor.
+
+Lo que más riesgo tiene no es la idea, sino el scope creep: si en Fase 1 intentas ya ModGraph completo, MPE y WebUI, se vuelve inmanejable; si te ciñes a “un VA ACE vertical que suene”, es perfectamente abordable.
+
+
+
+Para maximizar probabilidades de oírlo sonar pronto, yo recortaría Fase 1 así:
+
+1. Qué sí hacer en Fase 1
+Un solo engine VA, una sola instancia (VirtualAnalogEngine), sin router multi‑engine.
+
+Una sola layer (LayerA), sin B, sin split/layers híbridas todavía.
+​
+
+Máx. 2 osciladores + 1 filtro + 1 env amp + 1 LFO por voz:
+
+OSC-VA-001 (DCO Juno) obligatorio.
+
+FLT-VA-001 (IR3109) obligatorio.
+
+ENV-ADSR-GEN solo como amp env.
+
+LFO-001 solo para vibrato simple.
+​
+
+Sin FX real al principio: FX-CH-001 puede ser un stub que haga mix = 1.0 (passthrough).
+​
+
+Modulación mínima:
+
+Hardcode: env → amp, LFO → pitch (vibrato), ModWheel → LFO depth.
+
+Sin UI de ModGraph, sin rutas arbitrarias; puedes implementar la ModMatrix “de verdad” después.
+
+2. Qué dejar como stub o posponer
+ModulationGraph completo (nodos, feedback, 32×32):
+
+De momento: struct plano con 3–4 rutas fijas y ya.
+
+Multi‑engine (Spectral, Wavetable, Granular, PM, Neural) y routing de engines:
+
+Solo VA en Fase 1.
+
+Git for Sounds (versionado, diff, audio‑diff, ramas):
+
+Fase 1: presets = un solo ValueTree guardado/cargado.
+
+WebUI:
+
+Fase 1: editor JUCE básico con sliders fijos, sin React/WebView.
+​
+
+MIDI 2.0 y MPE completos:
+
+Fase 1: MIDI 1.0 canal clásico (note on/off, CC1 como ModWheel, pitch bend global).
+​
+
+3. Criterio ultra‑mínimo de éxito de Fase 1
+El plugin carga,
+
+lee un preset Juno simple desde OmegaPreset/ACE,
+
+reproduce polifonía básica (p.ej. 8 voces)
+
+con DCO+filtro+env+LFO vibrato,
+
+sin allocs/locks en audio y sin crash.
+
+Si quieres, el siguiente paso lo centramos en un único “happy path” concreto: te preparo el preset Juno mínimo (YAML/ValueTree) y el esqueleto de VirtualAnalogEngine + VoiceRuntime justo para soportarlo y nada más.
+
+
+Sí, y el camino ultra‑concreto para que funcione es este:
+
+Preset Juno mínimo (ACE YAML)
+Un único pad Juno para Fase 1, 1 layer, 1 osc, 1 filtro, 1 env amp, 1 LFO vibrato, 1 chorus:
+
+text
+omegapresetversion: 1
+name: "ACE Juno Basic Pad"
+author: "abdeneurolab"
+engine: "VirtualAnalog"
+
+layers:
+  - id: "A"
+    name: "Juno Basic"
+    polyphony: 8
+    voicearchitecture:
+      oscillators:
+        - slot: 1
+          componentid: "OSC-VA-001"
+          enabled: true
+          params:
+            tune: 0.0
+            pulsewidth: 0.5
+            sublevel: 0.3
+      filters:
+        - slot: 1
+          componentid: "FLT-VA-001"
+          enabled: true
+          mode: "LP24"
+          params:
+            cutoff: 2000.0
+            resonance: 0.2
+            drive: 0.0
+      envelopes:
+        - slot: 1
+          componentid: "ENV-ADSR-GEN"
+          role: "amp"
+          params:
+            attack: 40.0
+            decay: 160.0
+            sustain: 0.8
+            release: 600.0
+      lfos:
+        - slot: 1
+          componentid: "LFO-001"
+          params:
+            rate: 0.4
+            shape: "sine"
+            delay: 0.0
+      fx:
+        - slot: 1
+          componentid: "FX-CH-001"
+          enabled: true
+          params:
+            mix: 0.7
+            mode: "III"
+    modulation:
+      routes:
+        - source: "LFO1"
+          destination: "LayerA.Osc1.pitch"
+          amount: 0.1
+          curve: "sine"
+          bipolar: true
+
+    layerparams:
+      leveldb: 0.0
+      pan: 0.0
+      mute: false
+Esqueleto mínimo de VirtualAnalogEngine
+Centrado en soportar solo ese preset:
+
+cpp
+// VirtualAnalogEngine.h
+#pragma once
+#include "ISynthesisEngine.h"
+
+namespace OmegaDSPEngines
+{
+    class VirtualAnalogEngine : public ISynthesisEngine
+    {
+    public:
+        VirtualAnalogEngine() = default;
+
+        void prepare(double sampleRate, int samplesPerBlock) override;
+        void reset() override;
+        void renderNextBlock(juce::AudioBuffer<float>& buffer,
+                             const juce::MidiBuffer& midi) noexcept override;
+
+        // Fase 1: solo MIDI 1.0 canal clásico
+        void handlePitchBend(int channel, float semitones) override;
+        void handlePressure(int channel, float pressure) override;
+        void handleTimbre(int channel, float timbre) override;
+
+        // Hook para cargar OmegaPreset validado (Juno básico)
+        void setPreset(const OmegaPreset& preset);
+
+    private:
+        double mSampleRate { 44100.0 };
+        int    mBlockSize  { 512 };
+
+        // Una sola layer A, hasta 8 voces
+        OmegaDSPVoices::VoicePool       mVoicePool;
+        OmegaDSPModulation::ModulationRuntime mModRuntime;
+        OmegaCore::EngineConfigManager  mConfigManager;
+
+        // Pools concretos para ACE MVP
+        OscillatorPoolVAJunoDco mOscPool;
+        FilterPoolVAJunoIr3109  mFilterPool;
+        ChorusPoolVAJunoBBD     mChorusPool;
+
+        // Entrada MIDI neutra
+        OmegaCoreInput::InputState      mInputState;
+        Midi1InputAdapter               mMidiAdapter;
+
+        void rebuildConfigFromPreset(const OmegaPreset& preset);
+    };
+}
+VoiceRuntime mínimo para ese preset
+Solo 1 osc, 1 filtro, 1 env amp, 1 LFO, 1 FX:
+
+cpp
+// VoiceRuntimeVA.h
+#pragma once
+#include <array>
+#include <atomic>
+
+namespace OmegaDSPVoices
+{
+    struct alignas(64) VoiceRuntimeVA
+    {
+        struct State
+        {
+            std::atomic<bool>  active { false };
+            std::atomic<int>   midiNote { -1 };
+            std::atomic<float> velocity { 0.0f };
+        } state;
+
+        static constexpr int kMaxBlockSize = 256;
+        alignas(32) std::array<float, kMaxBlockSize * 2> buffer {}; // stereo
+
+        struct OscSlot
+        {
+            uint16_t oscillatorIndex { 0 };
+            uint16_t paramOffset     { 0 };
+            bool     enabled         { true };
+        } osc1;
+
+        struct FltSlot
+        {
+            uint16_t filterIndex { 0 };
+            uint16_t paramOffset { 0 };
+            uint8_t  mode        { 0 }; // 0 = LP24
+            bool     enabled     { true };
+        } flt1;
+
+        struct EnvSlot
+        {
+            uint16_t envIndex   { 0 };
+            uint16_t outputIndex{ 0 };
+            bool     enabled    { true };
+        } ampEnv;
+
+        struct LfoSlot
+        {
+            uint16_t lfoIndex   { 0 };
+            uint16_t outputIndex{ 0 };
+            bool     enabled    { true };
+        } lfo1;
+
+        struct FxSlot
+        {
+            uint16_t fxIndex    { 0 };
+            uint16_t paramOffset{ 0 };
+            bool     enabled    { true };
+        } chorus;
+
+        // routing fijo: osc -> flt -> ampEnv -> chorus
+    };
+}
+Siguiente micro‑paso
+Implementar solo OSC-VA-001 adaptando tu JUNiO DCO al interface ACE y conectar el flujo:
+
+OmegaPreset fija al Juno básico.
+
+AceCatalog solo con OSC-VA-001, FLT-VA-001, ENV-ADSR-GEN, LFO-001, FX-CH-001.
+
+VirtualAnalogEngine::renderNextBlock llama a VoiceManager + ModulationRuntime + cadena fija de VoiceRuntimeVA.
+
+
+
+
+Sí, vamos bien, y tu intuición de “usar componentes estándar de JUCE siempre que se pueda” encaja perfecto con las reglas de OMEGA mientras hablemos de UI y glue no‑realtime, no del DSP.
+
+Dónde usar JUCE “tal cual”
+Controles de UI: Slider, ComboBox, Button, TreeView, TableListBox, TabbedComponent, etc., para paneles, browser de presets, mapeo MIDI, etc.
+​
+
+Infra de app/plugin: AudioProcessor, AudioProcessorEditor, AudioDeviceManager, ApplicationCommandManager, ValueTree, AudioProcessorValueTreeState como capa de parámetros de alto nivel.
+​
+
+Cosas offline: carga YAML, preset browser, Git‑for‑Sounds, WebView, scripting host, incluso gráficos (scope, FFT) si están desacoplados del hilo de audio.
+
+Ahí no ganas nada reimplementando en C++ “a pelo”; JUCE es precisamente tu estándar.
+
+Dónde NO confiar en JUCE por defecto
+Siguiendo tu rules.md, en el hilo de audio no quieres:
+
+new, std::vector redimensionándose, ValueTree ni String.
+​
+
+Locks ni colas genéricas; solo colas lock‑free/SPSC muy controladas.
+​
+
+Virtuals en el inner loop, ni acceder a APVTS desde el process.
+​
+
+Por eso todo lo de ACE, VoiceRuntime, ModulationRuntime, EngineConfig lo definimos como structs planos, arrays fijos y atomics, sin JUCE en el hot path.
+​
+
+Traducción práctica para tu flujo de trabajo
+En UI/editor: usa componentes JUCE estándar y APVTS para macros y parámetros expuestos al host; es lo más sostenible.
+
+En core/dsp: trata JUCE como “borde del sistema”; entra con AudioBuffer/MidiBuffer, sales a tus propios tipos lock‑free, y a partir de ahí todo C++ plano siguiendo rules.md.
+
+Te devolvería la pelota con algo concreto: ¿quieres que el siguiente paso lo enfoquemos en un boceto de OmegaMainEditor 100% JUCE‑components encima del engine actual, o prefieres seguir cerrando primero sólo la parte DSP/ACE y dejar UI para Fase 4 como en el plan?
+​
+
+
+
+Perfecto, entonces boceto de OmegaMainEditor puro JUCE encima del engine VA/ACE actual.
+
+Estructura general del editor
+cpp
+// SourcePlugin/OmegaMainEditor.h
+#pragma once
+#include <juce_gui_extra/juce_gui_extra.h>
+
+class OmegaAudioProcessor;
+
+class OmegaMainEditor : public juce::AudioProcessorEditor
+{
+public:
+    OmegaMainEditor (OmegaAudioProcessor&, juce::AudioProcessorValueTreeState&);
+    ~OmegaMainEditor() override = default;
+
+    void paint (juce::Graphics&) override;
+    void resized() override;
+
+private:
+    OmegaAudioProcessor& mProcessor;
+    juce::AudioProcessorValueTreeState& mApvts;
+
+    // Barra superior performance
+    juce::Slider mMasterGainSlider;
+    juce::Slider mLayerABalanceSlider;
+    juce::TextButton mPresetButton { "Preset…" };
+
+    // Controles básicos layer A (MVP Juno)
+    juce::GroupComponent mLayerAGroup { "LayerA", "Layer A - Juno VA" };
+    juce::Slider mCutoffSlider;
+    juce::Slider mResonanceSlider;
+    juce::Slider mEnvAmtSlider;
+
+    // Attachments APVTS
+    using SliderAtt = juce::AudioProcessorValueTreeState::SliderAttachment;
+    std::unique_ptr<SliderAtt> mMasterGainAtt;
+    std::unique_ptr<SliderAtt> mLayerABalanceAtt;
+    std::unique_ptr<SliderAtt> mCutoffAtt;
+    std::unique_ptr<SliderAtt> mResonanceAtt;
+    std::unique_ptr<SliderAtt> mEnvAmtAtt;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OmegaMainEditor)
+};
+cpp
+// SourcePlugin/OmegaMainEditor.cpp
+#include "OmegaMainEditor.h"
+#include "OmegaAudioProcessor.h"
+
+OmegaMainEditor::OmegaMainEditor (OmegaAudioProcessor& proc,
+                                  juce::AudioProcessorValueTreeState& apvts)
+    : juce::AudioProcessorEditor (&proc)
+    , mProcessor (proc)
+    , mApvts (apvts)
+{
+    setSize (900, 500);
+
+    // Master bar
+    mMasterGainSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    mMasterGainSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 18);
+    addAndMakeVisible (mMasterGainSlider);
+
+    mLayerABalanceSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    mLayerABalanceSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 18);
+    addAndMakeVisible (mLayerABalanceSlider);
+
+    mPresetButton.onClick = [this]
+    {
+        // TODO: abrir un diálogo simple de presets usando OmegaPreset/OmegaPresetSerializer
+    };
+    addAndMakeVisible (mPresetButton);
+
+    // Layer A
+    addAndMakeVisible (mLayerAGroup);
+
+    auto setupKnob = [] (juce::Slider& s)
+    {
+        s.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+        s.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 18);
+    };
+
+    setupKnob (mCutoffSlider);
+    setupKnob (mResonanceSlider);
+    setupKnob (mEnvAmtSlider);
+
+    addAndMakeVisible (mCutoffSlider);
+    addAndMakeVisible (mResonanceSlider);
+    addAndMakeVisible (mEnvAmtSlider);
+
+    // Attach APVTS params (ids de nivel macro, no los de ACE internos)
+    mMasterGainAtt   = std::make_unique<SliderAtt> (mApvts, "MASTER_GAIN_DB",     mMasterGainSlider);
+    mLayerABalanceAtt= std::make_unique<SliderAtt> (mApvts, "LAYER_A_LEVEL_DB",   mLayerABalanceSlider);
+    mCutoffAtt       = std::make_unique<SliderAtt> (mApvts, "LAYER_A_MAIN_CUTOFF", mCutoffSlider);
+    mResonanceAtt    = std::make_unique<SliderAtt> (mApvts, "LAYER_A_MAIN_RES",    mResonanceSlider);
+    mEnvAmtAtt       = std::make_unique<SliderAtt> (mApvts, "LAYER_A_ENV_AMT",     mEnvAmtSlider);
+}
+
+void OmegaMainEditor::paint (juce::Graphics& g)
+{
+    g.fillAll (juce::Colours::black);
+    g.setColour (juce::Colours::white);
+    g.setFont (15.0f);
+    g.drawText ("OMEGA VA/ACE - MVP Juno", getLocalBounds().reduced (10, 10),
+                juce::Justification::topLeft, false);
+}
+
+void OmegaMainEditor::resized()
+{
+    auto area = getLocalBounds().reduced (10);
+
+    // Barra superior
+    auto top = area.removeFromTop (80);
+    mMasterGainSlider.setBounds   (top.removeFromLeft (120).reduced (5));
+    mLayerABalanceSlider.setBounds(top.removeFromLeft (120).reduced (5));
+    mPresetButton.setBounds       (top.removeFromLeft (120).reduced (5));
+
+    // Layer A panel
+    auto layerArea = area.reduced (0, 10);
+    mLayerAGroup.setBounds (layerArea);
+
+    auto content = layerArea.reduced (15);
+    auto knobWidth = content.getWidth() / 3;
+
+    mCutoffSlider.setBounds    (content.removeFromLeft (knobWidth).reduced (10));
+    mResonanceSlider.setBounds (content.removeFromLeft (knobWidth).reduced (10));
+    mEnvAmtSlider.setBounds    (content.reduced (10));
+}
+Contrato APVTS ↔ OmegaPreset
+APVTS define solo parámetros macro estables: MASTER_GAIN_DB, LAYER_A_LEVEL_DB, LAYER_A_MAIN_CUTOFF, etc.
+​
+
+OmegaPreset/ValueTree contienen toda la arquitectura ACE (osc/filtro/env/LFO/FX, rutas de modulación), sin exponerla a APVTS.
+​
+
+El procesador, cuando cambia APVTS, actualiza structs de settings y de ahí tus atomics para el engine VA; cuando cambias de preset, rellenas APVTS con los valores coherentes de ese preset (cutoff principal, levels…).
+
+
+Para tu caso concreto, es mejor no repetir el error de “hacerlo nativo y luego tirar todo”: empieza pensando ya en Web UI, pero apóyate en un editor JUCE mínimo como “frame” técnico, no como UI principal.
+​
+
+Qué implica “pensar en Web UI desde el día 1”
+Definir desde ya un puente estable C++⇄UI (mensajes JSON, nombres de parámetros, preset schema) que sea independiente de si la UI está en React o en Slider nativo.
+
+Estructurar estado en OmegaPreset/ValueTree + unos pocos parámetros APVTS macro, de forma que la Web UI sólo hable ese contrato, sin acoplarse a JUCE components.
+
+Usar JUCE 8 WebView como “contenedor” temprano y apoyarte en ejemplos tipo WebViewPluginDemo (React en WebView).
+​
+​
+
+Por qué no haría un UI JUCE “full” para luego migrar
+La gente que ha mezclado UIs grandes nativas y WebView suele recomendar elegir un camino y mantenerlo, porque mantener dos árboles de UI acaba caro.
+
+Tú ya has sufrido un refactor de UI completo una vez; repetir patrón (“primero pinto todo nativo, luego lo rehago en web”) es casi garantizar otra migración dolorosa.
+
+Estrategia intermedia concreta
+Editor JUCE nativo ultra‑fino: un OmegaMainEditor que básicamente contiene un WebViewComponent + 2–3 sliders de emergencia (master gain, bypass), sin lógica gorda.
+​
+​
+
+Toda la lógica de presets, ACE, mappings MIDI y paneles se hace sólo en Web UI (React/Vue) hablando con un OmegaUiBridge que expone/recibe JSON.
+
+Así, si luego quieres cambiar de framework web, el backend C++ no se toca; y si un día necesitas un “modo sin WebView”, podrías hacer un panel nativo mínimo reutilizando el mismo contrato JSON/APVTS.
+
+Te propongo como siguiente paso describir el OmegaUiBridge y el primer sketch de protocolo JSON (getPreset, setParam, listAceComponents, etc.) para que ya pienses todo en clave Web UI aunque el contenedor sea JUCE, ¿te encaja?
+
+
+
+
+La WebView se inserta directamente como un WebBrowserComponent dentro de tu OmegaMainEditor nativo JUCE; el truco es configurarlo con las opciones nuevas de JUCE 8.
+​
+
+Configuración mínima de WebView en el editor
+cpp
+// OmegaWebViewComponent.h
+#pragma once
+#include <juce_gui_extra/juce_gui_extra.h>
+
+class OmegaWebViewComponent : public juce::Component
+{
+public:
+    OmegaWebViewComponent()
+    {
+        using Browser = juce::WebBrowserComponent;
+
+        Browser::Options opts;
+        opts = opts
+            .withBackend (Browser::Options::Backend::webview2) // en Windows
+            .withWinWebView2Options (
+                Browser::Options::WinWebView2 {}
+                    .withUserDataFolder (juce::File::getSpecialLocation (
+                        juce::File::tempDirectory)))
+            .withNativeIntegrationEnabled (true); // inyecta shim Juce JS
+
+        mBrowser = std::make_unique<Browser> (opts);
+
+        // Debug: servidor React local
+        // mBrowser->goToURL ("http://localhost:3000");
+
+        // Release: servir recursos embebidos (BinaryData)
+        mBrowser->goToURL (Browser::getResourceProviderRoot());
+
+        addAndMakeVisible (*mBrowser);
+    }
+
+    void resized() override
+    {
+        if (mBrowser != nullptr)
+            mBrowser->setBounds (getLocalBounds());
+    }
+
+    juce::WebBrowserComponent& getBrowser() noexcept { return *mBrowser; }
+
+private:
+    std::unique_ptr<juce::WebBrowserComponent> mBrowser;
+};
+Integración en OmegaMainEditor
+cpp
+// OmegaMainEditor.h
+#pragma once
+#include <juce_gui_extra/juce_gui_extra.h>
+#include "OmegaWebViewComponent.h"
+
+class OmegaAudioProcessor;
+
+class OmegaMainEditor : public juce::AudioProcessorEditor
+{
+public:
+    OmegaMainEditor (OmegaAudioProcessor&, juce::AudioProcessorValueTreeState&);
+    ~OmegaMainEditor() override = default;
+
+    void paint (juce::Graphics&) override;
+    void resized() override;
+
+private:
+    OmegaAudioProcessor& mProcessor;
+    juce::AudioProcessorValueTreeState& mApvts;
+
+    OmegaWebViewComponent mWebView;
+
+    // Controles “de emergencia” nativos (master gain, etc.)
+    juce::Slider mMasterGainSlider;
+    using SliderAtt = juce::AudioProcessorValueTreeState::SliderAttachment;
+    std::unique_ptr<SliderAtt> mMasterGainAtt;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OmegaMainEditor)
+};
+cpp
+// OmegaMainEditor.cpp
+#include "OmegaMainEditor.h"
+#include "OmegaAudioProcessor.h"
+
+OmegaMainEditor::OmegaMainEditor (OmegaAudioProcessor& proc,
+                                  juce::AudioProcessorValueTreeState& apvts)
+    : juce::AudioProcessorEditor (&proc)
+    , mProcessor (proc)
+    , mApvts (apvts)
+{
+    setSize (900, 600);
+
+    addAndMakeVisible (mWebView); // Web UI manda
+
+    // Slider nativo simple para MASTER_GAIN_DB
+    mMasterGainSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+    mMasterGainSlider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 60, 18);
+    addAndMakeVisible (mMasterGainSlider);
+
+    mMasterGainAtt = std::make_unique<SliderAtt> (mApvts, "MASTER_GAIN_DB", mMasterGainSlider);
+}
+
+void OmegaMainEditor::paint (juce::Graphics& g)
+{
+    g.fillAll (juce::Colours::black);
+}
+
+void OmegaMainEditor::resized()
+{
+    auto area = getLocalBounds();
+    auto bottom = area.removeFromBottom (40);
+    mMasterGainSlider.setBounds (bottom.reduced (10));
+    mWebView.setBounds (area);
+}
+Dev vs release (fuente de HTML/JS)
+En debug: goToURL("http://localhost:3000") y trabajas con React/Vite/Webpack con hot‑reload.
+​
+
+En release: empaquetas tu frontend en BinaryData y usas un withResourceProvider para servir index.html, JS y CSS desde C++; el demo WebViewPluginDemo hace justo esto.
+​
+
+
+
+Perfecto: vamos a fijar un OmegaUiBridge claro y un JSON v1 minimalista para que el Web UI pueda controlar todo sin acoplarse a JUCE.
+
+Rol de OmegaUiBridge
+Responsabilidades:
+
+Exponer al Web UI:
+
+Estado de preset (nombre, engine, layers, parámetros macro importantes).
+​
+
+Lista de componentes ACE disponibles (para dropdowns de osc/filtro/env).
+​
+
+Recibir del Web UI:
+
+Cambios de parámetros (macro y ACE).
+​
+
+Cambios de preset (load/save, rename).
+
+Se implementa como una clase C++ que:
+
+Se engancha al WebBrowserComponent (u otro canal) y procesa mensajes JSON entrantes.
+
+Emite mensajes JSON de vuelta al JS cuando cambian cosas en el ValueTree/APVTS.
+
+Firma conceptual:
+
+cpp
+class OmegaUiBridge
+{
+public:
+    OmegaUiBridge (OmegaPreset&, OmegaAce::AceCatalog&, juce::AudioProcessorValueTreeState&);
+
+    // Llamado por el WebView cuando llega un JSON desde JS
+    void handleMessageFromUi (const juce::String& json);
+
+    // Callback para mandar mensajes al WebView (inyectado desde el editor)
+    std::function<void (const juce::String& json)> sendToUi;
+
+private:
+    OmegaPreset& mPreset;
+    OmegaAce::AceCatalog& mCatalog;
+    juce::AudioProcessorValueTreeState& mApvts;
+
+    void handleGetState (const juce::var& msg);
+    void handleSetParam (const juce::var& msg);
+    void handleLoadPreset (const juce::var& msg);
+    void handleSavePreset (const juce::var& msg);
+    void handleListAceComponents (const juce::var& msg);
+};
+JSON v1: mensajes UI → Core
+Formato base:
+
+json
+{
+  "type": "setParam",
+  "requestId": "abc123",
+  "payload": { ... }
+}
+Tipos clave (MVP):
+
+getState
+
+json
+{ "type": "getState", "requestId": "1" }
+setParam
+
+Para parámetros macro de APVTS (ej. master gain, cutoff principal layer A).
+​
+
+json
+{
+  "type": "setParam",
+  "requestId": "2",
+  "payload": {
+    "paramId": "LAYER_A_MAIN_CUTOFF",
+    "value": 1800.0
+  }
+}
+setAceParam
+
+Para parámetros de componentes ACE (no expuestos directamente como APVTS).
+
+json
+{
+  "type": "setAceParam",
+  "requestId": "3",
+  "payload": {
+    "layerId": "A",
+    "slotType": "Filter",
+    "slotIndex": 1,
+    "paramName": "cutoff",
+    "value": 2000.0
+  }
+}
+setAceComponent
+
+Cambiar, por ejemplo, de IR3109 a KORG35 en un slot.
+​
+
+json
+{
+  "type": "setAceComponent",
+  "requestId": "4",
+  "payload": {
+    "layerId": "A",
+    "slotType": "Filter",
+    "slotIndex": 1,
+    "componentId": "FLT-VA-003"
+  }
+}
+loadPreset / savePreset
+
+json
+{
+  "type": "loadPreset",
+  "requestId": "5",
+  "payload": { "presetId": "Hybrid-MS20-JP-Pad" }
+}
+json
+{
+  "type": "savePreset",
+  "requestId": "6",
+  "payload": {
+    "name": "My New Pad",
+    "tags": ["pad","va","juno"]
+  }
+}
+listAceComponents
+
+json
+{
+  "type": "listAceComponents",
+  "requestId": "7",
+  "payload": { "family": "Filter", "engine": "VirtualAnalog" }
+}
+JSON v1: mensajes Core → UI
+Formato base:
+
+json
+{
+  "type": "state",
+  "requestId": "1",
+  "payload": { ... }
+}
+Snapshot de estado (state)
+
+Devuelto a getState y también push incremental si quieres.
+
+json
+{
+  "type": "state",
+  "requestId": "1",
+  "payload": {
+    "preset": {
+      "name": "ACE Juno Basic Pad",
+      "engine": "VirtualAnalog",
+      "layers": [
+        {
+          "id": "A",
+          "name": "Juno Basic",
+          "polyphony": 8,
+          "levelDb": 0.0,
+          "components": {
+            "oscillators": [
+              {
+                "slot": 1,
+                "componentId": "OSC-VA-001",
+                "params": {
+                  "tune": 0.0,
+                  "pulsewidth": 0.5,
+                  "sublevel": 0.3
+                }
+              }
+            ],
+            "filters": [
+              {
+                "slot": 1,
+                "componentId": "FLT-VA-001",
+                "mode": "LP24",
+                "params": {
+                  "cutoff": 2000.0,
+                  "resonance": 0.2,
+                  "drive": 0.0
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "params": {
+      "MASTER_GAIN_DB": 0.0,
+      "LAYER_A_LEVEL_DB": 0.0,
+      "LAYER_A_MAIN_CUTOFF": 2000.0,
+      "LAYER_A_MAIN_RES": 0.2
+    }
+  }
+}
+Confirmaciones y errores (ack, error)
+
+json
+{
+  "type": "ack",
+  "requestId": "2",
+  "payload": { "ok": true }
+}
+json
+{
+  "type": "error",
+  "requestId": "3",
+  "payload": {
+    "code": "INVALID_PARAM",
+    "message": "Unknown paramId: LAYER_X_FOO"
+  }
+}
+Catálogo ACE (aceComponents)
+
+Respuesta a listAceComponents.
+​
+
+json
+{
+  "type": "aceComponents",
+  "requestId": "7",
+  "payload": {
+    "family": "Filter",
+    "engine": "VirtualAnalog",
+    "items": [
+      {
+        "id": "FLT-VA-001",
+        "name": "Roland IR3109 LP24",
+        "tags": ["va","roland","juno","smooth"],
+        "parameters": [
+          { "name": "cutoff", "label": "Cutoff", "unit": "Hz", "min": 20.0, "max": 20000.0 },
+          { "name": "resonance", "label": "Resonance", "unit": "norm", "min": 0.0, "max": 1.0 }
+        ]
+      },
+      {
+        "id": "FLT-VA-003",
+        "name": "KORG35 MS-20",
+        "tags": ["va","korg","ms20","aggressive"],
+        "parameters": [
+          { "name": "cutoff", "label": "Cutoff", "unit": "Hz", "min": 20.0, "max": 20000.0 },
+          { "name": "resonance", "label": "Peak", "unit": "norm", "min": 0.0, "max": 1.0 },
+          { "name": "drive", "label": "Drive", "unit": "dB", "min": -12.0, "max": 24.0 }
+        ]
+      }
+    ]
+  }
+}
+Notificaciones de cambio (paramChanged, presetChanged)
+
+Emitidas cuando cambian APVTS o el ValueTree (por UI, MIDI, host, etc.).
+
+json
+{
+  "type": "paramChanged",
+  "payload": { "paramId": "LAYER_A_MAIN_CUTOFF", "value": 1500.0 }
+}
+json
+{
+  "type": "presetChanged",
+  "payload": { "name": "New Pad", "presetId": "new-pad-uuid" }
+}
+Hook con WebView
+En el editor:
+
+cpp
+// En OmegaMainEditor
+OmegaUiBridge mUiBridge { preset, catalog, apvts };
+
+OmegaMainEditor::OmegaMainEditor(...)
+{
+    mWebView.getBrowser().addListener (this);
+
+    mUiBridge.sendToUi = [this] (const juce::String& json)
+    {
+        mWebView.getBrowser().executeJavascript (
+            "window.OmegaCore && OmegaCore.onMessage(" + json + ");");
+    };
+}
+
+// Cuando JS llama a window.OmegaCore.sendMessage(jsonString)
+void OmegaMainEditor::pageAboutToLoad (const juce::String& newUrl)
+{
+    // según backend WebView, o usando el shim de JUCE, recibes ese string
+    // y llamas:
+    // mUiBridge.handleMessageFromUi (jsonString);
+}
+Con este contrato, puedes montar ya en React/Vue algo como:
+
+js
+window.OmegaCore.sendMessage({
+  type: 'getState',
+  requestId: '1'
+});
+y renderizar toda la UI leyendo sólo el JSON, sin tocar JUCE ni C++ directamente.
+
+
+
+Para un v1 simple, puedes limitarte a 4 tipos de mensajes: getState, setParam, loadPreset, savePreset y sus respuestas/avisos.
+
+Mensajes UI → Core
+1. getState
+Pedir snapshot completo de preset + parámetros macro.
+
+json
+{ "type": "getState", "requestId": "1" }
+2. setParam
+Cambiar un parámetro macro (APVTS), por ejemplo master gain o cutoff principal de la capa A.
+​
+
+json
+{
+  "type": "setParam",
+  "requestId": "2",
+  "payload": {
+    "paramId": "LAYER_A_MAIN_CUTOFF",
+    "value": 1800.0
+  }
+}
+IDs típicos de Fase 1:
+
+MASTER_GAIN_DB
+
+LAYER_A_LEVEL_DB
+
+LAYER_A_MAIN_CUTOFF
+
+LAYER_A_MAIN_RES
+
+LAYER_A_ENV_AMT
+
+3. loadPreset
+Seleccionar un preset conocido por su id/slug.
+​
+
+json
+{
+  "type": "loadPreset",
+  "requestId": "3",
+  "payload": {
+    "presetId": "ACE-JUNO-BASIC-PAD"
+  }
+}
+4. savePreset
+Guardar el estado actual como nuevo preset (Git‑for‑Sounds podrá versionarlo internamente).
+​
+
+json
+{
+  "type": "savePreset",
+  "requestId": "4",
+  "payload": {
+    "name": "My New Pad",
+    "tags": ["pad", "va", "juno"]
+  }
+}
+Mensajes Core → UI
+1. state (respuesta a getState o tras loadPreset/savePreset)
+Incluye preset lógico y parámetros macro actuales.
+
+json
+{
+  "type": "state",
+  "requestId": "1",
+  "payload": {
+    "preset": {
+      "id": "ACE-JUNO-BASIC-PAD",
+      "name": "ACE Juno Basic Pad",
+      "engine": "VirtualAnalog",
+      "layers": [
+        {
+          "id": "A",
+          "name": "Juno Basic",
+          "polyphony": 8,
+          "levelDb": 0.0
+        }
+      ]
+    },
+    "params": {
+      "MASTER_GAIN_DB": 0.0,
+      "LAYER_A_LEVEL_DB": 0.0,
+      "LAYER_A_MAIN_CUTOFF": 2000.0,
+      "LAYER_A_MAIN_RES": 0.2,
+      "LAYER_A_ENV_AMT": 0.5
+    }
+  }
+}
+2. ack / error (respuesta a setParam, loadPreset, savePreset)
+json
+{
+  "type": "ack",
+  "requestId": "2",
+  "payload": { "ok": true }
+}
+json
+{
+  "type": "error",
+  "requestId": "3",
+  "payload": {
+    "code": "PRESET_NOT_FOUND",
+    "message": "Unknown presetId: ACE-FOO"
+  }
+}
+3. paramChanged (push)
+Emisión asíncrona cuando un parámetro cambia (por UI, host o MIDI) para que React sincronice su estado.
+
+json
+{
+  "type": "paramChanged",
+  "payload": {
+    "paramId": "LAYER_A_MAIN_CUTOFF",
+    "value": 1500.0
+  }
+}
+4. presetChanged (push)
+Cuando el preset actual cambia (loadPreset, savePreset, undo/redo).
+​
+
+json
+{
+  "type": "presetChanged",
+  "payload": {
+    "presetId": "ACE-JUNO-BASIC-PAD",
+    "name": "ACE Juno Basic Pad"
+  }
+}
+Con este esquema ya puedes:
+
+Renderizar toda la UI leyendo solo state.params y state.preset.
+
+Actualizar knobs enviando setParam.
+
+Cambiar presets con loadPreset y refrescar la UI con el state de respuesta.
+
+
+Lo más útil ahora es aterrizar el lado C++ (OmegaUiBridge) para que el protocolo JSON que ya tenemos sea real, y después ya podrás colgar hooks React encima sin dolores.
+
+Esqueleto OmegaUiBridge (C++)
+cpp
+// OmegaUiBridge.h
+#pragma once
+#include <juce_core/juce_core.h>
+
+class OmegaPreset;
+namespace OmegaAce { class AceCatalog; }
+
+class OmegaUiBridge
+{
+public:
+    OmegaUiBridge (OmegaPreset& preset,
+                   OmegaAce::AceCatalog& catalog,
+                   juce::AudioProcessorValueTreeState& apvts);
+
+    // Llamado por el editor cuando llega un mensaje JSON desde JS
+    void handleMessageFromUi (const juce::String& jsonText);
+
+    // Callback para mandar JSON al Web UI (inyectado desde el editor)
+    std::function<void (const juce::String& jsonText)> sendToUi;
+
+private:
+    OmegaPreset& mPreset;
+    OmegaAce::AceCatalog& mCatalog;
+    juce::AudioProcessorValueTreeState& mApvts;
+
+    void handleGetState   (const juce::var& msg);
+    void handleSetParam   (const juce::var& msg);
+    void handleLoadPreset (const juce::var& msg);
+    void handleSavePreset (const juce::var& msg);
+
+    juce::String buildStateJson (const juce::String& requestId) const;
+};
+cpp
+// OmegaUiBridge.cpp
+#include "OmegaUiBridge.h"
+#include "OmegaPreset.h" // tu wrapper de ValueTree
+
+OmegaUiBridge::OmegaUiBridge (OmegaPreset& preset,
+                              OmegaAce::AceCatalog& catalog,
+                              juce::AudioProcessorValueTreeState& apvts)
+    : mPreset (preset), mCatalog (catalog), mApvts (apvts)
+{
+}
+
+void OmegaUiBridge::handleMessageFromUi (const juce::String& jsonText)
+{
+    juce::var msg = juce::JSON::parse (jsonText);
+    if (! msg.isObject())
+        return;
+
+    auto* obj = msg.getDynamicObject();
+    auto type      = obj->getProperty ("type").toString();
+    auto requestId = obj->getProperty ("requestId").toString();
+
+    if (type == "getState")
+    {
+        if (sendToUi)
+            sendToUi (buildStateJson (requestId));
+    }
+    else if (type == "setParam")
+    {
+        handleSetParam (msg);
+    }
+    else if (type == "loadPreset")
+    {
+        handleLoadPreset (msg);
+        if (sendToUi)
+            sendToUi (buildStateJson (requestId));
+    }
+    else if (type == "savePreset")
+    {
+        handleSavePreset (msg);
+        if (sendToUi)
+            sendToUi (buildStateJson (requestId));
+    }
+}
+
+void OmegaUiBridge::handleSetParam (const juce::var& msg)
+{
+    auto* obj = msg.getDynamicObject();
+    auto* payload = obj->getProperty ("payload").getDynamicObject();
+    if (! payload)
+        return;
+
+    auto paramId = payload->getProperty ("paramId").toString();
+    auto value   = (float) payload->getProperty ("value");
+
+    if (auto* p = mApvts.getParameter (paramId))
+        p->setValueNotifyingHost (p->getNormalisableRange().convertTo0to1 (value));
+}
+
+void OmegaUiBridge::handleLoadPreset (const juce::var& msg)
+{
+    auto* obj = msg.getDynamicObject();
+    auto* payload = obj->getProperty ("payload").getDynamicObject();
+    if (! payload)
+        return;
+
+    auto presetId = payload->getProperty ("presetId").toString();
+
+    // Aquí llamas a tu repositorio de presets / loader
+    // OmegaPresetRepository::loadInto (presetId, mPreset, mApvts);
+}
+
+void OmegaUiBridge::handleSavePreset (const juce::var& msg)
+{
+    auto* obj = msg.getDynamicObject();
+    auto* payload = obj->getProperty ("payload").getDynamicObject();
+    if (! payload)
+        return;
+
+    auto name = payload->getProperty ("name").toString();
+    // tags = payload->getProperty ("tags")...
+
+    // OmegaPresetRepository::saveFrom (name, mPreset, mApvts);
+}
+
+juce::String OmegaUiBridge::buildStateJson (const juce::String& requestId) const
+{
+    juce::DynamicObject::Ptr root (new juce::DynamicObject());
+    root->setProperty ("type", "state");
+    root->setProperty ("requestId", requestId);
+
+    juce::DynamicObject::Ptr payload (new juce::DynamicObject());
+
+    // Preset snapshot simplificado
+    juce::DynamicObject::Ptr presetObj (new juce::DynamicObject());
+    presetObj->setProperty ("id",   mPreset.getId());
+    presetObj->setProperty ("name", mPreset.getName());
+    presetObj->setProperty ("engine", mPreset.getEngine());
+
+    // Params macro desde APVTS
+    juce::DynamicObject::Ptr params (new juce::DynamicObject());
+    auto setParam = [&] (const char* id)
+    {
+        if (auto* p = mApvts.getParameter (id))
+        {
+            auto norm = p->getValue();
+            auto v = p->getNormalisableRange().convertFrom0to1 (norm);
+            params->setProperty (id, v);
+        }
+    };
+
+    setParam ("MASTER_GAIN_DB");
+    setParam ("LAYER_A_LEVEL_DB");
+    setParam ("LAYER_A_MAIN_CUTOFF");
+    setParam ("LAYER_A_MAIN_RES");
+    setParam ("LAYER_A_ENV_AMT");
+
+    payload->setProperty ("preset", juce::var (presetObj.get()));
+    payload->setProperty ("params", juce::var (params.get()));
+
+    root->setProperty ("payload", juce::var (payload.get()));
+
+    return juce::JSON::toString (juce::var (root.get()));
+}
+Con esto, el Web UI ya puede:
+
+Pedir getState y pintar sliders con params.
+
+Enviar setParam y que el engine se actualice vía APVTS.
+
+Hacer loadPreset/savePreset sin conocer nada de JUCE/ValueTree internamente.
+
+
+
+
+Para el Web UI, lo más cómodo es un hook useOmegaParams que oculte el protocolo JSON (getState, setParam, paramChanged).
+​
+
+Contrato JS↔C++ que va a usar el hook
+Ya definido:
+
+UI → Core:
+
+getState
+
+setParam con { paramId, value }
+
+Core → UI:
+
+state con { preset, params }
+
+paramChanged con { paramId, value }
+
+Mensajes se envían por:
+
+js
+// En tu bootstrap JS
+window.OmegaCore.sendMessage(jsonString);   // hacia C++
+window.OmegaCore.onMessage = (jsonString) => { ... }; // desde C++
+Hook useOmegaParams (React)
+ts
+// useOmegaParams.ts
+import { useEffect, useState, useCallback } from 'react';
+
+type OmegaParams = Record<string, number>;
+
+type OmegaState = {
+  presetId: string;
+  presetName: string;
+  params: OmegaParams;
+};
+
+export function useOmegaParams() {
+  const [state, setState] = useState<OmegaState>({
+    presetId: '',
+    presetName: '',
+    params: {}
+  });
+
+  // Envío centralizado
+  const sendMessage = useCallback((msg: any) => {
+    if (window.OmegaCore && typeof window.OmegaCore.sendMessage === 'function') {
+      window.OmegaCore.sendMessage(JSON.stringify(msg));
+    }
+  }, []);
+
+  // setParam: actualiza local y notifica a C++
+  const setParam = useCallback(
+    (paramId: string, value: number) => {
+      setState(prev => ({
+        ...prev,
+        params: { ...prev.params, [paramId]: value }
+      }));
+
+      sendMessage({
+        type: 'setParam',
+        requestId: `set-${paramId}-${Date.now()}`,
+        payload: { paramId, value }
+      });
+    },
+    [sendMessage]
+  );
+
+  useEffect(() => {
+    // Handler de mensajes desde C++
+    const handleMessage = (jsonText: string) => {
+      let msg: any;
+      try {
+        msg = JSON.parse(jsonText);
+      } catch {
+        return;
+      }
+
+      if (msg.type === 'state') {
+        const p = msg.payload;
+        setState({
+          presetId: p.preset.id,
+          presetName: p.preset.name,
+          params: p.params || {}
+        });
+      } else if (msg.type === 'paramChanged') {
+        const { paramId, value } = msg.payload;
+        setState(prev => ({
+          ...prev,
+          params: { ...prev.params, [paramId]: value }
+        }));
+      } else if (msg.type === 'presetChanged') {
+        setState(prev => ({
+          ...prev,
+          presetId: msg.payload.presetId,
+          presetName: msg.payload.name
+        }));
+      }
+    };
+
+    // Registramos el callback global
+    if (!window.OmegaCore) {
+      (window as any).OmegaCore = {};
+    }
+    (window as any).OmegaCore.onMessage = handleMessage;
+
+    // Pedir estado inicial
+    sendMessage({ type: 'getState', requestId: 'init-1' });
+
+    return () => {
+      if ((window as any).OmegaCore?.onMessage === handleMessage) {
+        (window as any).OmegaCore.onMessage = undefined;
+      }
+    };
+  }, [sendMessage]);
+
+  return {
+    presetId: state.presetId,
+    presetName: state.presetName,
+    params: state.params,
+    setParam
+  };
+}
+Uso en un componente React
+tsx
+// OmegaPanel.tsx
+import React from 'react';
+import { useOmegaParams } from './useOmegaParams';
+
+const CUTOFF_ID = 'LAYER_A_MAIN_CUTOFF';
+
+export const OmegaPanel: React.FC = () => {
+  const { presetName, params, setParam } = useOmegaParams();
+
+  const cutoff = params[CUTOFF_ID] ?? 2000;
+
+  return (
+    <div className="omega-panel">
+      <h1>{presetName}</h1>
+
+      <label>
+        Cutoff
+        <input
+          type="range"
+          min={20}
+          max={20000}
+          value={cutoff}
+          onChange={(e) => setParam(CUTOFF_ID, Number(e.target.value))}
+        />
+        <span>{Math.round(cutoff)} Hz</span>
+      </label>
+    </div>
+  );
+};
+Con esto:
+
+Al montar, el hook manda getState y rellena preset/params.
+
+Cuando cambian cosas en C++ (APVTS, presets), el bridge envía state/paramChanged y el hook sincroniza React.
+
+Cuando mueves un slider en React, setParam manda el JSON correcto a C++.
+
+
+
+
+
+Para Fase 1 (motor VA tipo Juno, una sola layer A), puedes fijar esta lista de IDs APVTS “macro” estables; todo lo demás (ACE, mod graph) va en OmegaPreset/ValueTree.
+
+Grupo master
+MASTER_GAIN_DB – Ganancia global en dB (‑inf a +12, p.ej.).
+​
+
+MASTER_BYPASS – 0/1 o bool (bypass suave del motor completo).
+
+Layer A – nivel y panorama
+LAYER_A_LEVEL_DB – Nivel de la capa A en dB.
+​
+
+LAYER_A_PAN – Panorama de la capa A (‑1.0 izquierda, 0 centro, +1.0 derecha).
+
+Layer A – voz principal (cutoff/env)
+Para que el host pueda automatizar “lo típico de un Juno” sin conocer ACE:
+
+LAYER_A_MAIN_CUTOFF – Cutoff principal del filtro de la voz A (en Hz).
+
+LAYER_A_MAIN_RES – Resonancia principal (0–1.0).
+
+LAYER_A_ENV_AMT – Cantidad de envolvente al filtro (‑1.0–1.0 o 0–1.0, según prefieras).
+
+LAYER_A_LFO_RATE_HZ – Velocidad del LFO principal (vibrato/tremolo global).
+
+LAYER_A_LFO_DEPTH_SEMITONES – Profundidad de vibrato (semitonos).
+
+Layer A – envolvente amp
+LAYER_A_AMP_ATTACK_MS
+
+LAYER_A_AMP_DECAY_MS
+
+LAYER_A_AMP_SUSTAIN
+
+LAYER_A_AMP_RELEASE_MS
+
+Estos 4 son opcionales como APVTS; si quieres mantener lista super‑corta, se pueden dejar sólo en OmegaPreset y exponer uno o dos macros globales (por ejemplo LAYER_A_AMP_ATTACK_MS y LAYER_A_AMP_RELEASE_MS).
+
+Macros performance (para futuro mapping MIDI/Web UI)
+Aunque no los uses todos desde el día 1, conviene fijar sus IDs:
+
+MACRO_1
+
+MACRO_2
+
+MACRO_3
+
+MACRO_4
+
+Estos irán ligados al ModulationGraph como fuentes internas, pero para el host y el Web UI son simplemente parámetros 0–1.
+
+Con esto tienes un set estable y pequeño que cumple:
+
+El host puede automatizar lo típico (master, level layer, cutoff, reso, env amount, LFO rate/depth).
+
+El Web UI puede usar sólo estos IDs en setParam/paramChanged, y todo lo ACE‑específico se queda en el ValueTree.
+
+
+
+
+
+Defino rangos y valores por defecto razonables para Fase 1, pensados para un Juno VA single‑layer.
+
+Master
+MASTER_GAIN_DB
+
+Rango: ‑24.0 a +12.0 dB
+
+Default: 0.0 dB
+
+MASTER_BYPASS
+
+Rango: 0 a 1 (entero)
+
+Default: 0
+
+Layer A – nivel y panorama
+LAYER_A_LEVEL_DB
+
+Rango: ‑48.0 a +6.0 dB
+
+Default: 0.0 dB
+
+LAYER_A_PAN
+
+Rango: ‑1.0 (izq) a +1.0 (der)
+
+Default: 0.0
+
+Layer A – filtro / LFO
+LAYER_A_MAIN_CUTOFF
+
+Rango: 20.0 a 20000.0 Hz (puedes usar curva skew de tipo log).
+
+Default: 2000.0 Hz
+
+LAYER_A_MAIN_RES
+
+Rango: 0.0 a 1.0
+
+Default: 0.2
+
+LAYER_A_ENV_AMT
+
+Rango: ‑1.0 a 1.0 (puedes limitar a 0–1 si no quieres inversión aún).
+
+Default: 0.5
+
+LAYER_A_LFO_RATE_HZ
+
+Rango: 0.1 a 10.0 Hz
+
+Default: 1.0 Hz
+
+LAYER_A_LFO_DEPTH_SEMITONES
+
+Rango: 0.0 a 2.0 semitonos
+
+Default: 0.3
+
+Layer A – envolvente amp
+LAYER_A_AMP_ATTACK_MS
+
+Rango: 0.1 a 5000.0 ms
+
+Default: 10.0 ms
+
+LAYER_A_AMP_DECAY_MS
+
+Rango: 0.1 a 5000.0 ms
+
+Default: 120.0 ms
+
+LAYER_A_AMP_SUSTAIN
+
+Rango: 0.0 a 1.0
+
+Default: 0.8
+
+LAYER_A_AMP_RELEASE_MS
+
+Rango: 1.0 a 8000.0 ms
+
+Default: 600.0 ms
+
+Macros performance
+MACRO_1 – MACRO_4
+
+Rango: 0.0 a 1.0
+
+Default: 0.0
+
+Con esto ya puedes definir AudioProcessorValueTreeState::ParameterLayout sin improvisar rangos, y el Web UI puede asumir estos límites para sliders/log‑knobs.
+
+
+
+Para “mapear” estos IDs APVTS, el siguiente paso clave es cómo llegan al filtro VA dentro del engine. Lo resumo en la ruta completa: APVTS → struct de settings → atomics → filtro.
+
+1. APVTS → struct LayerASettings
+cpp
+// LayerSettings.h
+struct LayerASettings
+{
+    std::atomic<float> levelDb           { 0.0f };
+    std::atomic<float> pan               { 0.0f };
+    std::atomic<float> cutoffHz          { 2000.0f };
+    std::atomic<float> resonance         { 0.2f };
+    std::atomic<float> envAmount         { 0.5f };
+    std::atomic<float> lfoRateHz         { 1.0f };
+    std::atomic<float> lfoDepthSemitones { 0.3f };
+
+    std::atomic<float> ampAttackMs  { 10.0f };
+    std::atomic<float> ampDecayMs   { 120.0f };
+    std::atomic<float> ampSustain   { 0.8f };
+    std::atomic<float> ampReleaseMs { 600.0f };
+};
+En el AudioProcessor guardas una instancia:
+
+cpp
+class OmegaAudioProcessor : public juce::AudioProcessor
+{
+    // ...
+    LayerASettings mLayerASettings;
+};
+2. APVTS listeners → actualizan settings (message thread)
+cpp
+// En el constructor del processor, después de crear APVTS
+mApvts.addParameterListener ("LAYER_A_MAIN_CUTOFF",  this);
+mApvts.addParameterListener ("LAYER_A_MAIN_RES",     this);
+// etc.
+
+void OmegaAudioProcessor::parameterChanged (const juce::String& id, float newValue)
+{
+    if (id == "LAYER_A_MAIN_CUTOFF")
+        mLayerASettings.cutoffHz.store (newValue, std::memory_order_relaxed);
+    else if (id == "LAYER_A_MAIN_RES")
+        mLayerASettings.resonance.store (newValue, std::memory_order_relaxed);
+    // resto de ids…
+}
+Así nunca lees APVTS en el audio thread.
+
+3. Engine VA lee atomics → filtro
+En el engine:
+
+cpp
+void VirtualAnalogEngine::renderNextBlock (juce::AudioBuffer<float>& buffer,
+                                           const juce::MidiBuffer& midi) noexcept
+{
+    const float cutoff   = mLayerASettings.cutoffHz.load (std::memory_order_relaxed);
+    const float res      = mLayerASettings.resonance.load (std::memory_order_relaxed);
+    const float envAmt   = mLayerASettings.envAmount.load (std::memory_order_relaxed);
+
+    // Para cada voz:
+    for (auto& voice : mVoicePool)
+    {
+        // 1) Generas osc
+        // 2) Calculas cutoff modulado: cutoff + envAmt * envSignal…
+        const float envSignal = voice.getFilterEnvValue(); // 0..1
+        const float cutoffMod = cutoff * std::pow (2.0f, envAmt * (envSignal - 0.5f));
+
+        mFilter.setCutoffHz (cutoffMod);
+        mFilter.setResonance (res);
+
+        mFilter.process (voiceBuffer, numSamples);
+    }
+}
+La modulación más fina (env a cutoff, LFO a pitch) seguirá viniendo del ModulationGraph, pero estos macros APVTS marcan la base (cutoff/res/amount) que el host y el Web UI ven.
+
+
+
+
+Te los dejo muy concisos: primero los sliders React, luego el esquema ModulationGraph para que ENV_AMT sea ganancia de una ruta env→cutoff.
+
+1. Sliders React para cutoff / res / envAmt
+IDs que ya fijaste:
+
+LAYER_A_MAIN_CUTOFF
+
+LAYER_A_MAIN_RES
+
+LAYER_A_ENV_AMT
+
+Hook (extensión mínima):
+
+ts
+// useOmegaParams.ts (ya definido antes, sin cambios en la API)
+export function useOmegaParams() {
+  // ...
+  return {
+    presetId: state.presetId,
+    presetName: state.presetName,
+    params: state.params,
+    setParam
+  };
+}
+Componente de controles de filtro:
+
+tsx
+// FilterControls.tsx
+import React from 'react';
+import { useOmegaParams } from './useOmegaParams';
+
+const CUTOFF_ID = 'LAYER_A_MAIN_CUTOFF';
+const RES_ID    = 'LAYER_A_MAIN_RES';
+const ENV_ID    = 'LAYER_A_ENV_AMT';
+
+export const FilterControls: React.FC = () => {
+  const { params, setParam } = useOmegaParams();
+
+  const cutoff = params[CUTOFF_ID] ?? 2000;
+  const res    = params[RES_ID]    ?? 0.2;
+  const envAmt = params[ENV_ID]    ?? 0.5;
+
+  return (
+    <div className="filter-controls">
+      <div>
+        <label>Cutoff</label>
+        <input
+          type="range"
+          min={20}
+          max={20000}
+          value={cutoff}
+          onChange={(e) => setParam(CUTOFF_ID, Number(e.target.value))}
+        />
+        <span>{Math.round(cutoff)} Hz</span>
+      </div>
+
+      <div>
+        <label>Resonance</label>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={res}
+          onChange={(e) => setParam(RES_ID, Number(e.target.value))}
+        />
+        <span>{res.toFixed(2)}</span>
+      </div>
+
+      <div>
+        <label>Env Amt</label>
+        <input
+          type="range"
+          min={-1}
+          max={1}
+          step={0.01}
+          value={envAmt}
+          onChange={(e) => setParam(ENV_ID, Number(e.target.value))}
+        />
+        <span>{envAmt.toFixed(2)}</span>
+      </div>
+    </div>
+  );
+};
+Esto ya habla el JSON que definimos vía setParam y paramChanged.
+​
+
+2. ENV_AMT como ganancia env→cutoff en ModulationGraph
+En vez de aplicar envAmt “a mano” en el engine, lo puedes usar como ganancia de una ruta de modulación en el grafo.
+
+Preset (YAML/ValueTree lógico)
+text
+modulation:
+  routes:
+    - source: "ENV1"
+      destination: "LayerA.Filter1.cutoff"
+      amount: 0.5      # valor base
+      curve: "linear"
+      bipolar: false
+Capa de runtime
+Al compilar el ModulationGraph, creas una entrada de ruta:
+
+cpp
+struct ModulationRouteRuntime
+{
+    uint16_t sourceIndex;
+    uint16_t destParamIndex;
+    float    baseAmount;   // del preset (0.5 en el ejemplo)
+    uint8_t  curveType;
+    bool     bipolar;
+    uint16_t macroIndex;   // opcional, para vincular a APVTS
+};
+Para vincular LAYER_A_ENV_AMT a esa ruta:
+
+En el compile (message thread) detectas que la ruta ENV1 -> LayerA.Filter1.cutoff es “la principal”.
+
+Le asignas un macroIndex especial que se corresponde con el APVTS LAYER_A_ENV_AMT (por ejemplo en una tabla routeMacroBinding por layer).
+​
+
+En el audio thread:
+
+cpp
+void ModulationRuntime::applyModulationForVoice (int voiceIndex,
+                                                 const LayerASettings& settings)
+{
+    for (auto i = 0u; i < activeRouteCount; ++i)
+    {
+        auto& r = routes[i];
+
+        float amt = r.baseAmount;
+
+        // Si esta ruta está ligada a ENV_AMT, escalar por el valor macro
+        if (r.macroIndex == MacroBinding::EnvToCutoff)
+        {
+            const float macroEnvAmt = settings.envAmount.load (std::memory_order_relaxed);
+            amt *= macroEnvAmt; // o mezcla más sofisticada si quieres
+        }
+
+        const float sourceVal = sources[r.sourceIndex].current;
+        const float contrib   = applyCurve (sourceVal * amt, r.curveType);
+
+        parameters[r.destParamIndex].modulated += contrib;
+    }
+}
+Con esto:
+
+LAYER_A_ENV_AMT deja de ser un cálculo manual en el filtro y pasa a ser peso de una ruta de modulación, consistente con el resto del ModulationGraph.
+
+El Web UI sólo ve un slider “Env Amt” que habla con APVTS; el motor ve un factor extra para esa ruta env→cutoff.
+
+
+Para cerrar el circuito WebView, necesitas dos cosas: cómo JS llama a C++ (sendMessage) y cómo C++ llama a JS (onMessage), usando el backend WebView de JUCE 8.
+​
+
+1. C++ → JS: enviar mensajes a window.OmegaCore.onMessage
+En el editor:
+
+cpp
+// OmegaMainEditor.h
+class OmegaMainEditor
+  : public juce::AudioProcessorEditor,
+    private juce::WebBrowserComponent::Listener
+{
+public:
+    // ...
+    void pageFinishedLoading (juce::WebBrowserComponent*, const juce::String& url) override;
+    void webViewJavascriptCallback (juce::WebBrowserComponent*, const juce::String& message) override;
+
+private:
+    OmegaWebViewComponent mWebView;
+    OmegaUiBridge mUiBridge;
+};
+cpp
+// OmegaMainEditor.cpp (constructor)
+OmegaMainEditor::OmegaMainEditor (OmegaAudioProcessor& proc,
+                                  juce::AudioProcessorValueTreeState& apvts)
+  : AudioProcessorEditor (&proc),
+    mWebView(),
+    mUiBridge (proc.getPreset(), proc.getAceCatalog(), apvts)
+{
+    setSize (900, 600);
+
+    mWebView.getBrowser().addListener (this);
+    addAndMakeVisible (mWebView);
+
+    // Cuando el bridge quiera mandar algo al UI:
+    mUiBridge.sendToUi = [this] (const juce::String& json)
+    {
+        auto& browser = mWebView.getBrowser();
+        // Llama a window.OmegaCore.onMessage(JSON.parse(...))
+        juce::String js = "window.OmegaCore && window.OmegaCore.onMessage && "
+                          "window.OmegaCore.onMessage(" + json + ");";
+        browser.executeJavascript (js);
+    };
+}
+2. JS → C++: implementar window.OmegaCore.sendMessage
+En tu index.html/bundle JS defines:
+
+js
+// en algún bootstrap, antes de usar el hook
+window.OmegaCore = {
+  sendMessage(json) {
+    const text = typeof json === 'string' ? json : JSON.stringify(json);
+
+    // WebView2 (Windows)
+    if (window.chrome && window.chrome.webview) {
+      window.chrome.webview.postMessage(text);
+      return;
+    }
+
+    // macOS / otros backends: JUCE expone un callback; lo capturaremos en C++
+    if (window.external && typeof window.external.invoke === 'function') {
+      window.external.invoke(text);
+      return;
+    }
+  },
+
+  onMessage: (json) => {
+    // Lo sobreescribe useOmegaParams
+    console.log('Message from core:', json);
+  }
+};
+3. C++ recibe mensajes JS: webViewJavascriptCallback / message handler
+Con WebView2, JUCE te da un callback cuando JS hace postMessage:
+​
+
+cpp
+void OmegaMainEditor::webViewJavascriptCallback (juce::WebBrowserComponent* browser,
+                                                 const juce::String& message)
+{
+    // message es el string que enviaste desde JS (text)
+    mUiBridge.handleMessageFromUi (message);
+}
+En el setup del WebView asegúrate de usar opciones con integración nativa:
+
+cpp
+OmegaWebViewComponent::OmegaWebViewComponent()
+{
+    using Browser = juce::WebBrowserComponent;
+
+    Browser::Options opts;
+    opts = opts.withBackend (Browser::Options::Backend::webview2)
+               .withNativeIntegrationEnabled (true);
+
+    mBrowser = std::make_unique<Browser> (opts);
+    addAndMakeVisible (*mBrowser);
+
+    // dev: local React server
+    mBrowser->goToURL ("http://localhost:3000");
+}
+En macOS (WKWebView) el mecanismo concreto depende del backend que elijas en JUCE 8, pero la idea es la misma: el JS llama a window.external.invoke(text) y el backend invoca webViewJavascriptCallback con ese message string.
+​
+
+4. Flujo completo
+JS: window.OmegaCore.sendMessage({ type: 'getState', requestId: '1' })
+→ WebView2: postMessage
+→ JUCE: webViewJavascriptCallback recibe texto
+→ OmegaUiBridge::handleMessageFromUi parsea JSON, responde llamando a sendToUi.
+→ sendToUi ejecuta window.OmegaCore.onMessage(json) con executeJavascript.
+→ Hook React useOmegaParams procesa state / paramChanged y actualiza la UI.
+
+Con esto, el loop JS↔C++ vía WebView queda cerrado sin acoplarte a JUCE components ni al engine directamente.
+
+
+
+Para que presets y Web UI sean coherentes, los macros APVTS deben quedar reflejados en OmegaPreset/YAML como parte del estado de capa/global.
+
+Esquema YAML con macros
+Preset Juno VA single‑layer (A) con todas las macros que definimos:
+
+text
+omegapresetversion: 1
+id: "ACE-JUNO-BASIC-PAD"
+name: "ACE Juno Basic Pad"
+author: "abdeneurolab"
+engine: "VirtualAnalog"
+
+global:
+  masterGainDb: 0.0
+  masterBypass: 0
+  macros:
+    MACRO_1: 0.0
+    MACRO_2: 0.0
+    MACRO_3: 0.0
+    MACRO_4: 0.0
+
+layers:
+  - id: "A"
+    name: "Juno Basic"
+    engine: "VirtualAnalog"
+    polyphony: 8
+
+    # Macros de capa (los que están también en APVTS)
+    layerParams:
+      levelDb: 0.0            # LAYER_A_LEVEL_DB
+      pan: 0.0                # LAYER_A_PAN
+      mainCutoffHz: 2000.0    # LAYER_A_MAIN_CUTOFF
+      mainResonance: 0.2      # LAYER_A_MAIN_RES
+      envAmount: 0.5          # LAYER_A_ENV_AMT
+      lfoRateHz: 1.0          # LAYER_A_LFO_RATE_HZ
+      lfoDepthSemis: 0.3      # LAYER_A_LFO_DEPTH_SEMITONES
+
+      ampEnv:
+        attackMs: 10.0        # LAYER_A_AMP_ATTACK_MS
+        decayMs: 120.0        # LAYER_A_AMP_DECAY_MS
+        sustain: 0.8          # LAYER_A_AMP_SUSTAIN
+        releaseMs: 600.0      # LAYER_A_AMP_RELEASE_MS
+
+    voiceArchitecture:
+      oscillators:
+        - slot: 1
+          componentId: "OSC-VA-001"
+          enabled: true
+          params:
+            tune: 0.0
+            pulsewidth: 0.5
+            sublevel: 0.3
+
+      filters:
+        - slot: 1
+          componentId: "FLT-VA-001"
+          enabled: true
+          mode: "LP24"
+          params:
+            cutoff: 2000.0
+            resonance: 0.2
+            drive: 0.0
+
+      envelopes:
+        - slot: 1
+          componentId: "ENV-ADSR-GEN"
+          role: "amp"
+          params:
+            attack: 10.0
+            decay: 120.0
+            sustain: 0.8
+            release: 600.0
+
+      lfos:
+        - slot: 1
+          componentId: "LFO-001"
+          params:
+            rate: 1.0
+            shape: "sine"
+            delay: 0.0
+
+      fx:
+        - slot: 1
+          componentId: "FX-CH-001"
+          enabled: true
+          params:
+            mix: 0.7
+            mode: "III"
+
+    modulation:
+      routes:
+        # ENV1 -> Filter1 cutoff; EnvAmount macro multiplica amount base
+        - source: "ENV1"
+          destination: "LayerA.Filter1.cutoff"
+          amount: 0.5
+          curve: "linear"
+          bipolar: false
+          macroBinding: "ENV_TO_CUTOFF"  # vinculado a LAYER_A_ENV_AMT
+Serializar macros en OmegaPreset
+En tu wrapper OmegaPreset (ValueTree), puedes tener algo así:
+
+cpp
+// OmegaPreset.h (esquema conceptual)
+class OmegaPreset
+{
+public:
+    static OmegaPreset fromValueTree (juce::ValueTree root);
+    juce::ValueTree toValueTree () const;
+
+    juce::String getId() const;
+    juce::String getName() const;
+    juce::String getEngine() const;
+
+    // Macros globales
+    float getMasterGainDb() const;
+    void  setMasterGainDb (float);
+
+    // Layer A macros
+    float getLayerLevelDb (juce::String layerId) const;
+    void  setLayerLevelDb (juce::String layerId, float);
+
+    float getLayerMainCutoff (juce::String layerId) const;
+    void  setLayerMainCutoff (juce::String layerId, float);
+
+    // etc. para res, envAmount, lfoRate, lfoDepth, ampEnv...
+};
+El ValueTree interno podría seguir el mismo esquema que el YAML:
+
+text
+OMEGAPRESET
+  - Global (props: masterGainDb, masterBypass, MACRO_1..4)
+  - Layers
+      - LayerA
+          - LayerParams (levelDb, pan, mainCutoffHz, mainResonance, envAmount,
+                         lfoRateHz, lfoDepthSemis, ampAttackMs, ...)
+          - VoiceArchitecture
+          - Modulation
+La lógica de guardar/cargar:
+
+Al guardar preset: lees los atomics / APVTS macros (MASTER_GAIN_DB, LAYER_A_MAIN_CUTOFF, etc.) y los escribes en los nodos Global y LayerParams del OmegaPreset antes de serializar a YAML/JSON.
+
+Al cargar preset: parseas OmegaPreset desde YAML, extraes los valores de Global/LayerParams y:
+
+Los vuelcas a APVTS (para que host/Web UI vean los macros correctos).
+
+Los copias a los atomics de LayerASettings (por la ruta APVTS→settings→engine que ya trazamos).
+
+Con esto, un preset guarda no sólo la arquitectura ACE, sino también los valores macro que host y Web UI usan, y al restaurarlo todo se sincroniza de forma consistente.
+
+
+Un index.html mínimo sólo necesita definir window.OmegaCore (send/receive) y el <div id="root"> donde React montará tu UI.
+​
+​
+
+index.html mínimo para OMEGA Web UI
+xml
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>OMEGA Synth UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script>
+      (function () {
+        if (!window.OmegaCore) {
+          window.OmegaCore = {};
+        }
+
+        // Desde JS → C++
+        window.OmegaCore.sendMessage = function (msg) {
+          var text = typeof msg === 'string' ? msg : JSON.stringify(msg);
+
+          // WebView2 (Windows)
+          if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(text);
+            return;
+          }
+
+          // macOS / otros backends (según integración JUCE)
+          if (window.external && typeof window.external.invoke === 'function') {
+            window.external.invoke(text);
+            return;
+          }
+
+          // Fallback dev (por si abres en navegador normal)
+          console.log('[OmegaCore.sendMessage]', text);
+        };
+
+        // Desde C++ → JS (lo sobrescribirá tu hook React)
+        window.OmegaCore.onMessage = function (msg) {
+          console.log('[OmegaCore.onMessage]', msg);
+        };
+      })();
+    </script>
+
+    <!-- Tu bundle React; en dev será /main.js (Vite) o similar -->
+    <script src="main.js"></script>
+  </body>
+</html>
+En tu entrada React (main.tsx/index.tsx), sólo montas sobre root y usas useOmegaParams que ya habla con OmegaCore.sendMessage / OmegaCore.onMessage.
+
+
+
+
+Un main.tsx mínimo sólo necesita montar React sobre root y usar tu hook useOmegaParams y el componente FilterControls.
+​
+
+main.tsx mínimo
+tsx
+// main.tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { FilterControls } from './FilterControls';
+import { useOmegaParams } from './useOmegaParams';
+
+const App: React.FC = () => {
+  const { presetName } = useOmegaParams();
+
+  return (
+    <div style={{ padding: 16, fontFamily: 'sans-serif', color: '#eee', background: '#111' }}>
+      <h1 style={{ fontSize: 18, marginBottom: 8 }}>OMEGA VA / ACE</h1>
+      <h2 style={{ fontSize: 14, marginBottom: 16 }}>Preset: {presetName || '—'}</h2>
+      <FilterControls />
+    </div>
+  );
+};
+
+const rootElement = document.getElementById('root') as HTMLElement;
+const root = ReactDOM.createRoot(rootElement);
+root.render(<App />);
+Con index.html + este main.tsx + useOmegaParams/FilterControls, ya tienes un Web UI funcional hablando con el engine vía OmegaCore.sendMessage y OmegaUiBridge.
+
+
+
+Para empaquetar index.html y el bundle React en release, lo típico en JUCE es usar BinaryData y un ResourceProvider para la WebView.
+​
+​
+
+1. Generar BinaryData con Projucer/CMake
+Añades tu carpeta Resources/webui (con index.html, main.js, main.css, etc.) como “Binary resource” en el proyecto JUCE o en el juce_add_binary_data de CMake.
+​
+
+JUCE genera BinaryData::index_html, BinaryData::main_js, etc., accesibles desde C++.
+
+Ejemplo CMake:
+
+text
+juce_add_binary_data(OMEGA_WebResources
+    SOURCES
+        Resources/webui/index.html
+        Resources/webui/main.js
+        Resources/webui/main.css
+)
+Y luego enlazas OMEGA_WebResources en tu target plugin.
+​
+
+2. ResourceProvider para la WebView
+JUCE 8 permite registrar un proveedor de recursos para WebBrowserComponent, de modo que las URLs tipo local://index.html se resuelvan desde BinaryData.
+​
+
+cpp
+// OmegaWebResources.h
+#pragma once
+#include <juce_gui_extra/juce_gui_extra.h>
+
+class OmegaWebResourceProvider : public juce::WebBrowserComponent::ResourceProvider
+{
+public:
+    bool canHandleRequest (const juce::URL& url) override
+    {
+        return url.getScheme() == "omega" && url.getHost() == "ui";
+    }
+
+    juce::WebBrowserComponent::Resource
+    getResource (const juce::URL& url) override
+    {
+        auto path = url.getSubPath();  // e.g. "/index.html" or "/main.js"
+
+        if (path == "/index.html" || path.isEmpty())
+            return { juce::MemoryBlock (BinaryData::index_html,
+                                        BinaryData::index_htmlSize),
+                     "text/html" };
+
+        if (path == "/main.js")
+            return { juce::MemoryBlock (BinaryData::main_js,
+                                        BinaryData::main_jsSize),
+                     "application/javascript" };
+
+        if (path == "/main.css")
+            return { juce::MemoryBlock (BinaryData::main_css,
+                                        BinaryData::main_cssSize),
+                     "text/css" };
+
+        return {};
+    }
+};
+cpp
+// OmegaWebViewComponent.cpp
+OmegaWebViewComponent::OmegaWebViewComponent()
+{
+    using Browser = juce::WebBrowserComponent;
+
+    Browser::Options opts;
+    opts = opts.withBackend (Browser::Options::Backend::webview2)
+               .withNativeIntegrationEnabled (true)
+               .withResourceProvider (std::make_unique<OmegaWebResourceProvider>());
+
+    mBrowser = std::make_unique<Browser> (opts);
+    addAndMakeVisible (*mBrowser);
+
+    // En release: cargar desde esquema omega://ui/
+    mBrowser->goToURL ("omega://ui/index.html");
+}
+En debug puedes seguir usando http://localhost:3000 seleccionando URL por #ifdef JUCE_DEBUG.
+
+Con esto, el plugin en release no depende de un servidor externo: React/JS/CSS viven dentro del binario y WebView los sirve vía tu ResourceProvider.
+
+
+
+
+Ahora mismo lo más útil es cerrar el circuito de presets: cómo se sincronizan OmegaPreset y APVTS al cargar/guardar, porque afecta tanto al motor VA como al Web UI.
+
+Orden de carga de preset (YAML → engine + UI)
+Cuando haces loadPreset(presetId) (desde Web UI o host):
+
+Cargar y parsear preset lógico
+
+cpp
+OmegaPreset preset = OmegaPresetSerializer::loadFromYaml (presetId);
+// preset tiene Global, LayerParams, VoiceArchitecture, Modulation...
+Actualizar ValueTree interno
+
+OmegaPreset envuelve el ValueTree principal (OMEGAPRESET).
+
+Llamas a algo tipo processor.setPreset (preset) que sustituye el ValueTree bajo un lock del message thread (nunca en audio thread).
+
+Sincronizar macros → APVTS
+
+Desde ese mismo setPreset:
+
+cpp
+void OmegaAudioProcessor::applyPresetToApvts (const OmegaPreset& preset)
+{
+    auto setParam = [this] (const char* id, float value)
+    {
+        if (auto* p = mApvts.getParameter (id))
+            p->setValueNotifyingHost (
+                p->getNormalisableRange().convertTo0to1 (value));
+    };
+
+    setParam ("MASTER_GAIN_DB", preset.getMasterGainDb());
+    setParam ("LAYER_A_LEVEL_DB", preset.getLayerLevelDb ("A"));
+    setParam ("LAYER_A_PAN", preset.getLayerPan ("A"));
+    setParam ("LAYER_A_MAIN_CUTOFF", preset.getLayerMainCutoff ("A"));
+    setParam ("LAYER_A_MAIN_RES", preset.getLayerMainRes ("A"));
+    setParam ("LAYER_A_ENV_AMT", preset.getLayerEnvAmount ("A"));
+    setParam ("LAYER_A_LFO_RATE_HZ", preset.getLayerLfoRateHz ("A"));
+    setParam ("LAYER_A_LFO_DEPTH_SEMITONES", preset.getLayerLfoDepthSemis ("A"));
+    setParam ("LAYER_A_AMP_ATTACK_MS", preset.getLayerAmpAttackMs ("A"));
+    setParam ("LAYER_A_AMP_DECAY_MS", preset.getLayerAmpDecayMs ("A"));
+    setParam ("LAYER_A_AMP_SUSTAIN", preset.getLayerAmpSustain ("A"));
+    setParam ("LAYER_A_AMP_RELEASE_MS", preset.getLayerAmpReleaseMs ("A"));
+}
+Tus parameterChanged listeners ya copian esos valores a los atomics (LayerASettings), así que el engine recibe la nueva config en el siguiente bloque.
+​
+
+Reconstruir EngineConfig/VoiceArchitecture
+
+También en setPreset llamas a la fábrica:
+
+cpp
+void OmegaAudioProcessor::rebuildEngineConfigFromPreset ()
+{
+    auto validated = AceValidator (mCatalog).validateAndRepairPreset (mPreset);
+    if (validated.status == ValidationStatus::Invalid)
+        return;
+
+    auto newConfig = VoiceFactory::createConfigFromPreset (mPreset, mCatalog, mSampleRate);
+    mEngineConfigManager.prepareNextConfig (std::move (newConfig));
+}
+En el siguiente punto seguro, haces el swap atómico y el audio thread ya usa el nuevo preset.
+
+Notificar Web UI
+
+El OmegaUiBridge puede emitir:
+
+cpp
+// dentro de setPreset o tras rebuild
+if (mUiBridge.sendToUi)
+    mUiBridge.sendToUi (mUiBridge.buildStateJson ("preset-load"));
+El Web UI recibe un state con preset y params, y React se actualiza.
+
+Orden de guardado de preset (estado actual → YAML)
+Cuando haces savePreset(name, tags):
+
+Volcar macros APVTS → OmegaPreset
+
+Antes de serializar, lees APVTS:
+
+cpp
+void OmegaAudioProcessor::applyApvtsToPreset (OmegaPreset& preset)
+{
+    auto getParam = [this] (const char* id, float def) -> float
+    {
+        if (auto* p = mApvts.getParameter (id))
+        {
+            auto norm = p->getValue();
+            return p->getNormalisableRange().convertFrom0to1 (norm);
+        }
+        return def;
+    };
+
+    preset.setMasterGainDb (getParam ("MASTER_GAIN_DB", 0.0f));
+    preset.setLayerLevelDb ("A", getParam ("LAYER_A_LEVEL_DB", 0.0f));
+    preset.setLayerPan ("A", getParam ("LAYER_A_PAN", 0.0f));
+    preset.setLayerMainCutoff ("A", getParam ("LAYER_A_MAIN_CUTOFF", 2000.0f));
+    // ... resto de macros
+}
+Serializar OmegaPreset a YAML
+
+cpp
+OmegaPresetSerializer::saveToYaml (preset, name, tags);
+Así garantizas que:
+
+Preset contiene tanto arquitectura ACE como los valores macro que host y Web UI ven.
+
+Cargar siempre pasa por OmegaPreset → APVTS → engine, por lo que no hay estados divergentes.
+
+Como siguiente paso, veo natural volver al motor VA Juno y usar el preset Juno pad que ya definimos (OSC‑VA‑001 + FLT‑VA‑001) para cerrar el vertical slice de audio; ¿te parece bien tirar por ahí o prefieres que sigamos un rato más en la parte Web UI/React?
+
+
+Dado todo lo que hemos cerrado, el siguiente paso razonable es volver al motor VA Juno usando el preset Juno pad que ya definimos (OSC‑VA‑001 + FLT‑VA‑001) y empezar a probarlo con tu nuevo Web UI como front.
+
+Muy resumido, el plan inmediato sería:
+
+Implementar el par mínimo de componentes DSP:
+
+OSC-VA-001 (DCO Juno) como clase C++ adaptando tu JUNiO.
+​
+
+FLT-VA-001 (IR3109 LP24) con un ladder/biquad estable y rangos alineados con LAYER_A_MAIN_CUTOFF/LAYER_A_MAIN_RES.
+​
+
+Cablear el preset Juno pad que hemos escrito en YAML a:
+
+OmegaPreset (ValueTree).
+
+VoiceFactory::createConfigFromPreset para que construya VoiceArchitectureRuntime con ese osc + filtro.
+​
+
+Usar tu Web UI:
+
+Sliders React para cutoff/res/envAmt ya mapeados a setParam.
+
+WebView empaquetado con BinaryData, hablando vía OmegaUiBridge.
+
+Con eso ya tendrías un “primer sonido” Juno‑like controlado desde Web UI, sobre el pipeline ACE/OMEGA real.
+
+
+
+
+
+  
+~~ [HECHO / SUPERADO]  

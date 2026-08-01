@@ -1,0 +1,47 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-06-25 12:16:04
+   ================================================================= */
+
+/* OMEGA INDUSTRIAL SCREWS (Era 7.2.3) */
+/* Aligned with ABDSynthsWeb Standards */
+
+.module-screw {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--screw-bg, linear-gradient(135deg, #444, #222));
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 1px 3px rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* PHILLIPS CROSS INDENTATION */
+.module-screw::before,
+.module-screw::after {
+    content: '';
+    position: absolute;
+    background: var(--screw-slot-bg, #111);
+    box-shadow: inset 0 0 1px rgba(0,0,0,0.8);
+}
+
+.module-screw::before {
+    width: 60%;
+    height: 2px;
+}
+
+.module-screw::after {
+    width: 2px;
+    height: 60%;
+}
+
+/* POSITIONS */
+.module-screw.top-left { top: 12px; left: 12px; transform: rotate(15deg); }
+.module-screw.top-right { top: 12px; right: 12px; transform: rotate(45deg); }
+.module-screw.bottom-left { bottom: 12px; left: 12px; transform: rotate(75deg); }
+.module-screw.bottom-right { bottom: 12px; right: 12px; transform: rotate(105deg); }

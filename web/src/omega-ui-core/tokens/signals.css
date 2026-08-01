@@ -1,0 +1,36 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-06-25 12:16:05
+   ================================================================= */
+
+/* ═══════════════════════════════════════════════
+   OMEGA ERA 7.2.3 — SIGNAL COLOR TOKENS
+   ═══════════════════════════════════════════════ */
+
+:root {
+    /* Core signal types */
+    --signal-audio: #00f0ff;
+    --signal-cv: #ffaa00;
+    --signal-gate: #ffffff;
+    --signal-midi: #ff5500;
+
+    /* State / feedback colors */
+    --signal-red: #ff4444;
+    --signal-green: #00ff88;
+    --signal-amber: #ffaa00;
+}
+
+[data-ui-theme="light"] {
+    --signal-audio: #3b82f6;
+    --signal-cv: #d97706;
+    --signal-gate: #475569;
+    --signal-midi: #ea580c;
+
+    --signal-red: #dc2626;
+    --signal-green: #16a34a;
+    --signal-amber: #d97706;
+}
+
+/* Dark theme: :root defaults serve as the dark baseline */

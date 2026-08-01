@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "back": "Back to Engine",
+    "status": "Status",
+    "online": "Online",
+    "download": "Download",
+    "downloads": "Downloads Hub",
+    "contact": "Contact"
+  },
+  "buttons": {
+    "manual": "User Manual",
+    "learnMore": "Learn More",
+    "viewDetail": "View Detail",
+    "downloadNow": "Download Now",
+    "contactLab": "Contact Lab",
+    "manifestEditor": "Manifest Editor",
+    "macOS": "Download for macOS",
+    "windows": "Download for Windows"
+  },
+  "downloads": {
+    "repo": "Release Repository",
+    "description": "Access the latest alpha and beta builds of our experimental synthesis engines. All instruments are currently free during the research phase.",
+    "certified": "Alpha Certified",
+    "requirements": "System Requirements",
+    "requirements_desc": "Windows 10+ (64-bit) or macOS 12.0+ (Universal Binary). 8GB RAM minimum recommended.",
+    "formats": "Plugin Formats",
+    "formats_desc": "VST3, AU (Audio Units), and AAX (Pro Tools). Standalone versions included in each installer.",
+    "notice": "Alpha Notice",
+    "notice_desc": "These are experimental builds. Please back up your projects before using these versions in production."
+  },
+  "footer": {
+    "tagline": "Aseptic Synthesis Research Lab",
+    "matrix": "Global Digital Matrix"
+  }
+}

@@ -1,0 +1,100 @@
+schemaVersion: '7.2'
+id: midi_in
+metadata:
+  name: MIDI IN
+  family: io
+  author: ABD-SynthEngine
+  tags:
+    - era7
+    - industrial
+    - infrastructure
+  rack:
+    slot: top
+    hp: 4
+    height_mode: compact
+  description: |-
+    Industrial-grade MIDI bridge. Decodes incoming external MIDI streams into high-fidelity control signals for the OMEGA modular ecosystem.
+    Professional MIDI input interface for the OMEGA Era 7 engine. Provides high-precision note, CC, and clock synchronization for external controller integration.
+    Precision MIDI interface for real-time external control and DAW synchronization.
+ui:
+  dimensions:
+    width: 60
+    height: 140
+  controls:
+    - id: led_activity
+      type: knob
+      role: telemetry
+      bind: led_activity
+      label: MIDI ACT
+      pos:
+        x: 30
+        'y': 45
+      presentation:
+        tab: MAIN
+        variant: red_3mm
+        component: led
+        offsetX: 0
+        offsetY: 0
+        container: STATUS
+        attachments:
+          - type: label
+            position: bottom
+            offsetX: 0
+            offsetY: 4
+            variant: B_cyan
+            text: MIDI ACT
+        precision: 6
+        ui_precision: 2
+  jacks:
+    - id: port_midi_out
+      type: string
+      role: stream
+      bind: midi_out
+      label: MIDI OUT
+      pos:
+        x: 30
+        'y': 65
+      presentation:
+        tab: MAIN
+        variant: industrial
+        component: port
+        offsetX: 0
+        offsetY: 0
+        container: BUS
+        attachments:
+          - type: label
+            position: bottom
+            offsetX: 0
+            offsetY: 0
+            variant: B_cyan
+            text: Midi Data / Out
+        precision: 6
+        ui_precision: 2
+  skin: minimal
+  layout:
+    gridSnap: 5
+    activeTab: MAIN
+    containers:
+      - id: STATUS
+        label: MIDI
+        pos:
+          x: 5
+          'y': 18
+        size:
+          w: 50
+          h: 99
+        variant: inset
+        tab: MAIN
+      - id: BUS
+        label: MIDI Data
+        pos:
+          x: 5
+          'y': 20
+        size:
+          w: 50
+          h: 100
+        variant: inset
+        tab: MIDI
+resources:
+  wasm: midi_in.wasm
+modulations: []

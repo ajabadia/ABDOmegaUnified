@@ -1,0 +1,56 @@
+# OMEGA Global Lookups
+# Diccionarios maestros para la Era 6 (Industrial Aseptic)
+
+midi:
+  channels:
+    - { value: 0, label: "OMNI", description: "All channels" }
+    - { value: 1, label: "CH 1" }
+    - { value: 2, label: "CH 2" }
+    - { value: 3, label: "CH 3" }
+    - { value: 4, label: "CH 4" }
+    - { value: 5, label: "CH 5" }
+    - { value: 6, label: "CH 6" }
+    - { value: 7, label: "CH 7" }
+    - { value: 8, label: "CH 8" }
+    - { value: 9, label: "CH 9" }
+    - { value: 10, label: "CH 10" }
+    - { value: 11, label: "CH 11" }
+    - { value: 12, label: "CH 12" }
+    - { value: 13, label: "CH 13" }
+    - { value: 14, label: "CH 14" }
+    - { value: 15, label: "CH 15" }
+    - { value: 16, label: "CH 16" }
+
+  cc_standard: # General MIDI Standard
+    - { cc: 1, label: "Mod Wheel", type: "continuous" }
+    - { cc: 2, label: "Breath", type: "continuous" }
+    - { cc: 7, label: "Volume", type: "continuous" }
+    - { cc: 10, label: "Pan", type: "continuous" }
+    - { cc: 11, label: "Expression", type: "continuous" }
+    - { cc: 64, label: "Sustain", type: "switch" }
+    - { cc: 74, label: "Brightness/Cutoff", type: "continuous" }
+
+logic:
+  boolean:
+    - { value: 0, label: "OFF" }
+    - { value: 1, label: "ON" }
+
+  tri_state:
+    - { value: 0, label: "MIN" }
+    - { value: 1, label: "MID" }
+    - { value: 2, label: "MAX" }
+
+timing:
+  subdivisions:
+    - { value: 0.25, label: "1/4" }
+    - { value: 0.125, label: "1/8" }
+    - { value: 0.0625, label: "1/16" }
+    - { value: 0.333, label: "1/3T" }
+
+voice:
+  strategies:
+    - { value: 0, label: "POLY", description: "Standard polyphonic" }
+    - { value: 1, label: "LAST", description: "Last note priority" }
+    - { value: 2, label: "LOWEST", description: "Lowest note priority" }
+    - { value: 3, label: "HIGHEST", description: "Highest note priority" }
+    - { value: 4, label: "LEGATO", description: "Monophonic legato" }

@@ -1,0 +1,39 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-06-25 12:16:07
+   ================================================================= */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ⚠️ OMEGA UI CORE — DO NOT EDIT (READ-ONLY REPLICA NOTICE)
+   ---------------------------------------------------------------------------
+   Master Source: d:/desarrollos/ABDSynthsWeb/abd-ia_synths/src/omega-ui-core/
+   Any changes made here in ABDOmega/ui/omega-ui-core WILL BE OVERWRITTEN.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* TOKENS */
+@import './tokens/vars.css';
+@import './tokens/signals.css';
+@import './tokens/skins.css';
+
+/* LAYOUT */
+@import './layout/containers.css';
+@import './layout/screws.css';
+@import './layout/cells.css';
+@import './layout/tabs.css';
+@import './layout/splash.css';
+
+/* PRIMITIVES (Consolidated) */
+@import './primitives/controls.css';    /* knob, slider, stepper, switch, select */
+@import './primitives/indicators.css';   /* led, display, scope, terminal */
+@import './primitives/visuals.css';      /* port, label, illustration */
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-primary);
+}
+

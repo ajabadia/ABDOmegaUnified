@@ -1,0 +1,21 @@
+{
+  "version": "7.0",
+  "id": "midi_in",
+  "name": "Global MIDI Input",
+  "parameters": [],
+  "ports": [
+    {
+      "id": "midi_out",
+      "label": "MIDI Data",
+      "direction": "output",
+      "type": "midi"
+    },
+    {
+      "id": "led_activity",
+      "label": "Activity",
+      "direction": "output",
+      "type": "led"
+    }
+  ],
+  "family": "io"
+}

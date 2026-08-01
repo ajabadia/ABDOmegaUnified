@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# ── OMEGA Architectural Guard (pre-commit hook) ────────────────────────
+# Blocks commits if HIGH-risk architectural violations are detected.
+# MEDIUM and LOW findings are informational and do not block.
+
+echo ""
+echo "🔍 [OMEGA ARCH-GUARD] Checking architectural integrity..."
+
+node scripts/arch-guard.mjs
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 2 ]; then
+  echo ""
+  echo "❌ COMMIT BLOCKED: HIGH-risk architectural violations detected!"
+  echo "   Run 'npm run arch-audit' for full details."
+  echo "   Fix HIGH violations before committing."
+  exit 1
+elif [ $EXIT_CODE -eq 0 ]; then
+  echo "✅ [OMEGA ARCH-GUARD] Architectural integrity verified."
+else
+  echo "⚠️  [OMEGA ARCH-GUARD] Unexpected exit code ($EXIT_CODE) — allowing commit."
+  EXIT_CODE=0
+fi
+
+# ── Secondary check: ESLint ────────────────────────────────────────────
+if [ $EXIT_CODE -eq 0 ]; then
+  echo "🔍 [ESLINT] Checking code quality..."
+  npm run lint -- --quiet
+  LINT_EXIT=$?
+  if [ $LINT_EXIT -ne 0 ]; then
+    echo ""
+    echo "❌ COMMIT BLOCKED: ESLint errors detected!"
+    echo "   Run 'npm run lint' to see details."
+    echo "   Fix all errors before committing."
+    exit 1
+  else
+    echo "✅ [ESLINT] Code quality check passed."
+  fi
+fi
+
+# ── Tertiary check: TypeScript ─────────────────────────────────────────
+if [ $EXIT_CODE -eq 0 ]; then
+  echo "🔍 [TSC] Checking TypeScript types..."
+  npx tsc --noEmit
+  TSC_EXIT=$?
+  if [ $TSC_EXIT -ne 0 ]; then
+    echo ""
+    echo "❌ COMMIT BLOCKED: TypeScript errors detected!"
+    echo "   Run 'npx tsc --noEmit' to see details."
+    echo "   Fix all type errors before committing."
+    exit 1
+  else
+    echo "✅ [TSC] TypeScript type check passed."
+  fi
+fi
+
+# Proceed with commit

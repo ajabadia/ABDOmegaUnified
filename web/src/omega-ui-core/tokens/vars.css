@@ -1,0 +1,228 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-06-25 12:16:05
+   ================================================================= */
+
+/* ═══════════════════════════════════════════════
+   OMEGA ERA 7.2.3 — UNIFIED WORKBENCH TOKENS
+   (Synchronized with ABDSynthsWeb Standards)
+   ═══════════════════════════════════════════════ */
+
+:root {
+    --wb-bg: #050505;
+    --wb-surface: #0a0a0b;
+    --wb-surface-hover: #141416;
+    --wb-surface-subtle: rgba(255, 255, 255, 0.03);
+    --wb-surface-strong: rgba(255, 255, 255, 0.08);
+    --wb-surface-inset: #1a1a1c;
+    --wb-outline: rgba(255, 255, 255, 0.08);
+    --wb-text: #e0e0e0;
+    --wb-text-muted: rgba(255, 255, 255, 0.4);
+    --wb-bloom: rgba(0, 240, 255, 0.3);
+    --wb-primary: #00f0ff;
+    --wb-accent: #ff8c00;
+
+    /* LAYOUT CONSTANTS (Era 7.2.3 Unified Scaling) */
+    --rack-height: 680px;
+    --knob-size: 42px;
+    --render-scale: 1.5;
+
+    /* COMPONENT TOKENS (Base Industrial) */
+    --primitive-bg: #111;
+    --primitive-bg-dark: #000;
+    --primitive-border-color: #333;
+    --primitive-border: 2px solid var(--primitive-border-color);
+    /* --primitive-shadow is resolved dynamically below */
+    --primitive-radius-round: 50%;
+    --primitive-radius-pill: 20px;
+    --primitive-radius-flat: 2px;
+    --primitive-marker-glow: 0 0 8px rgba(0, 240, 255, 0.6);
+    --primitive-accent: var(--wb-primary);
+
+    /* OMEGA ATMOSPHERIC PHYSICS (Era 7.2.3)
+       These are injected by the Design Token engine but have safe defaults here. */
+    --omega-shadow-color: rgba(0, 0, 0, 0.5);
+    --omega-shadow-x: 4px;
+    --omega-shadow-y: 4px;
+    --omega-shadow-blur: 4px;
+    --omega-height: 1.0;
+
+    /* Resolved Component Physics (Scale by height) */
+    --resolved-shadow-x: var(--omega-global-shadow-x, var(--omega-shadow-x));
+    --resolved-shadow-y: var(--omega-global-shadow-y, var(--omega-shadow-y));
+    --resolved-shadow-blur: var(--omega-global-shadow-blur, var(--omega-shadow-blur));
+    --resolved-shadow-color: var(--omega-global-shadow-color, var(--omega-shadow-color));
+
+    --omega-comp-shadow-x: calc(var(--resolved-shadow-x) * var(--omega-height));
+    --omega-comp-shadow-y: calc(var(--resolved-shadow-y) * var(--omega-height));
+    --omega-comp-shadow-blur: calc(var(--resolved-shadow-blur) * var(--omega-height));
+
+    --primitive-shadow: drop-shadow(var(--omega-comp-shadow-x) var(--omega-comp-shadow-y) var(--omega-comp-shadow-blur) var(--resolved-shadow-color));
+    
+    /* MASTER PALETTE REDIRECTION */
+    --omega-accent: var(--wb-primary);
+    --omega-surface: #1a1c1e;
+    --omega-weak: #555555;
+    --omega-text: #ffffff;
+}
+
+[data-ui-theme="light"] {
+    /* Workbench Surface System */
+    --wb-bg: #f8fafc;
+    --wb-surface: #ffffff;
+    --wb-surface-hover: #f1f5f9;
+    --wb-surface-subtle: rgba(0, 0, 0, 0.03);
+    --wb-surface-strong: rgba(0, 0, 0, 0.06);
+    --wb-surface-inset: #e2e8f0;
+    --wb-outline: rgba(0, 0, 0, 0.1);
+    --wb-text: #020617;
+    --wb-text-muted: rgba(2, 6, 23, 0.5);
+    --wb-bloom: rgba(14, 165, 233, 0.15);
+    --wb-primary: #0ea5e9;
+    --wb-accent: #f59e0b;
+
+    /* Component Tokens (Light) */
+    --primitive-bg: #e2e8f0;
+    --primitive-bg-dark: #cbd5e1;
+    --primitive-border-color: #cbd5e1;
+    --primitive-border: 2px solid var(--primitive-border-color);
+    --primitive-marker-glow: 0 0 8px rgba(14, 165, 233, 0.5);
+    --primitive-accent: var(--wb-primary);
+
+    /* Atmospheric Physics (Light) */
+    --omega-shadow-color: rgba(0, 0, 0, 0.1);
+    --resolved-shadow-color: var(--omega-global-shadow-color, var(--omega-shadow-color));
+
+    /* Master Palette (Light) */
+    --omega-accent: var(--wb-primary);
+    --omega-surface: #f1f5f9;
+    --omega-weak: #94a3b8;
+    --omega-text: #020617;
+}
+
+/* ═══════════════════════════════════════════════
+   THEME: AMBER (Warm Analog Accent)
+   ═══════════════════════════════════════════════ */
+[data-ui-theme="amber"] {
+    --wb-bg: #0a0804;
+    --wb-surface: #120f08;
+    --wb-surface-hover: #1c1710;
+    --wb-surface-subtle: rgba(255, 255, 255, 0.03);
+    --wb-surface-strong: rgba(255, 255, 255, 0.06);
+    --wb-surface-inset: #1f1a12;
+    --wb-outline: rgba(255, 255, 255, 0.08);
+    --wb-text: #f0e6d3;
+    --wb-text-muted: rgba(240, 230, 211, 0.4);
+    --wb-bloom: rgba(245, 158, 11, 0.3);
+    --wb-primary: #f59e0b;
+    --wb-accent: #d97706;
+    --primary-rgb: 245, 158, 11;
+    --color-primary-rgb: 245, 158, 11;
+
+    --primitive-bg: #1a150e;
+    --primitive-bg-dark: #0d0a05;
+    --primitive-border-color: #3d2e14;
+    --primitive-border: 2px solid var(--primitive-border-color);
+    --primitive-marker-glow: 0 0 8px rgba(245, 158, 11, 0.6);
+    --primitive-accent: var(--wb-primary);
+
+    --omega-shadow-color: rgba(0, 0, 0, 0.6);
+    --resolved-shadow-color: var(--omega-global-shadow-color, var(--omega-shadow-color));
+
+    --omega-accent: var(--wb-primary);
+    --omega-surface: #1a150e;
+    --omega-weak: #5c4a28;
+    --omega-text: #f0e6d3;
+}
+
+/* ═══════════════════════════════════════════════
+   THEME: CYBERPUNK (Neon Magenta + Deep Violet)
+   ═══════════════════════════════════════════════ */
+[data-ui-theme="cyberpunk"] {
+    --wb-bg: #05000a;
+    --wb-surface: #0d0515;
+    --wb-surface-hover: #1a0a2e;
+    --wb-surface-subtle: rgba(255, 255, 255, 0.03);
+    --wb-surface-strong: rgba(255, 255, 255, 0.08);
+    --wb-surface-inset: #1f0d38;
+    --wb-outline: rgba(255, 45, 149, 0.15);
+    --wb-text: #f0e6ff;
+    --wb-text-muted: rgba(240, 230, 255, 0.4);
+    --wb-bloom: rgba(255, 45, 149, 0.35);
+    --wb-primary: #ff2d95;
+    --wb-accent: #a855f7;
+    --primary-rgb: 255, 45, 149;
+    --color-primary-rgb: 255, 45, 149;
+
+    --primitive-bg: #120820;
+    --primitive-bg-dark: #080310;
+    --primitive-border-color: #3a1a60;
+    --primitive-border: 2px solid var(--primitive-border-color);
+    --primitive-marker-glow: 0 0 8px rgba(255, 45, 149, 0.6);
+    --primitive-accent: var(--wb-primary);
+
+    --omega-shadow-color: rgba(168, 85, 247, 0.3);
+    --resolved-shadow-color: var(--omega-global-shadow-color, var(--omega-shadow-color));
+
+    --omega-accent: var(--wb-primary);
+    --omega-surface: #0d0515;
+    --omega-weak: #3a1a60;
+    --omega-text: #f0e6ff;
+}
+
+/* ═══════════════════════════════════════════════
+   THEME: HIGH CONTRAST (Max Legibility)
+   ═══════════════════════════════════════════════ */
+[data-ui-theme="high-contrast"] {
+    --wb-bg: #000000;
+    --wb-surface: #0a0a0a;
+    --wb-surface-hover: #1a1a1a;
+    --wb-surface-subtle: rgba(255, 255, 255, 0.05);
+    --wb-surface-strong: rgba(255, 255, 255, 0.12);
+    --wb-surface-inset: #222222;
+    --wb-outline: rgba(255, 255, 255, 0.2);
+    --wb-text: #ffffff;
+    --wb-text-muted: rgba(255, 255, 255, 0.65);
+    --wb-bloom: rgba(255, 255, 255, 0.15);
+    --wb-primary: #ffffff;
+    --wb-accent: #00ff88;
+    --primary-rgb: 255, 255, 255;
+    --color-primary-rgb: 255, 255, 255;
+
+    --primitive-bg: #111;
+    --primitive-bg-dark: #000;
+    --primitive-border-color: #555;
+    --primitive-border: 2px solid var(--primitive-border-color);
+    --primitive-marker-glow: 0 0 8px rgba(255, 255, 255, 0.6);
+    --primitive-accent: var(--wb-primary);
+
+    --omega-shadow-color: rgba(0, 0, 0, 0.7);
+    --resolved-shadow-color: var(--omega-global-shadow-color, var(--omega-shadow-color));
+
+    --omega-accent: var(--wb-primary);
+    --omega-surface: #0a0a0a;
+    --omega-weak: #555555;
+    --omega-text: #ffffff;
+}
+
+/* ═══════════════════════════════════════════════
+   RACK VIEWPORT ISOLATION
+   Force dark primitives inside the rack viewport
+   regardless of the active UI theme.
+   ═══════════════════════════════════════════════ */
+.rack-viewport {
+    --primitive-bg: #111;
+    --primitive-bg-dark: #000;
+    --primitive-border-color: #333;
+    --primitive-border: 2px solid var(--primitive-border-color);
+    --primitive-shadow: drop-shadow(var(--omega-comp-shadow-x) var(--omega-comp-shadow-y) var(--omega-comp-shadow-blur) var(--omega-shadow-color));
+    --primitive-marker-glow: 0 0 8px rgba(0, 240, 255, 0.6);
+    --primitive-accent: var(--wb-primary);
+    --omega-surface: #1a1c1e;
+    --omega-weak: #555555;
+    --omega-text: #ffffff;
+    --omega-shadow-color: rgba(0, 0, 0, 0.5);
+    --resolved-shadow-color: var(--omega-shadow-color);
+}

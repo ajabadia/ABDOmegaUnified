@@ -1,0 +1,2578 @@
+Revisa lo siguiente: Te propongo pensar el osciloscopio como una “lupa musical” con dos niveles: el mini-visor actual y uno “de trabajo” a pantalla amplia, con muy pocos controles pero bien elegidos.
+​
+
+1. Dónde colocarlo y cómo abrirlo
+Mantén el módulo actual como “mini-scope” fijo en el rack, con un icono de expandir (tipo “↗”) que abre una modal grande centrada.
+​
+​
+
+Además, añade un pequeño icono de “ojo/scope” en los módulos clave (osciladores, mezcladores de voz), que abre la misma modal pero ya “pinchada” a esa fuente (entrada A: ese oscilador, entrada B: salida global).
+​
+​
+
+La modal debería poder hacer “dock” opcional: modo flotante (se queda por encima) y modo acoplado (una franja inferior grande estilo “logic analyzer”).
+
+2. Qué mostrar (no solo tiempo)
+Vista A: clásico “scope de canal único” a lo VCV Scope, para ver una forma de onda limpia estable.
+
+Vista B: overlay de dos señales (ej. oscilador seleccionado vs salida post-filtro), con colores distintos y un slider de mezcla visual (0% solo A, 100% solo B).
+​
+​
+
+Vista C opcional pero muy potente: modo XY (Lissajous) donde X = señal A, Y = señal B, para ver relación de fase/modulación (ideal para vibratos, FM ligera, unison spread).
+
+3. Controles mínimos pero bien pensados
+Te propongo 4 controles principales, todos en una sola barra superior:
+
+Timebase (tiempo):
+
+Un slider continuo que en realidad salta por “puntos dulces”: 0.25, 0.5, 1, 2, 4, 8 ciclos aproximados de la nota detectada.
+
+Internamente puedes tener dos modos: “Sync to pitch” (intenta mostrar uno o varios periodos) y “Free” (pura escala en ms/samples).
+​
+​
+
+Zoom vertical / Gain:
+
+Un único control “Scale” que sube/baja la amplitud, con auto-ajuste rápido (doble clic para “Fit”).
+
+Si quieres rizar el rizo: botón “Normalize” que se adapta en tiempo real al rango actual.
+​
+
+Trigger inteligente:
+
+Botón de modo: Auto / Rising / Falling / Off (free-run).
+
+Pequeño slider de “Trigger level” que aparece solo cuando estás en Rising/Falling.
+
+Persistencia / Freeze:
+
+Botón “Hold/Freeze” para congelar el último buffer y poder mirarlo con calma, ideal cuando tocas un sonido corto.
+​
+​
+
+Un modo de “fade trail” suave (persistencia corta) que deja un rastro de algunos frames para que se perciba movimiento sin ser un estroboscopio caótico.
+
+4. Ideas “fuera de la caja” pero aún sencillas
+Cursor de ciclos: al congelar, permites arrastrar dos marcadores verticales; entre ellos muestras “≈ n ciclos” y la frecuencia estimada (“~440 Hz”).
+​
+​
+
+Modo “one-shot envelope”: si el usuario conectase fuentes de modulación lentas (LFO, envelopes CV), el scope podría cambiar de skin: fondo más claro, grid fino, y el tiempo automáticamente en rangos largos (1–10 s).
+​
+​
+
+Resaltado de warping: modo “Compare pre/post” donde una de las señales se dibuja difuminada en gris (input) y la otra en color (post-filtro o post-waveshaper), ideal para entender saturaciones y clipping.
+​
+​
+
+Snapshots nombrados: en modo Freeze, botón “Snapshot” que guarda esa captura con un nombre corto asociado al preset (no hace falta que sea disco; puede ser solo preset-local).
+​
+​
+
+5. Interacción rápida con el rack
+Desde cada módulo, el icono de scope no abre solo la modal: también “arma” el canal A o B, de forma que la ruta es muy directa (“clic en el DCO → veo su forma de onda ampliada”).
+​
+​
+
+En la cabecera de la modal, muestra etiquetas fuente: “A: Juno DCO1 post-mix · B: Master post-VCF”, y haz clicables esas etiquetas para re-enrutar sin cerrar el scope.
+​
+​
+
+Atajo de teclado simple: por ejemplo, tecla “O” abre/cierra el último scope que usaste, para que durante el diseño de un sonido no tengas que cazar el icono cada vez.
+​
+​ combinación mini scope + modal global encaja muy bien con cómo ya tienes montado el rack y el módulo de osciloscopio en la WebUI.
+​
+
+1. Rol de cada uno
+Mini scope: indicador rápido “siempre visible” en el rack superior, enganchado por defecto a la salida master o a lo que ya tengas (como ahora).
+​
+
+Modal global: herramienta de análisis donde realmente trabajas la forma de onda (timebase, zoom, trigger, comparaciones), abierta desde el mini scope y desde iconos en módulos.
+​
+​
+
+2. Flujo de uso que no estorbe
+Mini scope con dos acciones: clic normal abre/cierra la modal global, clic derecho (o pequeño icono de engranaje) abre un menú muy simple para seleccionar la fuente por defecto (Master, DCO1, DCO2, post-VCF, etc.).
+​
+​
+
+Cada módulo importante (DCO, mixer, filtros) con un icono de “ojo/scope”: al pulsarlo abre la misma modal pero fijando “Entrada A = este módulo”, mientras la Entrada B mantiene lo que el usuario eligió antes (por ejemplo, Master out).
+​
+​
+
+3. Diseño de la modal global
+Piensa la modal global como un “Scope de laboratorio” con 3 zonas:
+
+Cabecera:
+
+Selector A/B de fuente (desplegable o chips clicables).
+
+Modo de vista: A, B, Overlay, XY.
+
+Área central:
+
+Lienzo grande (canvas) con anti-aliasing suave, grid sutil, y soporte para arrastrar horizontalmente cuando está en Free-run.
+​
+​
+
+Barra de controles (máx. 4):
+
+Timebase (Sync / Free) con un slider.
+
+Scale (zoom vertical) con doble clic para “Fit”.
+
+Trigger (Auto / Rising / Falling / Off) y nivel cuando aplique.
+
+Freeze/Persist (Hold + pequeño toggle de “trail”).
+​
+
+4. Mini scope como “preview inteligente”
+El mini scope no necesita todos los controles: solo actúa como preview de lo que verás a lo grande y como botón de acceso rápido.
+​
+
+Un pequeño detalle útil: cuando la modal esté abierta, el mini scope podría mostrar una miniatura del mismo contenido (downsampleado) pero con un halo o borde que indique “estoy en modo analizador”.
+​
+
+Si cambias la fuente A/B en la modal, el mini scope se actualiza automáticamente para que siempre veas “algo coherente” sin reconfigurarlo dos veces.
+​
+
+5. Pequeños extras creativos sin complicarte
+“Scope Lock”: botón en la modal que “bloquea” la fuente, de modo que aunque pulses iconos de ojo en otros módulos, solo cambia Entrada B (comparación), pero A permanece fija en Master o en el módulo que estás estudiando.
+
+“Cycle assist”: cuando estás en modo Sync, un pequeño texto en la esquina del canvas que indica “≈ 1.2 ciclos / 440 Hz”, recalculado al vuelo, sin exponer más controles.
+​
+
+“Diagnostic theme”: atajo rápido (por ejemplo, un botón “Lab”) que cambia solo el skin del scope a fondo claro, líneas muy finas y más contraste, ideal para depurar distorsiones y aliasing; el resto de la UI sigue igual.
+​Entonces orientaría el diseño claramente a “el scope recuerda” sin volverse loco.
+
+1. Qué debería recordar
+Fuente A y B: qué puntos del motor estás mirando (DCO1, Post-VCF, Master, LFO, etc.).
+​
+
+Modo de vista: A / B / Overlay / XY.
+​
+
+Timebase y modo (Sync/Free) y el estado de Trigger (tipo + nivel).
+
+Estado de Freeze (si estaba congelado) no hace falta guardarlo en preset; que se resetee al cargar.
+​
+
+2. Dónde y cómo persistirlo
+Como parte del preset: un pequeño bloque dentro del ValueTree / YAML del preset, algo tipo visual.scope con esos 3–4 campos.
+​
+
+Opcionalmente, un “perfil global de scope” para el standalone que puedas sobreescribir si no quieres depender del preset (por ejemplo, últimos valores usados).
+​
+
+3. Control sobre esa memoria
+Toggle simple en la UI: “Scope follows preset” ON/OFF.
+​
+
+ON: al cargar preset, aplicas la configuración guardada del scope.
+
+OFF: al cargar preset, dejas la configuración de scope como estaba (modo puramente manual).
+
+4. Comportamiento que se siente natural
+Cuando guardas un preset, se guarda también el estado del scope si “Scope follows preset” está activo; si no, no se toca.
+​
+
+En host DAW, la automatización no debería meterse con estos parámetros; son puramente de visualización, como ocurre en muchos scopes VST.
+Perfecto, entonces vamos a por un scope con memoria y selector de contexto audio/modulación, pero manteniendo la simplicidad.
+​
+​
+
+1. Dos contextos claros: Audio vs Mod
+Audio: el scope se comporta como “analizador de salida/forma de onda”, típico softsynth; fuentes habituales: DCOs, mezclas, post-VCF, master.
+​
+​
+
+Modulación: el scope se usa como “visualizador de CV interno”, perfecto para ver LFOs, envelopes, aftertouch, etc., más cercano a un módulo de Eurorack que a un VST clásico.
+​
+​
+
+En la UI sería un simple toggle “Context: Audio / Mod”, visible en la barra superior de la modal global y quizá como icono sutil en el mini scope.
+​
+​
+
+2. Qué recuerda cada contexto
+Cada contexto puede tener su propio “perfil” de memoria:
+
+Audio recuerda:
+
+Fuente A/B (p. ej. A = DCO1 post-mix, B = Master).
+
+Modo de vista (A/B/Overlay/XY).
+
+Timebase corta (ms o ciclos), trigger típico Rising, scale media.
+
+Modulación recuerda:
+
+Fuente A/B (p. ej. A = LFO1 out, B = ENV1 out o ModSource específico).
+
+Timebase larga (segundos), trigger quizá en Auto/Off para ver barridos.
+
+Quizá el modo de vista favorito (solo A o overlay suave).
+​
+​
+
+Así, cuando cambias el toggle Audio ↔ Mod, el scope salta a sus ajustes almacenados, sin pisar los del otro modo.
+​
+
+3. Relación con presets: “Scope follows preset”
+Con el selector de contexto, el comportamiento de memoria puede quedar así:
+
+Scope follows preset = ON:
+
+El preset guarda un bloque visual.scope.audio y otro visual.scope.mod, cada uno con sus campos.
+​
+
+Al cargar el preset, se restauran ambos perfiles; el contexto activo decide cuál se muestra.
+
+Scope follows preset = OFF:
+
+Los perfiles audio/mod del scope son globales para la sesión, no se tocan al cargar presets.
+
+Ideal para sesiones de diseño o debug donde no quieres que el sonido te mueva el “laboratorio”.
+​
+
+Esto te da un “doble eje”: contexto (Audio/Mod) y origen de memoria (preset/global), manteniendo la interfaz en solo dos toggles pequeños.
+
+4. Mini scope como indicador de contexto
+El mini scope podría cambiar ligeramente de apariencia según el contexto: por ejemplo, un pequeño texto “A” (Audio) o “M” (Mod) en una esquina, o un color de borde diferente.
+​
+​
+
+Cuando pulses el icono de expandir en el mini scope, se abre la modal en el contexto actual y con el perfil correspondiente ya cargado.
+​
+
+5. UX rápida para cambiar fuentes
+En contexto Audio, los iconos de “ojo” de módulos de audio (osciladores, filtros, FX) cambian las fuentes A/B del perfil Audio.
+
+En contexto Mod, podrías tener iconos equivalentes en módulos de modulación (LFO, envs, matriz) o, si aún no existen, una lista simple de ModSources en la modal.
+​
+​
+
+Así evitas nuevos controles extra: el selector de contexto manda qué lista de fuentes muestras primero.
+
+es totalmente posible y tiene mucho sentido de UX que puedas alternar entre ambos modos con un simple control visual.
+
+1. Botón de contexto en la barra del scope
+En la barra superior de la modal global, pon un botón tipo toggle “Context: AUDIO / MOD”, estilo pill con dos estados claramente diferenciados.
+​
+​
+
+Cada estado carga su perfil (fuentes A/B, timebase, trigger, etc.) sin tocar el otro, tal y como comentábamos antes.
+​
+
+2. Integración con el mini scope
+El mini scope puede heredar el contexto actual: al hacer clic se abre la modal en ese contexto, y un pequeño indicador (color de borde o letra A/M) te recuerda dónde estás.
+​
+​
+
+Puedes permitir que un clic secundario en el mini scope alterne rápidamente AUDIO ↔ MOD, actuando como atajo del mismo toggle de la modal.
+​
+
+3. Opcional: tecla rápida
+Puedes definir una tecla rápida global mientras la WebUI tenga foco (por ejemplo, tecla “C”) que cambie el contexto del scope sin abrir/cerrar nada, solo cambiando la vista y el perfil activo.
+Perfecto, entonces el scope queda como un módulo autocontenido con su propio mini‑scope y su propia modal, sin contaminar el resto del rack.
+​
+
+1. Modelo mental del módulo
+Módulo Oscilloscope = “caja negra de análisis”: recibe taps de señal/modulación que le envía el motor vía RPC, pero su lógica de contexto, memoria y controles vive solo dentro de él.
+​
+
+El rack solo sabe “aquí hay un módulo que muestra cosas y tiene un botón de expandir”; no necesita entender Audio/Mod ni perfiles.
+​
+
+2. Comportamiento del mini scope
+El mini scope muestra siempre la vista actual del contexto activo (A o B o overlay, según hayas dejado la modal) pero en versión reducida.
+​
+
+Solo tiene dos responsabilidades:
+
+Actuar como “preview” del estado interno del scope.
+
+Abrir/cerrar la modal global al hacer clic.
+​
+
+3. Controles solo dentro de la modal
+Dentro de la modal del scope vive todo lo “inteligente”:
+
+Toggle de contexto AUDIO / MOD.
+
+Selectores de fuente A/B según contexto.
+
+Timebase, Trigger, Scale, Freeze, etc.
+
+Opción Scope follows preset ON/OFF.
+​
+​
+
+Nada de esto se expone como controles globales del rack; desde fuera es solo “el módulo de diagnóstico”.
+​
+
+4. Cómo interactúan otros módulos con el scope
+Los iconos de “ojo/scope” en osciladores/filtros no saben de contextos ni de perfiles: solo llaman a un RPC del tipo “scope:focusOn(sourceId)”.
+​
+
+El módulo de scope decide internamente:
+
+En contexto AUDIO, ese sourceId se interpreta como audio tap y actualiza A o B.
+
+En contexto MOD, lo interpreta como fuente de modulación válida, o lo ignora si no aplica.
+​
+​
+
+5. Persistencia acotada
+El preset puede almacenar el bloque visual.scope (si así lo decides), pero el resto del sistema no necesita conocer su formato; es responsabilidad del propio módulo leer/escribir su trozo en el ValueTree.
+​
+
+Así mantienes el scope plug‑and‑play: podrías quitarlo del rack y el resto del motor seguiría funcionando igual.
+
+Añadir un botón de reset interno encaja muy bien con ese diseño independiente.
+
+1. Qué debería hacer el reset
+Restaurar contexto a AUDIO, fuentes A/B a un par estándar (por ejemplo A = DCO principal, B = Master), timebase neutra, trigger en Auto y scale “normalizada”.
+​
+​
+
+Limpiar estados “visuales” del scope (Freeze desactivado, persistencia corta por defecto, modo de vista A o Overlay básico).
+
+2. Dónde colocarlo
+Un pequeño icono de “↺ Reset” en la esquina de la barra superior de la modal del scope, separado de los controles principales para evitar pulsarlo por error.
+​
+
+Idealmente requiere confirmación suave si detectas cambios no guardados en el bloque visual.scope del preset (por ejemplo, solo cuando “Scope follows preset” está activo).
+​
+​
+
+3. Semántica clara
+Reset afecta solo al estado interno del módulo de scope, no al motor de audio ni a otros módulos del rack.
+​
+
+En tu ValueTree/YAML, puedes tratarlo como “volver a los defaults de fábrica del scope” sin tocar el resto del preset, algo que muchos plugins no ofrecen pero que para debug es muy cómodo.
+Entonces el reset del scope tiene que ser nuclear: limpiar estado de sesión y lo persistido en el preset.
+
+1. Semántica del reset “borra todo”
+Restaura el scope a sus defaults de fábrica (contexto Audio, fuentes A/B por defecto, timebase/trigger/scale básicos, sin Freeze, sin overlays especiales).
+​
+​
+
+Elimina del preset cualquier bloque visual.scope (audio/mod) o lo sobrescribe con esos valores por defecto, de forma que al volver a cargar ese preset el scope aparece limpio.
+​
+
+2. UX para que no dé miedo
+Botón “Reset Scope (Preset + Session)” bien etiquetado, con confirmación clara tipo “This will clear all saved oscilloscope settings from this preset. Continue?”.
+​
+
+Ubicado en la modal del scope, quizá en un menú de opciones (“⋮”) para evitar pulsaciones accidentales, ya que es destructivo.
+​
+
+3. Comportamiento en DAW y standalone
+En standalone: después del reset, si el usuario guarda el preset, se consolida la limpieza; si no guarda, el fichero en disco sigue como estaba.
+​
+
+En un DAW, el reset se refleja en el estado del plugin (ValueTree) y, si el host guarda ese estado en el proyecto, la configuración limpia también se conserva.
+
+
+Tiene sentido tener los dos niveles de reset: nuclear y suave.
+
+1. Reset suave (“Reset view”)
+Qué hace:
+
+Recentra solo la vista: timebase a un valor neutro, zoom vertical razonable, trigger a Auto y sin Freeze.
+​
+
+No cambia contexto (Audio/Mod), no cambia fuentes A/B, no toca nada del preset guardado.
+​
+
+Dónde ponerlo:
+
+Botón pequeño “Reset view” cerca de los controles de timebase/scale/trigger en la barra de la modal.
+
+Sin confirmación, porque es reversible moviendo los controles de nuevo.
+
+2. Reset nuclear (“Reset scope for preset”)
+Qué hace:
+
+Ejecuta internamente el mismo “Reset view”.
+
+Además, borra o sobrescribe el bloque visual.scope del preset con defaults, limpiando tanto Audio como Mod.
+​
+
+Afecta al estado de sesión y al persistido en el preset (si luego lo guardas).
+
+Dónde y cómo:
+
+En una zona separada, por ejemplo un menú de opciones “⋮” con la entrada “Reset scope (preset + session)…”.
+​
+
+Con diálogo de confirmación claro, ya que es destructivo.
+​
+
+Relación entre ambos:
+
+El usuario usa casi siempre el reset suave para “desatascar” la visualización.
+
+Solo cuando quiere borrar memoria histórica del scope para un sonido concreto usa el reset nuclear.
+
+
+Perfecto, entonces el módulo de scope tendrá dos niveles de reset nuclear, ambos con confirmación cuando haga falta.
+​
+​
+
+1. Reset nuclear por preset
+Acción: “Reset scope for this preset”.
+
+Efecto:
+
+Hace internamente un “Reset view”.
+
+Borra/sobrescribe el bloque visual.scope del preset actual (audio y mod), dejando el resto del preset intacto.
+​
+
+Confirmación: diálogo claro tipo “Clear oscilloscope settings for this preset only?”.
+
+2. Reset nuclear global de sesión
+Acción: “Reset scope for all presets in this session”.
+
+Efecto:
+
+Limpia el estado de sesión del scope (perfiles Audio/Mod, memorias internas).
+
+Opcional: si hay varios presets cargados en memoria (historial, capas), borra sus bloques visual.scope en RAM; en disco solo se reflejará al guardar.
+​
+
+Confirmación más contundente: “This will clear oscilloscope settings for all presets loaded in this session. Continue?”.
+​
+
+3. Dónde ubicarlos
+En la modal del scope, dentro de un menú de opciones “⋮” o “Settings”:
+
+Reset view (suave, sin confirmación).
+
+Reset scope (this preset)…
+
+Reset scope (all presets in session)…
+
+Así mantienes el módulo de scope independiente, potente para debug, y a la vez difícil de romper por accidente.
+Sí, y además ya tienes casi todo el andamiaje hecho con el ModuleOscilloscope y el loop de telemetría.
+​
+
+1. Qué es exactamente “fuente A/B” en tu contexto
+En la WebUI, cada scope actual está indexado por signalIndex, que el loop de telemetría usa para pedir datos a omegaRPC.send("getTelemetry", indices).
+​
+
+En el motor, esos índices apuntan a taps de telemetría (audio o control) que salen de tu ModulationTelemetryHub / sistema de monitorización.
+​
+
+La idea es: A y B son dos índices de telemetría, no “wires” directos a módulos concretos; el módulo de scope decide qué índice usa como A y cuál como B.
+​
+
+2. Cómo engancharlo sin romper nada
+Mantén el mini scope como ahora:
+
+Sigue usando signalIndex fijo (por ejemplo 63 para master), que el manager ya pasa al constructor cuando crea ModuleOscilloscope.
+​
+
+En la modal global del scope:
+
+Internamente, guarda dos campos: sourceAIndex y sourceBIndex.
+
+Para dibujar A/B/Overlay/XY, el módulo mira window.omegaTelemetryCache (que ya rellenas en pollTelemetry) y toma los arrays history de esos índices.
+​
+
+Cuando el usuario cambia la fuente A/B en la UI:
+
+No hace falta cambiar nada en C++: solo actualizas sourceAIndex/sourceBIndex en el estado del scope.
+
+El motor solo necesita seguir exportando esas señales en la tabla de telemetría.
+​
+
+3. Cómo seleccionar las fuentes desde el usuario
+Te propongo una tabla simple de “taps” accesible vía RPC:
+
+Añade en el backend un handler getTelemetrySources que devuelva algo tipo:
+
+[{ id: "MASTER", index: 63, kind: "audio" }, { id: "DCO1", index: 10, kind: "audio" }, { id: "LFO1", index: 20, kind: "mod" }, ...].
+​
+
+En la modal del scope:
+
+Contexto AUDIO muestra solo sources con kind: "audio".
+
+Contexto MOD muestra solo kind: "mod".
+
+Selector A/B es simplemente un <select> o una lista de chips que asignan el index correspondiente.
+​
+​
+
+Así desacoplas totalmente la UI del wiring interno: si mañana añades más taps en C++, solo aparecen en la lista.
+​
+
+4. Iconos “ojo” en cada módulo
+Cada módulo de rack (DCO, filtro, LFO…) ya recibe metadata (componentId, etc.).
+​
+
+Puedes definir, en el backend o en un mapa JS, qué telemetry index corresponde a cada componente.
+
+Cuando el usuario hace clic en el icono ojo de un módulo:
+
+Ese módulo envía un evento window.dispatchEvent(new CustomEvent("omega:scopeFocus", { detail: { index, preferredContext } })).
+
+El módulo de scope escucha ese evento y decide:
+
+En contexto actual, asigna ese index a A o B según una política simple (p. ej., “si A está libre o apunta a master, ponlo en A; si no, en B”).
+
+Nada de esto requiere tocar el audio thread; es pura lógica de UI consumiendo telemetría que ya estás generando.
+​
+
+5. Conexión con audio vs modulación
+En C++, tu ModulationTelemetryHub puede exponer tanto:
+
+Buffers de audio (post-DCO, post-VCF, master).
+
+Señales de control: outputs de LFOs, envelopes, incluso ModSources como NoteTimbre, PitchBend, etc.
+​
+
+Basta con asignarles índices distintos y etiquetarlos como kind: "audio" o kind: "mod" en getTelemetrySources.
+
+El botón de contexto AUDIO/MOD en el scope simplemente filtra qué índices ofrece para A/B, pero el pipeline de telemetría es el mismo.
+
+
+Agrupar las fuentes tiene todo el sentido en un proyecto de este tamaño; si no, la lista va a ser inmanejable en cuanto añadas 10–15 taps nuevos.
+​
+​
+
+1. Modelo de datos para las fuentes
+Piensa en getTelemetrySources devolviendo algo así:
+
+Grupos por familia y/o módulo:
+
+Audio: Osciladores (DCO1, DCO2, Noise), Filtros (VCF, HPF, Korg35, JP Formant), FX (Space Echo in/out), Master.
+
+Modulación: LFOs, Envelopes, ModulationGraph nodes clave, ModSources globales (ModWheel, PitchBend, Macro1..8), per‑voice si te interesa.
+​
+​
+
+Cada entrada con campos mínimos: { id, label, index, kind, group }.
+
+Ejemplo de grupos:
+
+group: "Audio · Oscillators" → DCO1 Out, DCO2 Out, Sub, Noise.
+
+group: "Audio · Filters" → Juno VCF out, Korg35 LP out, MS‑20 HP out.
+
+group: "Mod · LFOs" → LFO1 out, LFO2 out.
+
+group: "Mod · Envelopes" → ENV1 out, ENV2 out, MS20 ENV-Follower.
+​
+
+2. UI del selector A/B
+Para cada entrada A/B en la modal:
+
+Un desplegable “grouped”:
+
+Primera columna o encabezado: nombre del grupo.
+
+Dentro, items con etiquetas legibles (“DCO1 post-mix”, “Master after FX”, “LFO1 (global)”).
+
+Contexto AUDIO filtra a grupos Audio · ...; contexto MOD a Mod · ....
+​
+
+Puedes añadir una pequeña etiqueta secundaria en cada item (por ejemplo, “mono/voice/local” o “pre/post filtro”) más adelante sin romper la UX básica.
+
+3. Interacción con los iconos “ojo”
+Cada módulo conoce su “grupo natural”:
+
+DCO → “Audio · Oscillators”.
+
+VCF → “Audio · Filters”.
+
+LFO → “Mod · LFOs”.
+
+Al hacer clic en el ojo:
+
+El módulo dispara el evento omega:scopeFocus con { index, groupHint }.
+
+El scope, si la modal está abierta, puede incluso preseleccionar el grupo en el desplegable de A o B para que el usuario vea rápidamente “de dónde viene” la señal.
+​
+
+4. Pequeños detalles de ergonomía
+Orden de grupos: Master / Mix / FX primero, luego osciladores, filtros, y por último cosas exóticas (envelopes especiales, nodos de grafo).
+​
+
+Búsqueda rápida opcional (más adelante): un mini campo de texto que filtre dentro del selector A/B por label, ideal cuando la lista crezca.
+​
+
+Color de trazado condicionado por grupo:
+
+Audio: tonos azules/verdes.
+
+Modulación: naranjas/magentas.
+De un vistazo sabes si estás viendo audio o CV.
+
+
+
+lo ideal es dar libertad total para A/B, pero con defaults inteligentes que te lleven a comparaciones útiles.
+​
+​
+
+1. Libertad completa para A y B
+A y B pueden apuntar a cualquier fuente de la lista agrupada, sin restricciones por tipo o grupo.
+​
+
+El selector simplemente filtra por contexto (Audio/Mod), pero dentro de ese contexto eliges lo que quieras en cada canal.
+​
+​
+
+2. Defaults “opinados” pero no restrictivos
+Al abrir la modal por primera vez en contexto AUDIO:
+
+A = algo “local” (por ejemplo, el DCO principal o el primer tap de oscilador).
+
+B = algo “global” (master post‑FX o post‑VCF).
+​
+
+Si entras desde un icono ojo de un módulo concreto:
+
+A = fuente asociada a ese módulo (DCO1, Juno VCF, Space Echo input…).
+
+B permanece en lo que estuviera (típicamente master), fomentando comparaciones “local vs resultado final”.
+​
+​
+
+A partir de ahí, el usuario puede cambiar A/B a cualquier otra cosa; los defaults solo actúan la primera vez o cuando uses el reset.
+​
+
+3. Reset y memoria coherentes con esta libertad
+Reset view: no toca qué fuentes usas, solo la forma de verlas (timebase, zoom, trigger).
+​
+
+Reset scope (preset y global): devuelve A/B a esos defaults “opinados”, pero sigue permitiendo cualquier combinación después manualmente.
+
+
+Añadir esas etiquetas “LOCAL / GLOBAL / MOD, etc.” alrededor de A/B encaja perfecto con la idea de módulo de análisis que te habla sin imponer reglas.
+​
+​
+
+1. Tipos de etiquetas
+Audio:
+
+LOCAL · OSC (DCO, sub, noise, taps pre‑filtro).
+
+LOCAL · FILTER (Juno VCF, Korg35, MS‑20 HPF).
+
+GLOBAL · BUS (pre‑FX, post‑FX, master).
+​
+
+Modulación:
+
+MOD · LFO, MOD · ENV, MOD · SOURCE (ModWheel, Macro1, PitchBend, etc.).
+​
+​
+
+El tipo se deriva del group de la fuente que ya tienes en getTelemetrySources, no necesitas un sistema aparte.
+​
+
+2. Dónde mostrarlas
+Justo debajo de cada selector A y B en la modal, en una línea pequeña:
+
+A: DCO1 post‑mix
+
+LOCAL · OSC
+
+B: Master after FX
+
+GLOBAL · BUS
+
+Visualmente ayuda mucho a entender el “rol” de cada traza, sobre todo en overlay o XY.
+
+3. Comportamiento con cambios y presets
+Cuando cambias la fuente A/B, la etiqueta se recalcula automáticamente a partir del grupo.
+​
+
+Cuando el preset recuerda configuración de scope, solo se guardan los IDs/índices; las etiquetas se vuelven a derivar al cargar con la tabla de fuentes actual, así no acoplas el formato.
+​
+
+4. Coherencia con iconos “ojo”
+Si entras desde un módulo concreto (ojo en un DCO), puedes incluso animar brevemente la etiqueta de A para destacar “LOCAL · OSC” y reforzar al usuario que está viendo algo local comparado con B.
+
+
+Te propongo un MVP de taps A/B muy corto pero ya útil, dividido en audio y modulación, pensando en cómo trabajas con Juno/MS‑20/Prophecy dentro de OMEGA.
+​
+​
+
+1. Taps mínimos de audio
+Estos cubrirían el 80% de los casos de uso al diseñar sonido:
+
+Audio · Oscillators
+
+DCO_MAIN: salida principal del DCO Juno/VA antes de filtros.
+​
+
+DCO_SUB: salida de suboscilador (si está presente).
+​
+
+NOISE: ruido post‑level.
+​
+
+Audio · Filters
+
+VCF_MAIN_OUT: salida del filtro principal de la voz (Juno VCF / VA VCF).
+​
+
+HPF_OUT: salida del HPF global (Juno HPF o Korg HPF si lo enrutas como global).
+​
+
+KORG35_OUT / MS20_LP_OUT (uno solo al principio, el más representativo).
+​
+
+Audio · Bus / FX / Master
+
+VOICE_SUM_PRE_FX: suma de voces antes del rack de FX.
+​
+
+FX_BUS_OUT: salida del rack de FX (incluido Space Echo).
+​
+
+MASTER_OUT: lo que realmente sale del plugin/standalone (tap que ya tienes para el mini scope).
+​
+
+Con solo estos 9–10 taps ya puedes hacer comparaciones muy ricas:
+
+A = DCO_MAIN, B = VCF_MAIN_OUT → ver efecto del filtro.
+
+A = VCF_MAIN_OUT, B = MASTER_OUT → ver saturaciones/FX.
+
+2. Taps mínimos de modulación
+Aquí menos es más; piensa en fuentes que realmente quieras “ver”, no en todas las ModSources:
+
+Mod · LFOs
+
+LFO1_OUT: salida normalizada de LFO1 global.
+​
+
+LFO2_OUT: si existe ya como fuente independiente.
+​
+
+Mod · Envelopes
+
+ENV1_OUT: envelope principal de amp o filtro (elige la que más sentido tenga).
+​
+
+ENV2_OUT: segunda envolvente relevante (p. ej. mod/filtro).
+​
+
+Si usas el ESP del MS‑20: ENV_FOLLOWER_OUT como extra muy visual.
+​
+
+Mod · Performance / Sources
+
+MODWHEEL: ModSource::ModWheel normalizada.
+​
+
+PITCHBEND: valor continuo de pitch bend normalizado.
+​
+
+MACRO1: primer macro global (ideal para ver curvas de automatización / mapping).
+​
+
+Con esto ya puedes:
+
+Contexto MOD, A = LFO1_OUT, B = ENV1_OUT → ver cómo se combinan dos moduladores.
+
+A = MODWHEEL, B = MACRO1 → ver si el mapping responde como esperas.
+
+3. Cómo etiquetarlos en getTelemetrySources
+Ejemplo conceptual de cómo podrían venir agrupados:
+
+json
+[
+  { "id": "DCO_MAIN", "label": "DCO Main", "index": 10, "kind": "audio", "group": "Audio · Oscillators" },
+  { "id": "VCF_MAIN_OUT", "label": "Main VCF Out", "index": 20, "kind": "audio", "group": "Audio · Filters" },
+  { "id": "MASTER_OUT", "label": "Master Out", "index": 63, "kind": "audio", "group": "Audio · Bus" },
+
+  { "id": "LFO1_OUT", "label": "LFO 1", "index": 100, "kind": "mod", "group": "Mod · LFOs" },
+  { "id": "ENV1_OUT", "label": "ENV 1", "index": 110, "kind": "mod", "group": "Mod · Envelopes" },
+  { "id": "MODWHEEL", "label": "Mod Wheel", "index": 120, "kind": "mod", "group": "Mod · Sources" }
+]
+Los índices concretos los defines tú según cómo tengas implementado ModulationTelemetryHub, pero la idea es que el scope solo necesita esta lista para poblar los selectores A/B y las etiquetas.
+​
+​
+
+4. Roadmap natural a partir de este MVP
+Fase 1: implementar solo estos taps y el wiring A/B con contexto Audio/Mod.
+
+Fase 2: añadir unos pocos taps “de lujo” (post‑JP8080, Space Echo tape, algún nodo del ModulationGraph).
+​
+
+Fase 3: permitir que el usuario active taps adicionales desde una pantalla avanzada (sin tocarlos en el MVP).
+
+
+entonces para el MVP del scope:
+
+1. Alcance de las fuentes A/B
+Solo expones los taps core que hemos definido: osciladores clave, filtros principales, buses (pre‑FX, post‑FX, master) y unas pocas fuentes de modulación (LFO1/2, ENV1/2, ModWheel, Macro1…).
+​
+
+No expones todavía nodos internos del ModulationGraph ni rutas exóticas; la telemetría sigue siendo simple y fácil de mantener en tiempo real.
+​
+​
+
+2. Beneficios de este enfoque
+Menos complejidad en el ModulationTelemetryHub y en getTelemetrySources: lista corta, bien etiquetada y fácil de depurar.
+​
+
+El usuario ya puede hacer comparaciones muy potentes (DCO vs VCF vs master, LFO vs ENV vs ModWheel) sin perderse en 40 opciones crípticas.
+​
+​
+
+Te deja espacio para una Fase 2 donde añadas taps de grafo o señales más avanzadas, cuando ya hayas validado el flujo y la UI del scope ampliado.
+
+
+
+Te propongo un contrato muy concreto para getTelemetrySources y, ligado a eso, la estructura interna mínima de estado A/B + contexto para el scope.
+​
+​
+
+1. Contrato propuesto: getTelemetrySources
+Lado C++ (bridge):
+
+Método RPC: "getTelemetrySources" sin parámetros (para el MVP).
+
+Respuesta: objeto con dos listas separadas para claridad:
+
+json
+{
+  "audio": [
+    { "id": "DCO_MAIN",       "label": "DCO Main",        "index": 10, "group": "Audio · Oscillators", "role": "LOCAL_OSC" },
+    { "id": "DCO_SUB",        "label": "Sub Osc",         "index": 11, "group": "Audio · Oscillators", "role": "LOCAL_OSC" },
+    { "id": "NOISE",          "label": "Noise",           "index": 12, "group": "Audio · Oscillators", "role": "LOCAL_OSC" },
+
+    { "id": "VCF_MAIN_OUT",   "label": "Main VCF Out",    "index": 20, "group": "Audio · Filters",     "role": "LOCAL_FILTER" },
+    { "id": "HPF_OUT",        "label": "HPF Out",         "index": 21, "group": "Audio · Filters",     "role": "LOCAL_FILTER" },
+    { "id": "KORG35_OUT",     "label": "Korg35 Out",      "index": 22, "group": "Audio · Filters",     "role": "LOCAL_FILTER" },
+
+    { "id": "VOICE_SUM_PRE_FX","label": "Voices Pre-FX",  "index": 30, "group": "Audio · Bus",         "role": "GLOBAL_BUS" },
+    { "id": "FX_BUS_OUT",     "label": "FX Bus Out",      "index": 31, "group": "Audio · Bus",         "role": "GLOBAL_BUS" },
+    { "id": "MASTER_OUT",     "label": "Master Out",      "index": 63, "group": "Audio · Bus",         "role": "GLOBAL_MASTER" }
+  ],
+
+  "mod": [
+    { "id": "LFO1_OUT",       "label": "LFO 1",           "index": 100, "group": "Mod · LFOs",        "role": "MOD_LFO" },
+    { "id": "LFO2_OUT",       "label": "LFO 2",           "index": 101, "group": "Mod · LFOs",        "role": "MOD_LFO" },
+
+    { "id": "ENV1_OUT",       "label": "ENV 1",           "index": 110, "group": "Mod · Envelopes",   "role": "MOD_ENV" },
+    { "id": "ENV2_OUT",       "label": "ENV 2",           "index": 111, "group": "Mod · Envelopes",   "role": "MOD_ENV" },
+    { "id": "ENV_FOLLOWER",   "label": "Env Follower",    "index": 112, "group": "Mod · Envelopes",   "role": "MOD_ENV" },
+
+    { "id": "MODWHEEL",       "label": "Mod Wheel",       "index": 120, "group": "Mod · Sources",     "role": "MOD_SOURCE" },
+    { "id": "PITCHBEND",      "label": "Pitch Bend",      "index": 121, "group": "Mod · Sources",     "role": "MOD_SOURCE" },
+    { "id": "MACRO1",         "label": "Macro 1",         "index": 122, "group": "Mod · Sources",     "role": "MOD_SOURCE" }
+  ]
+}
+index: el índice que ya usas en telemetría para mapear a buffers history.
+​
+
+group: para agrupar en la UI (Audio · Oscillators, etc.).
+​
+​
+
+role: tag simple que usas para derivar etiquetas “LOCAL · OSC”, “GLOBAL · BUS”, “MOD · LFO”… en el scope.
+​
+​
+
+Lado JS (WebUI):
+
+omega_rpc.getTelemetrySources() devuelve este objeto y el ModuleOscilloscope lo cachea en this.sourceCatalog.
+​
+
+Los selectores A/B se rellenan a partir de sourceCatalog.audio o .mod según el contexto.
+​
+
+2. Estado interno mínimo del scope
+Estado en JS (por módulo de scope):
+
+js
+const defaultScopeState = {
+  context: "audio",              // "audio" | "mod"
+  viewMode: "A",                 // "A" | "B" | "overlay" | "xy"
+
+  sourceA: { id: "DCO_MAIN",   index: 10,  role: "LOCAL_OSC" },
+  sourceB: { id: "MASTER_OUT", index: 63,  role: "GLOBAL_MASTER" },
+
+  timebase: { mode: "sync", value: 1.0 },  // valor ≈ núm. de ciclos o factor
+  scale:    1.0,
+  trigger:  { mode: "auto", level: 0.0 },
+  freeze:   false,
+
+  scopeFollowsPreset: true
+};
+sourceA/sourceB guardan id/index/role; las etiquetas se derivan de role y de group que miras en sourceCatalog.
+​
+
+context decide si usas sourceCatalog.audio o .mod para los selectores.
+
+viewMode, timebase, scale, trigger, freeze controlan solo la presentación.
+
+Este mismo shape lo puedes serializar en tu ValueTree/YAML como visual.scope.audio y visual.scope.mod (duplicando la estructura pero con diferente sourceA/B, timebase, etc.).
+​
+​
+
+3. Cómo se engancha al motor
+Bucle de telemetría: el backend ya está enviando history para una lista de índices; el scope, cuando está activo, se asegura de que los índices sourceA.index y sourceB.index estén en la lista de signalIndex que pide el manager.
+​
+
+En el render del scope:
+
+Para A: lees window.omegaTelemetryCache[sourceA.index].history.
+
+Para B: igual con sourceB.index.
+
+En overlay/XY, combinas esas dos series según el viewMode.
+​
+
+4. Resumen de decisiones importantes
+RPC único y simple (getTelemetrySources) que describe todo lo que el scope puede ver, agrupado y etiquetado, sin exponer detalles de implementación.
+​
+​
+
+Estado del scope autocontenido con contexto (audio/mod), A/B, viewMode y controles visuales, fácil de persistir en preset o global.
+​
+​
+
+A/B pueden apuntar a cualquier fuente del contexto, con defaults “opinados” pero no restrictivos
+
+
+
+La forma más limpia es tratar el scope como “bloques de visualización” anidados dentro del preset, separados por contexto, y con un flag para seguir o no al preset.
+​
+​
+
+1. Bloque raíz de visualización
+En tu preset (YAML/ValueTree), algo así:
+
+text
+visual:
+  scope:
+    followsPreset: true
+
+    audio:
+      context: "audio"
+      viewMode: "overlay"   # "A" | "B" | "overlay" | "xy"
+      sourceA:
+        id: "DCO_MAIN"
+        index: 10
+        role: "LOCAL_OSC"
+      sourceB:
+        id: "MASTER_OUT"
+        index: 63
+        role: "GLOBAL_MASTER"
+      timebase:
+        mode: "sync"        # "sync" | "free"
+        value: 1.0
+      scale: 1.0
+      trigger:
+        mode: "auto"        # "auto" | "rising" | "falling" | "off"
+        level: 0.0
+      freeze: false
+
+    mod:
+      context: "mod"
+      viewMode: "A"
+      sourceA:
+        id: "LFO1_OUT"
+        index: 100
+        role: "MOD_LFO"
+      sourceB:
+        id: "ENV1_OUT"
+        index: 110
+        role: "MOD_ENV"
+      timebase:
+        mode: "free"
+        value: 2.0
+      scale: 1.0
+      trigger:
+        mode: "auto"
+        level: 0.0
+      freeze: false
+visual.scope.followsPreset: si es false, el módulo ignora visual.scope.audio y visual.scope.mod al cargar el preset y usa su estado global de sesión.
+​
+
+audio y mod replican el mismo shape de estado, pero con valores distintos.
+​
+​
+
+2. Representación equivalente en ValueTree
+A nivel conceptual:
+
+Root preset ValueTree → child "visual" → child "scope".
+
+En "scope":
+
+Propiedad bool "followsPreset".
+
+Child "audio" con propiedades:
+
+"context", "viewMode", "scale", "freeze".
+
+Child "sourceA" con props "id", "index", "role".
+
+Child "sourceB" igual.
+
+Child "timebase" con "mode", "value".
+
+Child "trigger" con "mode", "level".
+
+Child "mod" con la misma estructura.
+​
+
+Esto encaja con tu uso actual de OmegaPreset + ValueTree: puedes ignorar el bloque si no existe (presets viejos), y el scope se autoconfigura a defaults.
+​
+​
+
+3. Cómo encajan los resets
+Reset view: solo cambia campos dentro de audio o mod en memoria (no hace falta escribir inmediatamente al preset; se guarda cuando el usuario haga “save”).
+
+Reset scope (preset actual):
+
+Reemplaza visual.scope.audio y visual.scope.mod por defaults.
+
+Opcionalmente vuelve a followsPreset: true.
+​
+
+Reset scope global: limpia el estado en memoria y, si quieres, evita escribir de vuelta el bloque visual.scope mientras dure la sesión.
+
+
+
+Entonces incluyamos también el contexto activo en el estado persistido del preset.
+
+1. Campo de contexto activo
+Extensión ligera al bloque:
+
+text
+visual:
+  scope:
+    followsPreset: true
+    currentContext: "audio"   # "audio" | "mod"
+
+    audio:
+      context: "audio"
+      viewMode: "overlay"
+      sourceA: { id: "DCO_MAIN",   index: 10,  role: "LOCAL_OSC" }
+      sourceB: { id: "MASTER_OUT", index: 63,  role: "GLOBAL_MASTER" }
+      timebase: { mode: "sync", value: 1.0 }
+      scale: 1.0
+      trigger: { mode: "auto", level: 0.0 }
+      freeze: false
+
+    mod:
+      context: "mod"
+      viewMode: "A"
+      sourceA: { id: "LFO1_OUT", index: 100, role: "MOD_LFO" }
+      sourceB: { id: "ENV1_OUT", index: 110, role: "MOD_ENV" }
+      timebase: { mode: "free", value: 2.0 }
+      scale: 1.0
+      trigger: { mode: "auto", level: 0.0 }
+      freeze: false
+currentContext dice con qué pestaña abre el scope al cargar el preset.
+​
+​
+
+audio.context y mod.context pueden ser redundantes; puedes mantenerlos o eliminarlos y fiarte de la clave padre.
+
+2. Comportamiento al cargar
+Si followsPreset: true y existe currentContext, el scope abre directamente en ese contexto con sus A/B, timebase, etc.
+​
+
+Si falta currentContext (presets antiguos), puedes default a "audio".
+
+3. Coherencia con sesión
+El estado global de sesión puede seguir existiendo (por ejemplo, último contexto usado en la instancia), pero cuando followsPreset está activo, currentContext del preset tiene prioridad.
+
+
+Buena idea; eso cierra el círculo de “el scope recuerda” de forma explícita.
+
+1. Indicador de modo de memoria
+Un pequeño icono en la barra del scope, algo tipo 📌 o un chip “PRESET”, visible solo cuando followsPreset es true.
+​
+​
+
+Tooltip claro: “Scope follows preset visual state”.
+
+Cuando followsPreset es false, el icono desaparece o se muestra como “SESSION”.
+
+2. Toggle rápido
+El propio chip puede actuar como toggle:
+
+PRESET (iluminado) → usa visual.scope del preset, respeta currentContext.
+
+SESSION (iluminado) → ignora visual.scope persistido y solo usa el estado interno de la instancia.
+​
+
+Al cambiar de PRESET a SESSION no hace falta tocar el ValueTree al instante; solo cambias cómo interpretas el bloque, y se actualiza en el próximo save.
+
+3. Coherencia visual
+Si estás en PRESET y pulsas el reset nuclear “Reset scope for this preset”, el chip puede parpadear o mostrar momentáneamente un texto tipo “Preset visual state cleared”, reforzando que has tocado algo persistente.
+​
+​
+
+Si estás en SESSION, el reset nuclear global puede afectar solo a la instancia, y el chip deja claro que no estás escribiendo en el preset.
+
+
+Entonces el bloque de estado del scope puede quedar completo así, incluyendo el modo de memoria:
+
+text
+visual:
+  scope:
+    followsPreset: true          # Chip PRESET/SESSION en la UI
+    mode: "preset"              # "preset" | "session"
+    currentContext: "audio"     # "audio" | "mod"
+
+    audio:
+      viewMode: "overlay"       # "A" | "B" | "overlay" | "xy"
+      sourceA:
+        id: "DCO_MAIN"
+        index: 10
+        role: "LOCAL_OSC"
+      sourceB:
+        id: "MASTER_OUT"
+        index: 63
+        role: "GLOBAL_MASTER"
+      timebase:
+        mode: "sync"            # "sync" | "free"
+        value: 1.0
+      scale: 1.0
+      trigger:
+        mode: "auto"            # "auto" | "rising" | "falling" | "off"
+        level: 0.0
+      freeze: false
+
+    mod:
+      viewMode: "A"
+      sourceA:
+        id: "LFO1_OUT"
+        index: 100
+        role: "MOD_LFO"
+      sourceB:
+        id: "ENV1_OUT"
+        index: 110
+        role: "MOD_ENV"
+      timebase:
+        mode: "free"
+        value: 2.0
+      scale: 1.0
+      trigger:
+        mode: "auto"
+        level: 0.0
+      freeze: false
+followsPreset: indica si el scope debe leer/escribir este bloque al cargar/guardar presets.
+
+mode: recuerda si el usuario dejó el scope en modo “preset” o “session” la última vez; al abrir el proyecto puedes restaurar ese comportamiento directamente.
+
+currentContext: decide con qué pestaña/contexto abre la modal (audio o mod).
+
+En la UI, el chip PRESET/SESSION se sincroniza con mode y followsPreset, y el indicador de contexto con currentContext, todo sin que el resto del motor tenga que saber nada de estos detalles.
+
+
+
+Te propongo una modal de scope muy clara, en tres franjas horizontales, optimizada para ratón y lectura rápida.
+​
+​
+
+1. Estructura general de la modal
+Zona superior: barra de control (contexto, preset/session, reset, cierre).
+
+Zona media: selectores A/B + etiquetas + modo de vista.
+
+Zona inferior (80% de la altura): canvas grande con controles de tiempo, zoom, trigger y freeze justo debajo.
+
+2. Barra superior (línea 1)
+De izquierda a derecha:
+
+Título: “Oscilloscope”.
+
+Toggle de contexto: pill “AUDIO | MOD” centrado o ligeramente a la izquierda.
+
+Chip de memoria: “PRESET” / “SESSION” (muestra el estado de mode/followsPreset).
+
+Botones de reset (en un menú “⋮”):
+
+“Reset view”.
+
+“Reset scope (this preset)…”.
+
+“Reset scope (all presets in session)…”.
+
+Botón de cerrar (X) alineado a la derecha.
+​
+​
+
+Todo muy plano, sin sliders aquí; solo toggles y acciones globales.
+
+3. Selección de fuentes A/B y modo de vista (línea 2)
+Fila dividida en tres bloques:
+
+Bloque A (izquierda):
+
+Label: “Source A”.
+
+Dropdown agrupado por group (Audio · Oscillators, Audio · Filters, Mod · LFOs, etc.).
+
+Subetiqueta pequeña debajo: “LOCAL · OSC”, “GLOBAL · BUS”, “MOD · LFO” según role.
+​
+​
+
+Bloque central:
+
+Botones de viewMode: [A] [B] [A+B] [XY].
+
+Pequeñas pistas visuales (colores de cada botón igual que el trazo A/B).
+​
+
+Bloque B (derecha): igual que A, pero “Source B” y su subetiqueta.
+
+Esta fila queda relativamente compacta; debajo ya solo pintas y ajustas.
+
+4. Zona de visualización y controles (resto)
+Canvas principal
+Ocupa casi toda la anchura.
+
+Fondo gris oscuro con grid sutil.
+
+Colores:
+
+A en cian/verde, B en magenta/naranja, overlay hereda.
+
+XY dibuja un trazo más fino para evitar saturación visual.
+
+Barra de controles bajo el canvas
+Distribución en una sola línea:
+
+Timebase:
+
+Label “Time” + dropdown o slider:
+
+En AUDIO (sync): “¼, ½, 1, 2, 4 cycles approx.”
+
+En MOD (free): “0.5 s, 1 s, 2 s, 4 s, 8 s” (o un slider continuo con estos sweet spots).
+​
+
+Scale (vertical):
+
+Label “Scale” + knob/slider horizontal simple.
+
+Doble clic sobre el label “Scale” hace “Reset view”.
+
+Trigger:
+
+Dropdown pequeño: “Auto / Rising / Falling / Off”.
+
+Cuando sea Rising/Falling, aparece a su lado un mini slider “Level” (0–1) con barra muy corta.
+
+Freeze & Persist:
+
+Botón “Freeze” (toggle).
+
+Toggle “Trail” (ON/OFF) para persistencia corta.
+
+Todo cabe en una sola fila debajo del canvas sin saturar, manteniendo el máximo espacio vertical para la forma de onda.
+
+5. Comportamiento con mini scope y ojo en módulos
+Mini scope:
+
+Muestra siempre la señal de sourceA o el viewMode actual reducido.
+
+Clic → abre/cierra modal en currentContext y mode actuales.
+​
+
+Iconos “ojo” en módulos:
+
+Al hacer clic:
+
+Abre la modal si está cerrada.
+
+Setea sourceA o sourceB según la política A-local/B-global, sin tocar el resto de estado.
+
+El selector A/B de la fila 2 se actualiza para reflejar la nueva fuente y su etiqueta “LOCAL · OSC”, etc.
+​
+​Meter un toggle de “Sync to tempo” encaja muy bien en tu barra de controles, sobre todo en contexto MOD.
+
+1. Dónde y cómo se vería
+En la barra bajo el canvas, junto al control de Time:
+
+Time: [ slider / selector ] Sync: [ OFF | ON ].
+
+Solo tiene efecto en contexto MOD (en AUDIO puedes dejarlo deshabilitado o que siga usando “ciclos” de la nota).
+​
+​
+
+2. Semántica del toggle
+Sync = OFF (modo físico):
+
+timebase.mode = "free"
+
+El control muestra segundos / rango largo: 0.5 s, 1 s, 2 s, 4 s, 8 s, etc.
+​
+
+Sync = ON (modo musical):
+
+timebase.mode = "tempo"
+
+El control muestra divisiones: 1/16, 1/8, 1/4, 1/2, 1 bar, 2 bars… sincronizadas al BPM del host.
+
+Internamente, el scope solo necesita convertir esas divisiones a número de samples visibles según el tempo actual del host.
+
+3. Integración con el estado guardado
+En el bloque del preset, el contexto MOD podría verse así:
+
+text
+visual:
+  scope:
+    mod:
+      viewMode: "A"
+      sourceA: { id: "LFO1_OUT", index: 100, role: "MOD_LFO" }
+      sourceB: { id: "ENV1_OUT", index: 110, role: "MOD_ENV" }
+      timebase:
+        mode: "tempo"          # "free" | "tempo"
+        value: "1/2"           # o un código tipo "1_2", "1_4", etc.
+      scale: 1.0
+      trigger:
+        mode: "auto"
+        level: 0.0
+      freeze: false
+En AUDIO sigues usando mode: "sync" (ciclos) o "free" (ms), no hace falta tempo.
+
+En MOD, mode: "tempo" significa que interpretas value como división musical.
+
+4. UX natural
+En contexto MOD, el usuario:
+
+Enciende Sync → el control de Time se convierte en una pequeña lista de divisiones (quizá con un iconito de nota ♩).
+
+Apaga Sync → vuelve a ver segundos.
+
+En contexto AUDIO, puedes optar por:
+
+No mostrar el toggle (solo Time en ciclos/segundos).
+
+O mostrarlo atenuado/deshabilitado para indicar que el sync solo aplica a MOD.
+
+
+
+Buena idea: que el scope “sepa” que está alineado con el LFO hace la experiencia mucho más legible.
+​
+​
+
+1. Qué información extra necesitas
+En la telemetría de modulación para LFOs, añade un pequeño descriptor opcional por fuente:
+
+syncDiv: división musical actual (por ejemplo "1/4", "1/2", "1/1").
+
+syncOn: bool que indica si ese LFO está sincronizado al tempo del host.
+​
+​
+
+Puedes inyectar esto en el mismo getTelemetrySources para las entradas de tipo MOD_LFO o en un RPC complementario tipo getModSourceInfo. No hace falta a nivel MVP en todas las fuentes, solo en LFOs.
+​
+​
+
+2. Cómo lo ve el usuario en el scope
+En contexto MOD, cuando:
+
+Source A o B es un LFO (role: "MOD_LFO").
+
+syncOn = true y syncDiv está definido.
+
+timebase.mode = "tempo".
+
+Puedes mostrar:
+
+Un mini texto cerca del selector de fuente, por ejemplo:
+
+LFO 1 (sync 1/4)
+
+Y/o una pequeña marca en la barra de tiempo indicando la cadencia del LFO (por ejemplo, una línea vertical tenue cada periodo del LFO dentro de la ventana).
+​
+​
+
+Si el usuario elige en el scope una división distinta (por ejemplo, ventana 1 bar y LFO en 1/4), verá claramente cómo varios ciclos del LFO encajan dentro de la ventana. Si coinciden (ambos 1/4), puedes añadir un breve highlight, pero es opcional.
+
+3. Sincronización lógica, no acoplada
+El scope no cambia el tempo ni la configuración del LFO; solo lee sus parámetros de sync para informar visualmente.
+​
+
+Si el LFO no está sync (syncOn = false), simplemente no muestras nada especial y el scope se limita a visualizar la forma.
+
+
+Te dejo una visión de evolución, pero manteniendo el MVP actual como núcleo estable.
+​
+​
+
+1. Mantener el MVP como “Scope clásico”
+Modal actual (A/B, Audio/Mod, timebase, trigger, etc.) sigue siendo el modo por defecto.
+
+Todo lo nuevo se monta como “submodos” o pestañas dentro del mismo módulo, no como otro componente distinto.
+​
+
+2. Modo “ModulationScope” multi‑fuente
+Nueva pestaña o botón de vista:
+
+Pestañas arriba del canvas: [Waveform] [Modulation].
+
+En “Modulation”:
+
+Hasta 4 fuentes de modulación simultáneas, cada una con color fijo (LFO1, ENV1, ModWheel, Macro1, por ejemplo).
+
+Layout estilo “logic analyzer”:
+
+O bien todas apiladas en pistas (4 filas: una por fuente).
+
+O bien superpuestas en un solo eje, pero con bandas de color claras por cada fuente.
+
+Controles:
+
+Timebase compartida (sync/tempo o segundos).
+
+No A/B; aquí solo eliges qué cuatro ModSources quieres ver (pequeños checkboxes).
+
+Muy útil para ver cómo varias modulaciones afectan a un mismo parámetro en el tiempo.
+​
+​
+
+3. Integración con tu ModulationGraph
+Más adelante:
+
+Permitir seleccionar fuentes desde el propio grafo (por ejemplo, seleccionas un nodo y el scope añade automáticamente su salida a la lista de señales mostradas).
+​
+
+Podrías mostrar, en “ModulationScope”, las salidas de nodos críticos (LFO combinados, mixers de CV, etc.) sin exponer toda la complejidad al usuario novel.
+​
+​
+
+4. UX sin romper lo que ya tienes
+MVP:
+
+Solo pestaña Waveform (lo que acabamos de diseñar).
+
+Evolución:
+
+Añades la pestaña Modulation: se abre por defecto en una configuración simple (LFO1 + ENV1), con los mismos controles de tiempo y freeze.
+
+El bloque visual.scope.modulation podría ser un sub‑árbol nuevo con sources: [ "LFO1_OUT", "ENV1_OUT", "MODWHEEL" ] y sus colores asignados.
+​
+​
+
+5. Beneficio para tu flujo de diseño
+WaveformScope (A/B) → entender la forma final del sonido, clipping, aliasing, impacto de filtros/FX.
+
+ModulationScope (multi‑fuente) → depurar por qué un parámetro se mueve como lo hace (LFO, env, wheel, macros) sin tener que mirar el grafo.
+Te propongo una pseudoestructura clara para el futuro “ModulationScope” multi‑fuente, encajada con lo que ya tienes para WaveformScope.
+​
+​
+
+1. Bloque adicional en el preset
+Extiende visual.scope con una sección modulation:
+
+text
+visual:
+  scope:
+    followsPreset: true
+    mode: "preset"
+    currentContext: "audio"    # contexto por defecto al abrir Waveform
+
+    # WaveformScope (ya definido)
+    audio: { ... }
+    mod:   { ... }
+
+    # Nuevo: ModulationScope multi‑fuente
+    modulation:
+      enabled: false           # pestaña disponible, pero no activa por defecto
+      viewMode: "stacked"      # "stacked" | "overlay"
+      timebase:
+        mode: "tempo"          # "free" | "tempo"
+        value: "1/1"           # ventana de 1 compás
+      freeze: false
+
+      tracks:
+        - id: "LFO1_OUT"
+          index: 100
+          role: "MOD_LFO"
+          color: "#00ffcc"
+          label: "LFO 1"
+          visible: true
+          order: 0
+
+        - id: "ENV1_OUT"
+          index: 110
+          role: "MOD_ENV"
+          color: "#ffaa00"
+          label: "ENV 1"
+          visible: true
+          order: 1
+
+        - id: "MODWHEEL"
+          index: 120
+          role: "MOD_SOURCE"
+          color: "#ff66ff"
+          label: "Mod Wheel"
+          visible: false
+          order: 2
+enabled: te permite introducir la pestaña de forma progresiva; presets antiguos simplemente no tendrán este bloque.
+​
+
+tracks[]: lista de fuentes de modulación, cada una con id, índice, rol, color y flags visible/order.
+​
+​
+
+2. Estado JS correspondiente
+Dentro del módulo de scope:
+
+js
+const defaultModulationScopeState = {
+  enabled: false,
+  viewMode: "stacked",      // o "overlay"
+  timebase: { mode: "tempo", value: "1/1" },
+  freeze: false,
+  tracks: [
+    { id: "LFO1_OUT",  index: 100, role: "MOD_LFO",    color: "#00ffcc", label: "LFO 1",  visible: true,  order: 0 },
+    { id: "ENV1_OUT",  index: 110, role: "MOD_ENV",    color: "#ffaa00", label: "ENV 1",  visible: true,  order: 1 },
+    { id: "MODWHEEL",  index: 120, role: "MOD_SOURCE", color: "#ff66ff", label: "ModWh",  visible: false, order: 2 }
+  ]
+};
+El canvas de ModulationScope consulta tracks.filter(t => t.visible) y dibuja cada una según viewMode.
+
+Los índices se siguen alimentando desde el mismo sistema de telemetría (mismas series history que ya usas para WaveformScope).
+​
+​
+
+3. UI mínima para ModulationScope
+Dentro de la pestaña “Modulation”:
+
+Cabecera:
+
+Time + toggle de Sync to tempo (igual que en contexto MOD del WaveformScope).
+
+Botón Freeze.
+
+Botones de view: [Stacked] [Overlay].
+
+Lista de fuentes (tracks):
+
+Pequeños toggles tipo checklist con color y etiqueta:
+
+[■] LFO 1
+
+[■] ENV 1
+
+[ ] Mod Wheel
+
+Internamente solo cambian visible y, si reordenas, order.
+
+No necesitas más controles para un primer ModulationScope; todo encaja con la telemetría y el esquema de preset que ya tienes.
+
+
+ntonces tomamos como “contrato” futuro ese bloque visual.scope.modulation y centramos la implementación real en el WaveformScope A/B como MVP.
+​
+​
+
+Resumiendo lo que ya tienes definido para implementar ahora mismo:
+
+Modal de scope con: contexto AUDIO/MOD, A/B seleccionables desde getTelemetrySources, viewMode A/B/Overlay/XY, timebase (sync/free), scale, trigger y freeze.
+​
+​
+
+Estado persistido en el preset bajo visual.scope (audio, mod, currentContext, mode preset/session, followsPreset).
+​
+
+Mini scope en el rack + iconos “ojo” en módulos que disparan cambios en sourceA/B sin tocar nada del motor, solo telemetría.
+
+
+
+Te dejo el MVP del WaveformScope bien acotado y listo para convertir en tareas.
+
+1. Alcance funcional del MVP WaveformScope
+Mini scope en el rack superior como hasta ahora, actuando de preview y botón de apertura de la modal.
+​
+
+Modal global con:
+
+Contexto: AUDIO / MOD (toggle).
+
+Fuentes A y B elegibles desde una lista agrupada (getTelemetrySources).
+
+Modos de vista: A / B / A+B / XY.
+
+Controles: Timebase (sync/free), Scale, Trigger (modo + nivel), Freeze, Trail.
+​
+​
+
+Memoria del scope:
+
+Bloque visual.scope en el preset con audio, mod, currentContext, followsPreset, mode: "preset" | "session".
+
+Chip PRESET/SESSION en la UI para alternar.
+​
+
+A/B siempre leen de la telemetría existente (buffers history indexados).
+
+2. Tareas backend (C++ / bridge / telemetría)
+Definir catálogo de taps core
+
+Implementar en tu capa DSP/servicio una lista fija de taps de telemetría:
+
+Audio: DCO_MAIN, DCO_SUB, NOISE, VCF_MAIN_OUT, HPF_OUT, VOICE_SUM_PRE_FX, FX_BUS_OUT, MASTER_OUT.
+
+Mod: LFO1_OUT, LFO2_OUT, ENV1_OUT, ENV2_OUT, ENV_FOLLOWER, MODWHEEL, PITCHBEND, MACRO1.
+​
+
+Nuevo RPC getTelemetrySources
+
+Handler en OmegaUiBridge/servicio que devuelva JSON con audio[] y mod[] incluyendo id, label, index, group, role.
+​
+​
+
+Ajustar loop de telemetría
+
+Asegurarte de que los índices usados por A/B están siempre incluidos en el set de signalIndex que ya envías al front.
+
+Telemetría sigue siendo “pull” con el polling existente; no hace falta cambiar la frecuencia ahora.
+​
+
+Extender OmegaPreset/ValueTree
+
+Añadir bloque opcional visual.scope al ValueTree del preset.
+
+Serializar/deserializar: followsPreset, mode, currentContext, audio, mod (con subcampos ya definidos).
+​
+
+3. Tareas WebUI: estado y RPC
+Estado del scope en JS
+
+En ModuleOscilloscope, añadir this.scopeState con el shape acordado (context, viewMode, sourceA/B, timebase, scale, trigger, freeze, followsPreset, mode).
+​
+
+Cargarlo desde el estado inicial (getState) si visual.scope existe; si no, usar defaults.
+
+Integración con getTelemetrySources
+
+En ModuleOscilloscope.init, llamar una vez a omegaRPC.getTelemetrySources() y cachear en this.sourceCatalog.
+​
+
+Selectores A/B: construir dropdowns agrupados a partir de sourceCatalog.audio o .mod según scopeState.context.
+
+Lectura de buffers A/B
+
+En updatedata/draw, obtener history de A/B desde el cache de telemetría, usando sourceA.index y sourceB.index.
+​
+
+Implementar los cuatro modos de vista (A/B/overlay/XY) a nivel de canvas.
+
+Chip PRESET/SESSION y followsPreset
+
+Añadir el chip a la barra de la modal, enlazado a scopeState.mode / followsPreset.
+
+Si mode === "preset" y followsPreset === true, al cargar preset aplicas visual.scope; si no, usas solo estado de sesión.
+​
+​
+
+4. Tareas WebUI: UX de la modal
+Layout de la modal
+
+Barra superior: título, toggle AUDIO/MOD, chip PRESET/SESSION, menú “⋮” de resets, botón X.
+
+Fila de fuentes: Source A (dropdown agrupado + etiqueta LOCAL/GLOBAL/MOD) · botones viewMode A/B/A+B/XY · Source B.
+
+Canvas grande + barra de controles Time, Sync (en MOD), Scale, Trigger (modo+nivel), Freeze, Trail.
+
+Toggle contexto AUDIO/MOD
+
+Cambia scopeState.context, refiltra selectores A/B y actualiza labels y colores.
+
+Respeta visual.scope.currentContext al abrir si mode === "preset".
+​
+
+Resets
+
+“Reset view”: restablece solo timebase, scale, trigger, freeze al default del contexto actual (sin tocar sources ni preset).
+
+“Reset scope (this preset)”: reemplaza visual.scope.audio/mod en el ValueTree por defaults y sincroniza scopeState.
+​
+
+“Reset scope (all presets in session)”: opcional en MVP, puede quedar stub o fuera.
+
+Mini scope y ojos en módulos
+
+Mini scope: sigue mostrando sourceA o viewMode actual; clic abre/cierra modal.
+​
+
+Iconos ojo: desde cada módulo disparar evento omega:scopeFocus con index y groupHint; el scope actualiza sourceA/B en scopeState y refresca selectores.
+​
+
+5. Tests y validación
+Tests C++:
+
+getTelemetrySources devuelve la lista esperada y los índices mapean a taps válidos.
+
+Presets sin visual.scope cargan sin romper nada (defaults).
+​
+
+Tests WebUI (manual + unitarios JS si quieres):
+
+Cambiar contexto AUDIO/MOD actualiza correctamente catálogos y dibujado.
+
+Cambiar fuentes A/B refleja el cambio en el canvas y en el mini scope.
+
+Guardar/cargar preset conserva visual.scope y respeta mode y currentContext.
+
+Te propongo un plan de implementación en 3 sprints muy pequeños y seguros.
+
+Sprint 1 – Backend y contrato estable
+Definir taps core en C++
+
+Añadir en tu telemetría los índices fijos para: DCO_MAIN, DCO_SUB, NOISE, VCF_MAIN_OUT, HPF_OUT, VOICE_SUM_PRE_FX, FX_BUS_OUT, MASTER_OUT, LFO1/2_OUT, ENV1/2_OUT, ENV_FOLLOWER, MODWHEEL, PITCHBEND, MACRO1.
+​
+
+Asegurar que todos tienen buffer history y están ya integrados en el loop de telemetría (aunque aún no los use la UI).
+​
+
+Implementar RPC getTelemetrySources
+
+Handler en OmegaUiBridge que devuelve el JSON con audio[] y mod[] (id, label, index, group, role).
+​
+​
+
+Test sencillo en C++/log para verificar el contenido.
+
+Extender OmegaPreset/ValueTree (solo lectura)
+
+Añadir bloque opcional visual.scope al ValueTree y a la API de OmegaPreset, sin escribir todavía.
+
+Si el bloque no existe, retornar std::nullopt o equivalente en tu API.
+​
+
+Entrega Sprint 1: build funcional sin cambios en UI, pero con contrato de telemetría y preset listo.
+
+Sprint 2 – WaveformScope UI básica (sin presets aún)
+Estado JS en ModuleOscilloscope
+
+Introducir this.scopeState con defaults (context audio, sourceA = MASTER_OUT o DCO_MAIN, sourceB = MASTER_OUT, viewMode = A, timebase/scale/trigger básicos).
+​
+
+Integrar getTelemetrySources
+
+Llamar a omegaRPC.getTelemetrySources() en init, cachear en this.sourceCatalog.
+​
+
+Implementar selectores A/B agrupados según group, filtrando por contexto AUDIO/MOD.
+
+Dibujado A/B/Overlay/XY
+
+Usar sourceA.index y sourceB.index para leer history del cache de telemetría.
+​
+
+Implementar modos A, B, overlay y XY en el canvas grande.
+
+Controles básicos
+
+Timebase simple (slider o discretos), Scale, Trigger (modo + nivel), Freeze, Trail, todo solo afectando a cómo dibujas.
+​
+
+Toggle AUDIO/MOD que solo cambia catálogo y paleta de colores.
+
+Entrega Sprint 2: modal WaveformScope funcional con A/B y controles, pero sin persistencia en presets ni chip PRESET/SESSION.
+
+Sprint 3 – Persistencia, PRESET/SESSION y resets
+Persistencia en presets
+
+Mapear this.scopeState ↔ bloque visual.scope (audio, mod, currentContext, mode, followsPreset).
+​
+
+Al cargar preset: si followsPreset && mode == "preset" y hay bloque, aplicar; si no, usar estado de sesión.
+​
+​
+
+Al guardar preset: escribir visual.scope actual cuando mode == "preset" (o siempre, según definas).
+
+Chip PRESET/SESSION
+
+Añadir chip en la barra de la modal que alterna mode: "preset" | "session" y actualiza un icono/texto.
+
+En modo SESSION, no sobrescribir el bloque del preset (o hacerlo bajo una política clara).
+​
+
+Resets
+
+“Reset view”: solo reestablece timebase, scale, trigger y freeze a defaults del contexto actual (no escribe preset).
+
+“Reset scope (this preset)”:
+
+Reemplaza visual.scope del preset por defaults.
+
+Sincroniza scopeState con esos defaults.
+​
+​
+
+Mini scope y ojos
+
+Confirmar que el mini scope sigue mostrando sourceA/viewMode actual.
+​
+
+Implementar listener omega:scopeFocus para que los iconos ojo en módulos cambien sourceA o sourceB y abran la modal.
+​
+
+Entrega Sprint 3: WaveformScope completo, con memoria por preset y por sesión, resets y flujo mini‑scope ↔ modal estable.
+
+
+
+entonces nos quedamos en nivel de diseño y decisiones, sin entrar en código.
+
+1. Qué tienes ya bien definido del MVP
+Un WaveformScope con mini scope + modal grande, contextos AUDIO/MOD, fuentes A/B agrupadas, viewModes A/B/Overlay/XY y 3–4 controles clave (Timebase, Scale, Trigger, Freeze/Trail).
+​
+​
+
+Un contrato conceptual para getTelemetrySources: lista corta de taps de audio y modulación, cada uno con id, label, index, group, role.
+​
+​
+
+Una estructura clara de estado del scope (scopeState) y cómo se guarda en el preset bajo visual.scope (audio, mod, currentContext, followsPreset, mode preset/session).
+​
+​
+
+Un plan en 3 sprints: primero taps+RPC+ValueTree, luego UI básica del scope, luego persistencia/RESET/PRESET‑SESSION y wiring con mini scope + ojos.
+​
+
+2. Cómo puedes usar esto sin código concreto
+Mientras implementes:
+
+Puedes usar las estructuras descritas como checklist:
+
+¿Tengo ya mapeados todos los taps core?
+
+¿Mi respuesta de getTelemetrySources lleva las claves pensadas?
+
+¿Mi estado interno del scope refleja context, A/B, timebase, trigger, freeze?
+
+Y puedes comprobar la UX con prototipos rápidos en la WebUI (incluso con datos fake) antes de tocar el motor.
+​
+​
+
+Cuando avances un poco y quieras revisar decisiones (por ejemplo, si los grupos de fuentes se te quedan cortos, o si quieres ajustar qué se guarda en visual.scope), podemos revisar el diseño y adaptarlo antes de pensar en detalles de implementación.
+
+
+
+Los próximos pasos para tener el modo modular VA/ACE realmente operativo se pueden resumir en cuatro bloques: voz/config, catálogo ACE, mapeo preset→engine y UI.
+​
+
+1. Consolidar el “motor modular” como destino
+Tienes VirtualAnalogEngine y EngineTypes/EngineConfig ya definidos para un VA modularizado (oscMode, filterType, etc.).
+​
+
+Próximo paso conceptual: decidir qué es exactamente “modo modular” para OMEGA en esta fase MVP:
+
+1 voz VA con 1 oscilador seleccionable + 1 filtro seleccionable + 1 FX básico (chorus/space echo), todos elegidos desde ACE.
+​
+
+Asegúrate de que EngineConfigManager puede construir un EngineConfig “VA modular” a partir de ACE/preset sin romper los engines Juno/JP/MS‑20 clásicos.
+​
+
+2. Cerrar el modelo ACE necesario para modular
+El catálogo ACE ya tiene IDs VA (OSC-VA-00x, FLT-VA-00x, envelopes, LFOs, FX).
+​
+
+Próximo paso: definir una sub-matriz mínima de componentes admitidos en el modo modular:
+
+Lista blanca de oscillators VA (p.ej. JunoDCO, JP Supersaw, MS‑20 VCO, algún Prophecy).
+
+Lista blanca de filtros VA (Juno IR3109, Korg35, JP8080).
+
+1–2 bloques de envolvente/LFO genéricos (ENV-ADSR-GEN, LFO-VA-001).
+​
+
+Documentar esta “VA/ACE Modular 0.1 matrix” para que AceValidator sepa qué combinaciones son válidas y qué fallbacks usar si falta algo.
+​
+
+3. Asegurar el pipeline preset → EngineConfig → VirtualAnalogEngine
+OmegaPreset ya contempla una sección voiceArchitecture con oscillators[], filters[], envelopes[] y un futuro modulationGraph.
+​
+
+Próximo paso:
+
+En la spec, fijar que modo modular MVP usa solo 1 entrada en cada lista (un oscilador ACE, un filtro ACE, envolvente AMP y MOD).
+
+Definir claramente cómo se traduce un componentId ACE + sus params a campos de VoiceConfig y a la configuración de las *Pool de VirtualAnalogEngine.
+​
+
+EngineConfigManager debe tener un camino separado “modo modular”:
+
+Si el preset engineType == "VirtualAnalog" y voiceArchitecture está presente, construir EngineConfig desde ACE + preset en lugar de usar el camino Juno fijo.
+​
+
+4. Exponer el modo modular en la UI sin desbordarla
+Ya tienes módulos WebUI Juno/Korg/SpaceEcho auto-configurables desde metadatos.
+​
+
+Próximos pasos de diseño (sin código):
+
+Definir un ModuleModular o “ModuleAdvanced” que muestre solo los parámetros de panel del VA modular (cutoff, resonance, osc mix, env, LFO) leídos desde ParameterMetadataRegistry para ese EngineConfig.
+​
+
+Decidir cómo seleccionas “modo modular” en la UI:
+
+O bien vía tipo de preset (engineType: VirtualAnalog con architecture modular).
+
+O un selector de motor en la vista Engine (Juno / MS‑20 / Modular), que en realidad carga presets base distintos.
+​
+
+Si tuviera que ordenar esto en pasos concretos, a nivel de arquitectura (sin tocar aún código), sería:
+
+Congelar la lista de componentes ACE permitidos en “VA/ACE Modular 0.1” y sus roles (osc, filter, env, LFO, FX).
+
+Definir en la spec de OmegaPreset cómo se ve exactamente un preset “modular VA” mínimo (1 osc, 1 filtro, env+LFO genéricos) y cómo se marca (engineType o flag).
+​
+
+Especificar en texto el algoritmo de EngineConfigManager.applyPreset para este modo: de voiceArchitecture+ACE a EngineConfig+VirtualAnalogEngine.
+​
+
+Decidir el UX de selección de modo modular en la WebUI (qué módulo muestra sus parámetros y cómo se integra en el rack actual).
+
+
+Te propongo el “shape” mínimo de un preset YAML para modo VA modular: 1 layer, 1 osc, 1 filtro, 1 env AMP, 1 env MOD, 1 LFO.
+​
+
+1. Cabecera y capa
+text
+id: "VA-MOD-0001"
+name: "VA Modular Init"
+author: "ABDOmega"
+engineType: "VirtualAnalog"      # clave para EngineConfigManager
+masterGainDb: 0.0
+masterBypass: false
+
+layers:
+  - id: "A"
+    name: "Layer A"
+    polyphony: 8
+    engine: "VA_MODULAR_01"     # opcional: sub-tipo dentro de VA
+engineType: VirtualAnalog + presencia de voiceArchitecture será tu señal de “modo modular VA”.
+​
+
+2. Parámetros de panel (lo que verá ModuleModular)
+text
+    layerParams:
+      mainCutoffHz: 2000.0
+      mainResonance: 0.2
+      oscMix: 1.0              # peso del único osc, placeholder para futuro multi-osc
+      envAmount: 0.5           # depth env→cutoff
+      lfoAmount: 0.0           # depth lfo→cutoff
+      analogDrift: 0.15
+Estos nombres ya encajan con tu ParameterMetadataRegistry y UI dinámica.
+​
+
+3. Arquitectura de voz modular mínima
+text
+    voiceArchitecture:
+      oscillators:
+        - slot: 1
+          componentId: "OSC-VA-001"     # Juno DCO VA
+          enabled: true
+          params:
+            tune: 0.0
+            pulsewidth: 0.5
+            sawLevel: 1.0
+            pulseLevel: 0.0
+            subLevel: 0.0
+            noiseLevel: 0.0
+
+      filters:
+        - slot: 1
+          componentId: "FLT-VA-001"     # IR3109 VA
+          enabled: true
+          params:
+            cutoffHz: 2000.0
+            resonance: 0.2
+            hpfMode: 1                  # según ACE
+
+      envelopes:
+        - slot: 1
+          componentId: "ENV-ADSR-GEN"
+          role: "amp"                   # va al VCA
+          enabled: true
+          params: { attack: 10.0, decay: 100.0, sustain: 0.8, release: 200.0 }
+
+        - slot: 2
+          componentId: "ENV-ADSR-GEN"
+          role: "mod"                   # se usará para cutoff por defecto
+          enabled: true
+          params: { attack: 5.0, decay: 80.0, sustain: 0.6, release: 180.0 }
+
+      lfos:
+        - slot: 1
+          componentId: "LFO-VA-001"
+          role: "mod"
+          enabled: true
+          params:
+            shape: "sine"
+            rateHz: 5.0
+            sync: false
+Esto es la mínima unidad modular: 1 osc ACE + 1 filtro ACE + env AMP+MOD + 1 LFO genérico.
+​
+
+4. Modulación por defecto (sin aún grafo completo)
+Para el MVP modular puedes fijar unas rutas “convención” sin exponer aún modulationGraph:
+
+ENV role=amp → VCA.
+
+ENV role=mod → filtro cutoff con depth envAmount.
+
+LFO role=mod → filtro cutoff con depth lfoAmount.
+​
+
+Más adelante, cuando actives el bloque modulationGraph, puedes mover estas rutas ahí, pero para arrancar, EngineConfigManager puede aplicar estas conexiones de forma fija al construir el EngineConfig.
+​
+
+Con este shape ya tienes una plantilla clara de preset “VA modular mínimo” sobre la que trabajar
+
+
+Los próximos pasos para implementar el modo modular pasan por definir cómo EngineConfigManager “lee” ese preset VA modular y construye el motor VA de forma determinista.
+​
+
+1. Detección clara del modo modular
+Al cargar un preset, EngineConfigManager debe decidir:
+
+Si engineType == "VirtualAnalog" y existe voiceArchitecture con listas oscillators[]/filters[], entra en camino VA modular.
+​
+
+Si no, usa el camino clásico (Juno, JP, MS‑20, etc.).
+
+Esto evita mezclar lógica de engines fijos con el modo modular.
+
+2. Construcción de la voz a partir de ACE
+Piensa en tres pasos conceptuales:
+
+Resolver componentes ACE:
+
+Para cada entrada de voiceArchitecture (osc, filter, envelopes, lfos), pedir a AceCatalog el descriptor de componentId (OSC-VA-001, FLT-VA-001, ENV-ADSR-GEN, LFO-VA-001…).
+​
+
+Si falta alguno, aplicar reglas de fallback ya definidas en AceValidator (p.ej. usar un osc/filter/env genérico VA).
+​
+
+Traducir ACE + params → VoiceConfig:
+
+Osc: mapear tune, pulsewidth, sawLevel, pulseLevel, etc. a los campos del oscilador VA que entiende VirtualAnalogEngine.
+
+Filter: mapear cutoffHz, resonance, hpfMode a los parámetros del filtro VA interno.
+
+Env AMP/MOD y LFO: convertir los parámetros (ADSR, forma, rate) a estructuras de envelope/LFO que conozca el engine.
+​
+
+Construir la “plantilla de voz” modular:
+
+EngineConfig resultante debe contener: 1 bloque de oscilador VA, 1 bloque de filtro VA, 1 VCA, 2 envelopes, 1 LFO, y su wiring básico.
+​
+
+3. Aplicar las convenciones de modulación por rol
+En este MVP modular no quieres todavía exponer el modulationGraph completo, así que usa roles para las conexiones:
+
+envelope.role == "amp" → conectar su salida al VCA de la voz (amp envelope).
+
+envelope.role == "mod" → conectar su salida al cutoff del filtro, escalada por layerParams.envAmount.
+
+lfo.role == "mod" → conectar su salida al cutoff del filtro, escalada por layerParams.lfoAmount.
+​
+
+Conceptualmente, EngineConfigManager:
+
+Busca envelopes con role:"amp" y role:"mod".
+
+Busca LFOs con role:"mod".
+
+Rellena en EngineConfig la estructura de modulaciones estándar:
+
+modAmpEnv → VCA, modEnv → cutoff, LFO → cutoff.
+
+Más adelante puedes migrar esto al ModulationGraph, pero ahora te basta con estas conexiones “hardcoded” a nivel de configuración.
+
+4. Integrar con la polifonía y el snapshot engine
+polyphony de la layer A determina cuántas voces del VirtualAnalogEngine instancias.
+​
+
+La arquitectura “atomic snapshot engine” que ya tienes para VA/ACE debe también servir aquí:
+
+El EngineConfig construido desde ACE+preset se convierte en un snapshot que puedes swappear atómicamente sin locks.
+​
+
+Eso significa que cambiar de un preset Juno a uno VA modular no requiere código nuevo en el procesado, solo un EngineConfig distinto.
+
+5. Qué validar en esta primera iteración
+Antes de tocar UI:
+
+Dado un preset de ejemplo con el shape modular que definimos, EngineConfigManager debería ser capaz de:
+
+Construir un EngineConfig VA modular sin punteros nulos ni dependencias circulares.
+
+Crear voices que suenen (osc→filter→VCA) con sus envelopes y LFO aplicados como se espera.
+​
+
+Los tests que ya definiste en VAACETESTPLAN.md para VA/ACE se pueden ampliar con 1–2 casos “VA modular” (preset simple Juno‑like y un MS20‑like) para confirmar que el motor se comporta.
+
+
+
+Para cerrar el MVP del modo modular, te propongo una UX muy contenida: un “modo VA Modular” que se siente como un sinte clásico, no como VCV Rack.
+​
+
+1. Dónde se activa el modo modular
+No añadas un botón “Modular” suelto: haz que venga implícito por el preset.
+
+En la WebUI (rack inferior), la sección de motor muestra una pestaña o selector de “Engine”:
+
+Juno, MS‑20, JP, VA Modular.
+
+Cuando el preset actual tiene engineType: VirtualAnalog + voiceArchitecture, esa pestaña se posiciona en “VA Modular” y carga el ModuleAdvanced correspondiente.
+​
+
+Así no introduces un nuevo flujo; simplemente es “otro engine” para el usuario.
+
+2. Un único módulo “VA Modular” para el panel
+En lugar de trocear en muchos módulos (DCO, VCF, etc.), para el MVP piensa en un panel único “VA Modular” (o “ModuleAdvanced”) con:
+
+Sección OSC: mezcla, forma (si aplica), noise/sub, detune básico.
+
+Sección VCF: cutoff, resonance, env amt, LFO amt, keytracking simple.
+
+Sección ENV/LFO: ADSR de amp y de mod, rate/shape del LFO principal.
+
+Ese panel bebe íntegramente de ParameterMetadataRegistry, de forma que, aunque por debajo ACE/VirtualAnalogEngine cambie de DCO/VCF, los controles visibles se mantienen.
+​
+
+Objetivo: que el usuario no “vea” ACE ni el grafo; solo un VA moderno con un panel limpio.
+
+3. Relación con presets y ACE
+El usuario selecciona “VA Modular” y carga/guarda presets que internamente usan el shape modular que definimos (1 osc, 1 filtro, env+LFO).
+​
+
+La UI no enseña componentId ni “slot 1/2”:
+
+Para el MVP, cada preset modular puede cambiar internamente el oscilador/filtro ACE, pero el panel sigue mostrando los mismos controles lógicos (Osc Type, Filter Type, etc.), con opciones limitadas.
+
+Más adelante, si quieres, podrías añadir una pequeña lista desplegable “Osc model / Filter model” que cambie el componentId ACE, pero no es necesario para arrancar.
+​
+
+4. Integración con el resto del rack
+Mantén el layout actual de doble rack: arriba utilidades (scope, MIDI viewer, etc.), abajo síntesis.
+​
+
+Cuando el preset es VA Modular:
+
+Sustituye el combo de módulos Juno/JP/Korg por el único módulo “VA Modular”.
+
+Deja Space Echo u otros FX como están; el usuario puede seguir viendo/ajustando FX encima del motor.
+​
+
+Así no cambias la arquitectura visual, solo qué “bloque de motor” se dibuja.
+
+5. MVP sin edición de arquitectura, solo de parámetros
+Para esta primera versión modular:
+
+El usuario no edita conexiones ni el “voiceArchitecture”:
+
+No puede añadir otro osc, ni otro filtro, ni cambiar roles de env/LFO.
+
+Solo toca parámetros de panel y, si lo implementas, un selector de modelo de osc/filtro.
+​
+
+La edición de arquitectura (añadir otro oscillador, elegir otro envelope, etc.) la dejas para una Fase 2, quizá bien integrada con el futuro editor de ModulationGraph o un editor de “voice architecture” aparte.
+​
+
+Con esto consigues:
+
+Un modo “VA Modular” que ya usa todo tu stack ACE/EngineConfig,
+
+pero que a ojos del usuario es solo “otro motor VA” con un panel fino, sin abrir aún el melón de patching modular tipo Eurorack.
+
+
+
+Para una futura edición de arquitectura modular, te propongo una pantalla específica de “Voice Architecture” que no toca el MVP actual, pero encaja con tu stack ACE/ModulationGraph.
+​
+
+1. Entrada al editor de arquitectura
+Desde el módulo “VA Modular” añade un botón discreto tipo “Edit Architecture…”.
+
+Eso abre una vista aparte (modal grande o pestaña nueva) donde ya no ves knobs, sino bloques lógicos: Osc, Filter, Env, LFO, FX.
+​
+
+El preset sigue sonando; esta vista es puramente de diseño estructural, no de performance inmediata.
+
+2. Layout conceptual de la vista
+Piensa en tres paneles:
+
+Panel izquierdo: Biblioteca ACE
+
+Lista agrupada de componentes permitidos:
+
+Oscillators VA, Filters VA, Envelopes genéricos, LFOs, FX simples.
+​
+
+No todo el catálogo ACE: solo la “whitelist modular” para no abrumar.
+
+Zona central: Arquitectura de voz
+
+Vista en columnas:
+
+Columna “Oscillators” con hasta 3 slots.
+
+Columna “Filters” con 1–2 slots en serie o paralelo.
+
+Columna “Envelopes” (AMP, MOD1, MOD2).
+
+Columna “LFOs”.
+
+Cada slot muestra: nombre del componentId, icono de tipo y un pequeño resumen (p.ej. “Juno DCO”, “Korg35 LP”).
+​
+
+Panel derecho: Detalles del bloque seleccionado
+
+Lista simple de parámetros ACE relevantes para ese componente (no panel completo, solo lo esencial de arquitectura: p.ej. modo del filtro, número de polos, etc.).
+
+3. Operaciones que permite (Fase 2, no MVP)
+Mantén las operaciones muy acotadas:
+
+Osciladores:
+
+Añadir/quitar hasta un máximo (por ejemplo 3).
+
+Elegir modelo ACE en cada slot (Juno DCO, Supersaw JP, VCO MS‑20).
+​
+
+Flag simple “enabled” y quizá “blend role” (main/sub).
+
+Filtros:
+
+Elegir 1 filtro principal (Juno, Korg35, JP Formant).
+
+Opcionalmente un segundo filtro en serie (MS‑20 HPF, etc.), con un selector “routing: series/parallel” muy simple.
+​
+
+Envelopes:
+
+Fijar roles: AMP, MOD1 (filtro), MOD2 (libre).
+
+Añadir hasta 3 envelopes genéricas.
+
+LFOs:
+
+Añadir hasta 2 LFOs globales de voz.
+
+Roles: vibrato, mod filtro, libre.
+
+Nada de patch cables ni grafo todavía; las conexiones siguen siendo por convención de roles (como ahora) o se delegan a modulationGraph más adelante.
+
+4. Cómo se refleja en el preset
+Esta vista edita directamente la sección voiceArchitecture del YAML:
+
+Listas oscillators[], filters[], envelopes[], lfos[] con sus componentId, enabled, role y parámetros clave.
+​
+
+Cada vez que confirmas cambios de arquitectura:
+
+EngineConfigManager reconstruye un nuevo EngineConfig VA y lo swappea atómicamente.
+​
+
+La UI de panel (Module VA Modular) sigue mostrando el mismo conjunto de controles lógicos (cutoff, env amount, etc.), aunque por debajo haya ahora 2 oscs o 2 filtros; esos controles pasan a manejar “macro” de la arquitectura resultante.
+
+5. Relación con ModulationGraph (futuro)
+Más adelante, podrías añadir una pestaña secundaria “Advanced Routing” que abra el editor del ModulationGraph para ese preset, donde las salidas de LFO/ENV/ModSources ya estén instanciadas como nodos.
+​
+
+En esta Fase 2 de arquitectura, sin embargo, el usuario sólo decide qué componentes hay y sus roles; el patching fino lo dejas para el grafo o para convención.
+
+Con este diseño, el MVP sigue siendo un VA “normal”, y la edición de arquitectura se siente como una herramienta de power users separada, sin convertir todo el sinte en un entorno modular caótico.
+
+
+Para el modo modular 1.0 yo acotaría mucho la whitelist ACE: pocos modelos, pero muy característicos, para que el espacio de diseño sea interesante sin explotar.
+​
+
+1. Osciladores permitidos (VA modular 1.0)
+VA · Juno DCO
+
+OSC-VA-001 (tu Juno DCO VA), como “osc estándar” por defecto.
+​
+
+VA · JP Supersaw
+
+OSC-VA-SUPERSAW o equivalente (tu JP-8080 supersaw VA), como opción de “anchura” inmediata.
+​
+
+VA · MS‑20 / Korg VCO
+
+Un único VCO VA con carácter MS‑20 (OSC-VA-002 en tu changelog para Korg MS‑20), para tonos más agresivos.
+​
+
+Límite: máximo 2 osciladores por voz en esta fase (por ejemplo slots 1 y 2), para no complicar demasiado el EngineConfig ni la UI.
+
+2. Filtros permitidos
+Roland IR3109 (Juno)
+
+FLT-VA-001 (Juno IR3109 24 dB LP con HPF simple).
+​
+
+Korg35 / MS‑20 LP
+
+FLT-KORG35 o tu VA equivalente de MS‑20 LP.
+​
+
+JP‑style
+
+FLT-JP8080 (JP-8080 VA) para cosas más suaves y “hi‑fi”.
+​
+
+Límite: 1 filtro principal por voz en la primera iteración modular (filtro extra en serie/paralelo lo dejaría para una expansión).
+
+3. Envolventes y LFOs
+Envelopes
+
+Solo un tipo genérico: ENV-ADSR-GEN para todos los roles.
+​
+
+Roles permitidos: amp, mod1, mod2. Máximo 3 por voz.
+
+LFOs
+
+Tipo genérico LFO-VA-001 con formas básicas (sine, tri, saw, square, random).
+​
+
+Roles: vibrato, mod, free. Máximo 2 LFOs por voz en esta fase.
+
+Esto te permite ya cubrir AMP, filtro y alguna modulación extra sin abrir la caja de pandora de envelopes multietapa o LFOs exóticos.
+
+4. FX en modo modular
+Aunque tu FX rack modular es potente, para el modo VA modular 1.0 limitaría FX integrados a:
+
+Chorus Juno VA
+
+FX-CH-001 (tu chorus Juno), como opción de “ancho” clásica.
+​
+
+Space Echo RE‑201
+
+Tu FX-DL-002 Space Echo VA como FX global post‑voz (no editable desde el editor de arquitectura; sigue viviendo en el módulo Space Echo).
+​
+
+Dentro de voiceArchitecture no metería FX aún; mantendría FX a nivel de rack, como ya tienes, para no liar el diseño de voz.
+
+5. Restricciones generales de arquitectura 1.0
+Por voz:
+
+Osc: 1–2, solo de la lista (Juno, Supersaw, Korg).
+
+Filter: 1, solo (Juno, Korg35, JP).
+
+Env: hasta 3 ENV-ADSR-GEN con roles, sin más tipos.
+
+LFO: hasta 2 LFO-VA-001.
+
+Por preset “VA modular 1.0”:
+
+Máximo 1 layer VA modular (dejas los híbridos multicapa para más adelante, o los haces combinando VA modular con engines fijos).
+​
+
+Con esta whitelist tienes ya un espacio sonoro enorme (Juno‑like, JP‑like, MS‑20‑like y combinaciones), pero el problema de combinatoria se mantiene finito y testeable.
+
+
+Te propongo dos presets bandera para validar el modo VA modular 1.0: uno Juno‑pad y uno MS‑20 bass, usando solo la whitelist que hemos definido.
+​
+
+1. VA Modular – “Juno Wide Pad”
+Objetivo sonoro: pad cálido y ancho tipo Juno, con supersaw suave y filtro IR3109, ideal para comprobar polifonía, envs y chorus.
+​
+
+Arquitectura
+
+Osc 1: OSC-VA-001 (Juno DCO) → saw dominante + algo de pulse.
+
+Osc 2: OSC-VA-SUPERSAW (JP‑style) muy baja en mezcla para dar anchura.
+
+Filtro: FLT-VA-001 (IR3109) LP con cutoff medio y res baja.
+
+Env AMP: ataque medio, decay medio, sustain alto, release largo (pad clásico).
+
+Env MOD: ataque algo más rápido, decay medio, sustain medio‑bajo para un barrido suave de filtro.
+
+LFO1: sine lento para vibrato ligero.
+
+Mapeo a parámetros de panel
+
+mainCutoffHz: 1600–2000 Hz (sonido cálido, no muy oscuro).
+
+mainResonance: 0.15–0.25.
+
+oscMix: osc1 0.8, osc2 0.2 aprox.
+
+envAmount: 0.4–0.6 (barrido audible pero musical).
+
+lfoAmount: 0.1–0.2 aplicado a pitch (vibrato) o a cutoff muy sutil.
+
+analogDrift: 0.2–0.3 para sensación de “vida” Juno.
+​
+
+Rutas de modulación por rol
+
+Env AMP → VCA.
+
+Env MOD → cutoff via envAmount.
+
+LFO (role vibrato) → pitch global con profundidad pequeña.
+​
+
+Este preset te valida polifonía, estabilidad del VA, integración ACE (osc/filtro) y la sensación de “Juno moderno” en el modo modular.
+
+2. VA Modular – “MS20 Punch Bass”
+Objetivo sonoro: bajo agresivo tipo MS‑20, monofónico, con VCO Korg + filtro Korg35 empujado, ideal para verificar respuesta en graves, resonance y drive.
+​
+
+Arquitectura
+
+Osc 1: OSC-VA-002 (VCO MS‑20 VA) en saw.
+
+Osc 2: desactivado en este preset (mantienes la opción para otros).
+
+Filtro: FLT-KORG35 (LP MS‑20) con cutoff bajo‑medio y res alta.
+
+Env AMP: ataque muy corto, decay medio, sustain medio‑bajo, release corto (bass percusivo).
+
+Env MOD: ataque corto, decay rápido, sustain casi cero, release muy breve para “pegada” de filtro.
+
+LFO1: opcional, tri lento a pitch o cutoff para wobble sutil.
+
+Mapeo a parámetros de panel
+
+polyphony: 1 (mono).
+
+mainCutoffHz: 400–700 Hz.
+
+mainResonance: 0.6–0.8 (sin llegar a auto‑oscilar brutalmente).
+
+envAmount: 0.7–0.9 (barrido fuerte de filtro en el ataque).
+
+lfoAmount: 0.0 por defecto (wobble opcional).
+
+analogDrift: 0.1–0.15 (algo menos que el pad).
+​
+
+Rutas de modulación por rol
+
+Env AMP → VCA.
+
+Env MOD → cutoff via envAmount.
+
+LFO (role mod) podría ir a cutoff si activas wobble; por defecto, off.
+​
+
+Este preset te valida el carácter Korg en el modo modular, la respuesta del filtro VA MS‑20 bajo, la estabilidad con resonance alta y la sensación de “pegada” en graves.
+
+Si estos dos sonidos te sirven como objetivos, puedes usarlos como “tests manuales”: cuando el modo VA modular 1.0 esté implementado, el sistema pasa si estos dos presets suenan razonablemente como los Juno pad / MS‑20 bass que tienes como engines dedicados.
+
+
+Te propongo una mini matriz de aceptación muy concreta para el modo VA modular, centrada en estos dos presets bandera.
+​
+
+1. Tests funcionales – Juno Wide Pad
+M-VM-01 · Carga preset “VA Modular – Juno Wide Pad”
+
+Paso: cargar el preset en standalone y en un DAW.
+
+Esperado: sonido VA suave, ancho, claramente “pad Juno”, sin clicks ni glitches al tocar acordes.
+​
+
+M-VM-02 · Controles de filtro y env
+
+Paso: mover cutoff, resonance, envAmount en el panel VA Modular.
+
+Esperado:
+
+Cutoff cierra/abre el sonido de forma musical.
+
+Resonance enfatiza medios/agudos sin inestabilidades.
+
+envAmount aumenta/disminuye la apertura dinámica en el ataque.
+​
+
+M-VM-03 · Polifonía y cola
+
+Paso: tocar acordes de 6–8 notas con release largo y cambiar entre presets.
+
+Esperado:
+
+Sin robos de voz audibles “feos” (cola razonable).
+
+Cambios de preset sin explosions de ganancia ni crasheos, gracias al snapshot engine.
+​
+
+2. Tests funcionales – MS20 Punch Bass
+M-VM-10 · Carga preset “VA Modular – MS20 Punch Bass”
+
+Paso: cargar el preset en mono, tocar líneas rápidas de bajo.
+
+Esperado: sonido agresivo, con pegada clara en el ataque y carácter MS‑20 en medios/graves.
+​
+
+M-VM-11 · Resonancia y env de filtro
+
+Paso: subir/bajar resonance y envAmount al extremo.
+
+Esperado:
+
+Resonance alta da chillido MS‑20 pero sin inestabilidades ni saturación digital fea.
+
+envAmount controla el “punch” del filtro; a 0 el bajo es mucho más estático.
+​
+
+M-VM-12 · Comportamiento a diferentes pitches
+
+Paso: tocar el bajo en varias octavas, con cutoff fijo y luego modulado.
+
+Esperado: el carácter MS‑20 se mantiene, sin aliasing evidente ni resonancias descontroladas en graves profundos.
+​
+
+3. Tests de integración ACE/EngineConfig
+I-VM-01 · Mapeo ACE → EngineConfig
+
+Paso: inspeccionar logs o asserts en build debug al cargar ambos presets.
+
+Esperado: EngineConfigManager construye un EngineConfig VA modular sin nulls ni fallbacks inesperados; AceValidator no reporta errores críticos para estos presets.
+​
+
+I-VM-02 · Compatibilidad con presets antiguos
+
+Paso: cargar un preset Juno/JP/MS‑20 clásico y luego un VA modular, y viceversa.
+
+Esperado: los engines fijos siguen sonando igual; el switch entre engine dedicado y VA modular es estable (sin crash ni estado extraño de la WebUI).
+​
+
+4. Tests de UI/UX VA Modular
+U-VM-01 · Selección de engine en WebUI
+
+Paso: cargar un preset Juno, luego el VA Modular Pad y luego el MS20 Bass.
+
+Esperado: la pestaña/selector de engine cambia a “VA Modular” para los presets modulares y vuelve a “Juno/MS‑20” para los dedicados, sin artefactos visuales.
+​
+
+U-VM-02 · Panel VA Modular coherente
+
+Paso: ajustar los mismos parámetros (cutoff, envAmount, lfoAmount) en ambos presets modulares.
+
+Esperado: los controles responden con semántica consistente (cutoff siempre “abre el sonido”, envAmount “aumenta el movimiento del filtro”), aunque por debajo los modelos ACE cambien.
+​
+
+5. Criterios de aceptación del modo modular 1.0
+Los tests M-VM-01..12, I-VM-01..02 y U-VM-01..02 pasan en al menos standalone y un DAW principal, sin fallos críticos (crash, glitch severo, silencios).
+​
+
+Subjetivamente, el Juno Wide Pad y el MS20 Punch Bass en VA modular se perciben como razonablemente cercanos a sus equivalentes de engines dedicados, dentro de las diferencias esperables entre arquitecturas.
+​
+
+Con esta mini matriz tienes una diana muy clara para saber cuándo el modo VA modular 1.0 está “suficientemente bueno” para empezar a usarlo y luego iterar.

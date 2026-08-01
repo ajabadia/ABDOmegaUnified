@@ -1,0 +1,304 @@
+/* 
+    ABD JUNiO 601 - Settings Modal Styling
+    Mirroring the professional "About" modal look with optimized layout
+*/
+
+.settings-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    width: 820px; /* Wider for two columns */
+    border: 2px solid #333;
+    border-radius: 4px;
+    padding: 35px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05);
+    position: relative;
+    color: #eee;
+    font-family: 'Inter', sans-serif;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.settings-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #ff3c3c; /* Juno Red */
+    text-transform: uppercase;
+}
+
+.settings-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.pref-row {
+    display: grid;
+    grid-template-columns: 1fr 140px; /* Two column layout */
+    align-items: center;
+    gap: 20px;
+    padding: 15px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    transition: background 0.2s;
+}
+
+.pref-row:hover {
+    background: rgba(255,255,255,0.04);
+}
+
+.pref-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pref-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #eee;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.pref-tooltip {
+    font-size: 9px;
+    color: #666;
+    font-weight: 500;
+}
+
+.pref-control {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.pref-select, .pref-input {
+    background: #000;
+    border: 1px solid #444;
+    color: #00ff88; /* Technical Green */
+    padding: 6px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    width: 100%;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.pref-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 25px;
+}
+
+.pref-select:focus, .pref-input:focus {
+    border-color: #ff3c3c;
+    box-shadow: 0 0 5px rgba(255,60,60,0.2);
+}
+
+.pref-reset-btn {
+    background: #222;
+    border: 1px solid #333;
+    color: #666;
+    font-size: 8px;
+    font-weight: 900;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+}
+
+.pref-reset-btn:hover {
+    background: #ff3c3c;
+    color: #fff;
+    border-color: #ff3c3c;
+}
+
+.setting-row input[type="range"] {
+    -webkit-appearance: none;
+    background: #333;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.setting-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #ff3c3c;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(255, 60, 60, 0.4);
+}
+
+.val-lbl {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #ff8800; /* Amber Gold */
+    text-align: right;
+    font-weight: bold;
+}
+
+.settings-footer {
+    margin-top: 35px;
+    display: flex;
+    justify-content: center;
+}
+
+.settings-footer button.sq.beige {
+    width: 130px;
+    height: 40px;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* Microtuning Buttons */
+.tuning-btn {
+    background: #222;
+    border: 1px solid #444;
+    color: #eee;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+}
+
+.tuning-btn:hover {
+    background: #333;
+    border-color: #ff3c3c;
+    color: #fff;
+    box-shadow: 0 0 8px rgba(255, 60, 60, 0.2);
+}
+
+.tuning-btn:active {
+    background: #ff3c3c;
+    color: #fff;
+    transform: translateY(1px);
+}
+
+/* ═══════════════════════════════════════════════
+   ATMOSPHERIC SIMULATOR (Era 7.2.3)
+   ═══════════════════════════════════════════════ */
+.atmospheric-simulator {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 30px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.simulator-title {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: #ff8c00;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.simulator-preview {
+    width: 160px;
+    height: 160px;
+    background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 4px 20px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.05);
+    position: relative;
+}
+
+.simulator-object {
+    width: 70px;
+    height: 70px;
+    background: #333;
+    background: radial-gradient(circle at 30% 30%, #555 0%, #222 100%);
+    border-radius: 50%;
+    /* Reactive Shadow */
+    filter: drop-shadow(var(--omega-global-shadow-x) var(--omega-global-shadow-y) var(--omega-global-shadow-blur) var(--omega-global-shadow-color, rgba(0,0,0,0.7)));
+}
+
+.physics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.pref-slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pref-slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pref-slider-header label {
+    font-size: 9px;
+    font-weight: 900;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.pref-slider-header .val {
+    color: #ff8c00;
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.pref-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: #222;
+    border-radius: 3px;
+    outline: none;
+}
+
+.pref-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #ff8c00;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.4);
+    border: 3px solid #111;
+}

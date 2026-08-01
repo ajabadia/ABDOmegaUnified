@@ -1,0 +1,56 @@
+# Ignore everything by default
+/*
+
+# Except these (Source and Documentation)
+!/src/
+!/Resources/
+!/docs/
+!/scripts/
+!/README.md
+!/ROADMAP.md
+!/changelog.md
+!/build_no.txt
+!/CMakeLists.txt
+!/ui/
+!/tools/
+!/DOCUMENTACION/
+!/.gitignore
+!/RULES.md
+!/BUILD.md
+!/DEVELOPMENT_RULES.md
+
+# Subdirectories
+!/src/**
+!/Resources/**
+!/docs/**
+!/scripts/**
+!/ui/**
+!/tools/**
+!/DOCUMENTACION/**
+
+# Junctions (Windows) — duplican contenido ya trackeado en web/src/omega-ui-core.
+# La whitelist /ui/** los re-incluiría; estas negaciones posteriores los excluyen.
+/ui/omega-ui-core/
+/ui/fonts/
+/ui/node_modules/
+/ui/dist/
+
+# Exclude specific heavy or binary files
+*.exe
+*.log
+*.pdb
+*.obj
+*.o
+*.output
+*.errors
+.vs/
+.vscode/
+build*/
+OMEGABOOTLOG.txt
+OMEGA_BOOT_LOG.txt
+
+# Heavy folders to exclude explicitly
+/JUCE/
+/REFERENCE/
+/CMake/
+/build/

@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# ── OMEGA Full Audit (pre-push hook) ──────────────────────────────────
+# Runs all 6 phases of the OMEGA Audit before allowing pushes.
+# Blocks the push if ANY phase fails.
+
+OVERALL_STATUS=0
+
+echo ""
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║   🔬 OMEGA SYSTEM AUDIT — 6-Phase Industrial Certification ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
+
+# ── Phase 1: Structural Integrity ──────────────────────────────────────
+echo ""
+echo "┌─ [1/6] Structural Integrity ───────────────────────────────┐"
+node scripts/arch-guard.mjs
+P1_EXIT=$?
+if [ $P1_EXIT -eq 2 ]; then
+  echo "❌ Phase 1 FAILED — HIGH-risk violations detected!"
+  OVERALL_STATUS=1
+elif [ $P1_EXIT -eq 0 ]; then
+  echo "✅ Phase 1 PASSED — Architectural integrity verified."
+else
+  echo "⚠️  Phase 1 — Unexpected exit code ($P1_EXIT)"
+fi
+
+# ── Phase 2: Type Safety ───────────────────────────────────────────────
+echo ""
+echo "┌─ [2/6] Type Safety (TSC) ──────────────────────────────────┐"
+echo "  Running: npx tsc --noEmit"
+npx tsc --noEmit
+P2_EXIT=$?
+if [ $P2_EXIT -eq 0 ]; then
+  echo "✅ Phase 2 PASSED — 0 TypeScript errors."
+else
+  echo "❌ Phase 2 FAILED — TypeScript errors detected!"
+  echo "   Run 'npx tsc --noEmit' to see details."
+  OVERALL_STATUS=1
+fi
+
+# ── Phase 3: Code Linting ──────────────────────────────────────────────
+echo ""
+echo "┌─ [3/6] Code Linting (ESLint) ──────────────────────────────┐"
+echo "  Running: npm run lint -- --quiet"
+npm run lint -- --quiet
+P3_EXIT=$?
+if [ $P3_EXIT -eq 0 ]; then
+  echo "✅ Phase 3 PASSED — 0 ESLint errors."
+else
+  echo "❌ Phase 3 FAILED — ESLint errors detected!"
+  echo "   Run 'npm run lint' to see details."
+  OVERALL_STATUS=1
+fi
+
+# ── Phase 4: Critical Manifests ─────────────────────────────────────────
+echo ""
+echo "┌─ [4/6] Critical Manifests ─────────────────────────────────┐"
+P4_FAIL=0
+for f in "package.json" "tsconfig.json" "src/omega-ui-core/governance/ElementCatalog.ts"; do
+  if [ -f "$f" ]; then
+    echo "  ✅ $f — OK"
+  else
+    echo "  ❌ $f — MISSING!"
+    P4_FAIL=1
+    OVERALL_STATUS=1
+  fi
+done
+if [ $P4_FAIL -eq 0 ]; then
+  echo "✅ Phase 4 PASSED — All critical manifests verified."
+fi
+
+# ── Phase 5: Workspace Health ──────────────────────────────────────────
+echo ""
+echo "┌─ [5/6] Workspace Health ───────────────────────────────────┐"
+if [ -f "docs/arch-audit-report.json" ]; then
+  echo "  ✅ docs/arch-audit-report.json — exists"
+  echo "✅ Phase 5 PASSED — Audit artifacts generated."
+else
+  echo "  ⚠️  docs/arch-audit-report.json — missing"
+  echo "⚠️  Phase 5 WARNING — Run audit first."
+fi
+
+# ── Phase 6: Final Verdict ─────────────────────────────────────────────
+echo ""
+echo "┌─ [6/6] Final Verdict ──────────────────────────────────────┐"
+if [ $OVERALL_STATUS -eq 0 ]; then
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════════╗"
+  echo "║   ✅ OMEGA SYSTEM CERTIFIED — ERA 11 COMPLIANT              ║"
+  echo "║   All 6 phases passed. Push allowed.                        ║"
+  echo "╚══════════════════════════════════════════════════════════════╝"
+  exit 0
+else
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════════╗"
+  echo "║   ❌ BREACHES DETECTED — SYSTEM NOT READY                   ║"
+  echo "║   One or more phases failed. Push blocked.                  ║"
+  echo "║   Fix the failures above before pushing.                    ║"
+  echo "╚══════════════════════════════════════════════════════════════╝"
+  exit 1
+fi

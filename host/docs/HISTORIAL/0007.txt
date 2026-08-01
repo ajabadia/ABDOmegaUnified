@@ -1,0 +1,36 @@
+# DOCUMENTO 0007: ARQUITECTURA DE METADATOS UNIVERSALES (OMEGA PHASE 6)
+
+## 1. El Problema
+Actualmente, la sincronización entre el motor C++ y la WebUI es ad-hoc. Cada parámetro requiere definición manual en ambos lados (C++ y JS/HTML), lo que genera:
+- Desincronización de rangos (ej: Cutoff en audio va de 20-20k, pero la UI puede enviar 0-1).
+- Hardcoding de etiquetas y unidades en la UI.
+- Dificultad para añadir nuevos módulos sin tocar múltiples capas de código.
+
+## 2. La Solución: Source of Truth (C++)
+El motor C++ será el único dueño de la definición de los parámetros. La UI consultará estos metadatos al arrancar.
+
+## 3. Estructura del `ParameterDescriptor`
+Cada parámetro del sistema (DCO, VCF, LFO, etc.) tendrá:
+- `id`: Identificador único (ej: "vcf_cutoff").
+- `name`: Nombre legible (ej: "Cutoff").
+- `range`: [min, max].
+- `default`: Valor inicial.
+- `unit`: "Hz", "dB", "%", "ms", "semitones", "ratio".
+- `skew`: Factor de curva (logarítmica para frecuencias, lineal para otros).
+- `groupId`: "VCF", "DCO", "LFO 1", etc.
+
+## 4. Flujo de Sincronización
+1. **Startup**: La UI llama a `window.omegaRPC.getMetadata()`.
+2. **Response**: C++ devuelve un JSON con el mapa completo de `ParameterDescriptor`.
+3. **UI Binding**: La WebUI itera sobre este mapa para configurar los Sliders/Knobs automáticamente.
+4. **Runtime**: Las llamadas a `setParameter` siguen usando el ID, pero la UI ya conoce los límites y formatos de visualización.
+
+## 5. Próximos Pasos (Sprint 7)
+- [ ] Implementar `ParameterMetadataRegistry` en `SOURCE/Core`.
+- [ ] Refactorizar `Midi1Adapter` para usar este registro.
+- [ ] Exponer `getMetadata` vía `OmegaUiBridge`.
+- [ ] Actualizar `index.js` para consumir y aplicar metadatos.
+
+---
+*Estado: PROPUESTA / FASE 6*
+*Fecha: 24/03/2026*

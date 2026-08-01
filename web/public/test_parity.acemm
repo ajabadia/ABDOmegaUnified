@@ -1,0 +1,152 @@
+{
+  "id": "test_parity_v7",
+  "schemaVersion": "7.1",
+  "metadata": {
+    "name": "OMEGA Parity Test Suite",
+    "version": "1.0.0",
+    "author": "OMEGA Core Team",
+    "family": "utility",
+    "status": "experimental",
+    "tags": ["test", "parity", "era7", "industrial"],
+    "description": "Visual Parity Reference Manifest for Era 7.2.3. Used to validate pixel-perfect rendering between Editor and Engine.",
+    "rack": {
+      "hp": 24,
+      "slot": "main",
+      "height_mode": "full"
+    }
+  },
+  "ui": {
+    "skin": "industrial",
+    "dimensions": {
+      "width": 360,
+      "height": 420
+    },
+    "layout": {
+      "activeTab": "MAIN",
+      "containers": [
+        { "id": "c_knobs", "label": "Knob Matrix (Industrial)", "pos": { "x": 10, "y": 10 }, "size": { "w": 160, "h": 120 }, "variant": "panel" },
+        { "id": "c_sliders", "label": "Slider Dynamics", "pos": { "x": 180, "y": 10 }, "size": { "w": 160, "h": 120 }, "variant": "inset" },
+        { "id": "c_displays", "label": "Visual Displays (OLED/LCD/LED)", "pos": { "x": 10, "y": 140 }, "size": { "w": 330, "h": 80 }, "variant": "header" },
+        { "id": "c_carbon", "label": "Carbon Skin Sample", "pos": { "x": 10, "y": 230 }, "size": { "w": 160, "h": 100 }, "variant": "section" },
+        { "id": "c_glass", "label": "Glass Skin Sample", "pos": { "x": 180, "y": 230 }, "size": { "w": 160, "h": 100 }, "variant": "panel" }
+      ]
+    },
+    "controls": [
+      {
+        "id": "k_main",
+        "label": "Master Cutoff",
+        "role": "param",
+        "unit": "Hz",
+        "pos": { "x": 40, "y": 60 },
+        "presentation": {
+          "component": "knob",
+          "variant": "B_cyan",
+          "container": "c_knobs",
+          "attachments": [
+            { "type": "label", "text": "CUTOFF", "position": "top", "variant": "B_cyan" },
+            { "type": "led", "position": "left", "variant": "neon_amber" }
+          ]
+        }
+      },
+      {
+        "id": "k_res",
+        "label": "Resonance",
+        "role": "param",
+        "unit": "%",
+        "pos": { "x": 100, "y": 60 },
+        "presentation": {
+          "component": "knob",
+          "variant": "B_cyan",
+          "container": "c_knobs",
+          "attachments": [
+            { "type": "label", "text": "RES", "position": "top" },
+            { "type": "label", "text": "Q", "position": "bottom", "variant": "white" }
+          ]
+        }
+      },
+      {
+        "id": "s_vol",
+        "label": "Main Volume",
+        "role": "param",
+        "unit": "dB",
+        "pos": { "x": 210, "y": 70 },
+        "presentation": {
+          "component": "slider_v",
+          "variant": "B_cyan",
+          "container": "c_sliders",
+          "attachments": [
+            { "type": "label", "text": "VOL", "position": "right" }
+          ]
+        }
+      },
+      {
+        "id": "d_oled",
+        "label": "Frequency Display",
+        "role": "param",
+        "unit": "Hz",
+        "pos": { "x": 60, "y": 180 },
+        "presentation": {
+          "component": "display",
+          "variant": "B_cyan_oled",
+          "container": "c_displays"
+        }
+      },
+      {
+        "id": "d_lcd",
+        "label": "Legacy LCD",
+        "role": "param",
+        "unit": "ms",
+        "pos": { "x": 160, "y": 180 },
+        "presentation": {
+          "component": "display",
+          "variant": "B_cyan_lcd",
+          "container": "c_displays"
+        }
+      },
+      {
+        "id": "d_led",
+        "label": "Numeric LED",
+        "role": "param",
+        "unit": "v",
+        "pos": { "x": 260, "y": 180 },
+        "presentation": {
+          "component": "display",
+          "variant": "B_cyan_led",
+          "container": "c_displays"
+        }
+      }
+    ],
+    "jacks": [
+      {
+        "id": "in_audio",
+        "label": "Audio In",
+        "role": "stream",
+        "pos": { "x": 40, "y": 280 },
+        "presentation": {
+          "component": "port",
+          "variant": "B_cyan",
+          "color": "B_cyan",
+          "container": "c_carbon",
+          "attachments": [
+            { "type": "label", "text": "IN L/R", "position": "bottom" }
+          ]
+        }
+      },
+      {
+        "id": "out_audio",
+        "label": "Main Out",
+        "role": "output",
+        "pos": { "x": 210, "y": 280 },
+        "presentation": {
+          "component": "port",
+          "variant": "neon_amber",
+          "color": "neon_amber",
+          "container": "c_glass",
+          "attachments": [
+            { "type": "label", "text": "OUT", "position": "top" }
+          ]
+        }
+      }
+    ]
+  }
+}

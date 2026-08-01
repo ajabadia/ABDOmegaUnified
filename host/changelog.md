@@ -2,6 +2,18 @@
 
 Este archivo registra todos los cambios significativos, mejoras y correcciones del sintetizador OMEGA.
 
+## [Build #714] - 2026-08-01 — "Fix build_wasm.bat: pipeline WASM validado tras la limpieza"
+
+### Fixed
+- **`scripts/build_wasm.bat` no se podía ejecutar bajo cmd.exe** — fallaba con `No se esperaba . en este momento` justo tras `[1/4]` (verificación de `em++`). Causa raíz aislada por bisectiva empírica con bats mínimos: **paréntesis sin escapar `(emsdk)` dentro del bloque `if (...)` multilínea** — en cmd.exe el `)` de `(emsdk)` cierra el bloque prematuramente y el `.` sobrante rompe el parser. No era el CRLF ni la redirección `>nul 2>nul`.
+- **Fix: escape canónico `^(emsdk^)`** en la línea 18 del script.
+- **Finales de línea normalizados a CRLF** (el archivo estaba LF-only — 0 CR / 37 LF), convención correcta para `.bat` en Windows.
+
+### Validation
+- **Pipeline WASM validado definitivamente** con emsdk activo (`/c/emsdk`, Emscripten **6.0.4**): `build_wasm.bat` corre completo `[1/4]`→`[4/4]`, **exit 0**.
+- Los 3 módulos se recompilaron con la toolchain moderna y quedaron regenerados **hoy (2026-08-01)** con cabecera `\0asm` válida: `midi_in.wasm` **864 B**, `midi_trigger.wasm` **1718 B**, `omega_lab_monitor.wasm` **3837 B** (vs 1630/2610/4981 de la build de mayo — menores por la optimización de Emscripten 6.x, sin errores visibles de SIDE_MODULE).
+- `engine/bindings/wasm_compat.h` presente (2143 B) — el `-include` del script resuelve.
+
 ## [Build #713] - 2026-08-01 — "Limpieza del espejo muerto engine/src"
 
 ### Refactor

@@ -1,0 +1,32 @@
+{
+  "id": "standard_vcf",
+  "version": "1.0.0",
+  "label": "Industrial VCF",
+  "family": "Filter",
+  "category": "composite",
+  "description": "Classic 24dB/oct low-pass filter with resonance control.",
+  "policy": [
+    { "path": "layout.mode", "mode": "locked" },
+    { "path": "style.color", "mode": "editable" }
+  ],
+  "slots": [
+    { "id": "cutoff_binding", "label": "Cutoff", "kind": "parameter", "required": true, "path": "cutoff_cell" }
+  ],
+  "baseNode": {
+    "id": "vcf_root",
+    "kind": "container",
+    "role": "structure",
+    "layout": { "pos": { "x": 0, "y": 0 }, "mode": "stack-v", "padding": 10, "gap": 10 },
+    "children": [
+      {
+        "id": "cutoff_cell",
+        "kind": "cell",
+        "role": "control",
+        "bind": "cutoff_binding",
+        "cellRef": "knob",
+        "layout": { "pos": { "x": 0, "y": 0 }, "size": { "width": 60, "height": 60 } },
+        "style": { "color": "#00f2ff" }
+      }
+    ]
+  }
+}

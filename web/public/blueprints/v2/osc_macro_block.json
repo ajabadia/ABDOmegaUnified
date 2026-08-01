@@ -1,0 +1,33 @@
+{
+  "id": "osc_macro_block",
+  "label": "VCO Macro Block",
+  "pos": { "x": 0, "y": 0 },
+  "children": [
+    {
+      "id": "vco_label",
+      "type": "label",
+      "label": "VCO-X1",
+      "pos": { "x": 0, "y": 0 },
+      "size": { "width": 80, "height": 16 },
+      "style": { "font": "Inter", "fontSize": 10, "fontColor": "#aaa", "variant": "label_display" }
+    },
+    {
+      "id": "pitch_knob",
+      "type": "knob",
+      "label": "Pitch",
+      "pos": { "x": 0, "y": 20 },
+      "size": { "width": 80, "height": 80 },
+      "style": { "variant": "A_cyan" },
+      "bind": { "target": "pitch_bind" }
+    },
+    {
+      "id": "fm_jack",
+      "type": "port",
+      "label": "FM Input",
+      "pos": { "x": 0, "y": 110 },
+      "size": { "width": 30, "height": 30 },
+      "style": { "orientation": "left" },
+      "bind": { "target": "fm_port" }
+    }
+  ]
+}

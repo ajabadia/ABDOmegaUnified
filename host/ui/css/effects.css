@@ -1,0 +1,69 @@
+/* ═══════════════════════════════════════════════
+   OMEGA ERA 7.2.3 — VISUAL EFFECTS & ANIMATIONS
+   ═══════════════════════════════════════════════ */
+
+/* CRT SCREEN EFFECT */
+.crt-screen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 100000;
+}
+
+.crt-screen::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: rgba(18, 16, 16, 0.1);
+    opacity: 0;
+    z-index: 2;
+    pointer-events: none;
+    animation: flicker 0.15s infinite;
+}
+
+@keyframes flicker {
+    0% { opacity: 0.27; }
+    50% { opacity: 0.32; }
+    100% { opacity: 0.27; }
+}
+
+/* SCANLINE EFFECT */
+.scanline {
+    width: 100%;
+    height: 2px;
+    z-index: 3;
+    background: rgba(0, 240, 255, 0.05);
+    opacity: 0.1;
+    position: absolute;
+    bottom: 100%;
+    animation: scanline-anim 8s linear infinite;
+}
+
+@keyframes scanline-anim {
+    0% { bottom: 100%; }
+    100% { bottom: 0%; }
+}
+
+/* FLASH & HIGHLIGHTS */
+.flash {
+    animation: flash-kf 0.5s ease-out;
+}
+
+@keyframes flash-kf {
+    0% { background-color: var(--wb-primary); box-shadow: 0 0 20px var(--wb-primary); color: white; }
+    100% { background-color: transparent; box-shadow: none; }
+}
+
+/* OLED FLICKER */
+@keyframes oled-flicker {
+    0% { opacity: 1; }
+    50% { opacity: 0.96; }
+    100% { opacity: 1; }
+}
+
+/* BUTTON SPINNER ROTATION */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

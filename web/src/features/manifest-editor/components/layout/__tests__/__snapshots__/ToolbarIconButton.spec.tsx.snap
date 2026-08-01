@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ToolbarIconButton — snapshots should match snapshot for colorVariant="accent" active 1`] = `
+<button
+  aria-label="Live Mode"
+  class="flex items-center justify-center rounded-xs transition-all w-7 h-7 bg-accent/20 text-accent border border-accent/20 "
+  title="Live Mode"
+>
+  <span
+    data-testid="icon"
+  />
+</button>
+`;
+
+exports[`ToolbarIconButton — snapshots should match snapshot for colorVariant="accent" inactive 1`] = `
+<button
+  aria-label="Live Disconnected"
+  class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+  title="Live Disconnected"
+>
+  <span
+    data-testid="icon"
+  />
+</button>
+`;
+
+exports[`ToolbarIconButton — snapshots should match snapshot for colorVariant="accent" with glow class 1`] = `
+<button
+  aria-label="Live Active"
+  class="flex items-center justify-center rounded-xs transition-all w-7 h-7 bg-accent/20 text-accent border border-accent/20 tool-active-glow-accent"
+  title="Live Active"
+>
+  <span
+    data-testid="icon"
+  />
+</button>
+`;
+
+exports[`ToolbarIconButton — snapshots should match snapshot for size="md" active (primary) 1`] = `
+<button
+  aria-label="Active Tool"
+  class="flex items-center justify-center rounded-xs transition-all w-7 h-7 bg-primary/20 text-primary border border-primary/20 "
+  title="Active Tool"
+>
+  <span
+    data-testid="icon"
+  />
+</button>
+`;
+
+exports[`ToolbarIconButton — snapshots should match snapshot for size="md" inactive 1`] = `
+<button
+  aria-label="Toolbar Button"
+  class="flex items-center justify-center rounded-xs transition-all w-7 h-7 wb-text-muted hover:wb-text hover:bg-primary/10 "
+  title="Toolbar Button"
+>
+  <span
+    data-testid="icon"
+  />
+</button>
+`;
+
+exports[`ToolbarIconButton — snapshots should match snapshot for size="sm" active 1`] = `
+<button
+  aria-label="Footer Active"
+  class="flex items-center justify-center rounded-xs transition-all w-5 h-4 bg-primary/20 text-primary border border-primary/20 "
+  title="Footer Active"
+>
+  <span
+    data-testid="icon"
+  />
+</button>
+`;
+
+exports[`ToolbarIconButton — snapshots should match snapshot for size="sm" default 1`] = `
+<button
+  aria-label="Footer Button"
+  class="flex items-center justify-center rounded-xs transition-all w-5 h-4 wb-text-muted hover:wb-text  "
+  title="Footer Button"
+>
+  <span
+    data-testid="icon"
+  />
+</button>
+`;
+
+exports[`ToolbarIconButton — snapshots should match snapshot with className 1`] = `
+<button
+  aria-label="With Class"
+  class="flex items-center justify-center rounded-xs transition-all w-5 h-4 bg-primary/20 text-primary border border-primary/20 tool-active-glow"
+  title="With Class"
+>
+  <span
+    data-testid="icon"
+  />
+</button>
+`;

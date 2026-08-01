@@ -1,0 +1,66 @@
+settings:
+  - id: numVoices
+    label: "Polyphony (Voices)"
+    tooltip: "Total sum of voices processed per engine block. Reducing this can save significant CPU."
+    defaultValue: 16
+    minValue: 1
+    maxValue: 16
+    isInteger: true
+    category: "GENERAL"
+    options:
+      1: "1 (MONO)"
+      2: "2"
+      4: "4"
+      6: "6 (CLASSIC)"
+      8: "8"
+      12: "12"
+      16: "16 (MAX)"
+
+  - id: srMode
+    label: "Oversampling Mode"
+    tooltip: "Internal engine oversampling quality. Higher values improve high-frequency resolution but increase CPU load."
+    defaultValue: 1
+    minValue: 1
+    maxValue: 4
+    isInteger: true
+    category: "GENERAL"
+    options:
+      1: "None (1x)"
+      2: "High (2x)"
+      4: "Ultra (4x)"
+
+  - id: midiStandard
+    label: "MIDI Standard"
+    tooltip: "Determines how incoming MIDI input is processed. MIDI 2.0 allows high-resolution modulation and expressive control."
+    defaultValue: 0
+    minValue: 0
+    maxValue: 2
+    isInteger: true
+    category: "MIDI"
+    options:
+      0: "Auto (Detect)"
+      1: "MIDI 1.0 Heritage"
+      2: "MIDI 2.0 Expressive"
+
+  - id: maxPatchbaySlots
+    label: "Max Patchbay Slots"
+    tooltip: "Total number of modulation slots available in the Patchbay-Matrix. Increasing this may slightly impact CPU during preset compilation."
+    defaultValue: 8
+    minValue: 4
+    maxValue: 64
+    isInteger: true
+    category: "ENGINE"
+
+  - id: scopeResolution
+    label: "Oscilloscope Resolution"
+    tooltip: "Specifies the number of samples retrieved per telemetry frame for high-fidelity visualization. High values (2048) show cycles better but increase data bandwidth."
+    defaultValue: 1024
+    minValue: 256
+    maxValue: 2048
+    isInteger: true
+    category: "ENGINE"
+    options:
+      256: "Fast (256)"
+      512: "Performance (512)"
+      1024: "Standard (1024)"
+      2048: "High-Fidelity (2048)"

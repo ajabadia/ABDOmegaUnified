@@ -1,0 +1,15 @@
+schemaVersion: "10.0.0-omega"
+id: e2e-test-acemm
+metadata:
+  name: E2E Test Acemm
+  version: "1.0.0"
+  family: utility
+  author: E2E Tester
+resources: {}
+ui:
+  layout:
+    width: 800
+    height: 600
+entities: []
+nodes: []
+links: []

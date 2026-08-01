@@ -1,0 +1,67 @@
+{
+  "statics": [
+    {
+      "id": "abd_brand_logo",
+      "name": "ABD Brand Signature",
+      "path": "/assets/elements/statics/logo/abd_brand_logo.svg",
+      "type": "svg",
+      "category": "branding"
+    },
+    {
+      "id": "faceplate_brushed_aluminum",
+      "name": "Brushed Aluminum Faceplate",
+      "path": "/assets/elements/statics/hardware/faceplates/brushed_aluminum.svg",
+      "type": "svg",
+      "category": "rack"
+    },
+    {
+      "id": "faceplate_dark_carbon",
+      "name": "Dark Carbon Faceplate",
+      "path": "/assets/elements/statics/hardware/faceplates/dark_carbon.svg",
+      "type": "svg",
+      "category": "rack"
+    },
+    {
+      "id": "faceplate_jp8000",
+      "name": "JP8000 Vintage Panel",
+      "path": "/assets/elements/statics/hardware/faceplates/jp8000.png",
+      "type": "png",
+      "category": "rack"
+    },
+    {
+      "id": "screw_allen_industrial",
+      "name": "Allen Industrial Screw (SVG)",
+      "path": "/assets/elements/statics/hardware/screws/allen_industrial.svg",
+      "type": "svg",
+      "category": "rack"
+    },
+    {
+      "id": "screw_industrial_head",
+      "name": "Industrial Head (PNG)",
+      "path": "/assets/elements/statics/hardware/screws/industrial_screw_head.png",
+      "type": "png",
+      "category": "rack"
+    },
+    {
+      "id": "screw_industrial_head_allen",
+      "name": "Industrial Head Allen (PNG)",
+      "path": "/assets/elements/statics/hardware/screws/industrial_screw_head_allen.png",
+      "type": "png",
+      "category": "rack"
+    },
+    {
+      "id": "screw_philips_standard",
+      "name": "Philips Standard (SVG)",
+      "path": "/assets/elements/statics/hardware/screws/philips_standard.svg",
+      "type": "svg",
+      "category": "rack"
+    },
+    {
+      "id": "screw_torx_security",
+      "name": "Torx Security (SVG)",
+      "path": "/assets/elements/statics/hardware/screws/torx_security.svg",
+      "type": "svg",
+      "category": "rack"
+    }
+  ]
+}

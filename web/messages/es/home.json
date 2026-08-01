@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "subtitle": "Matriz Neural_01 / Boutique",
+    "title1": "Sintetizadores",
+    "title2": "Próxima Gen",
+    "description": "Instrumentos virtuales de grado industrial diseñados para la próxima era del diseño sonoro. Emulaciones de precisión y motores neurales asépticos.",
+    "cta": "Explorar el Motor"
+  },
+  "philosophy": {
+    "title": "Ingeniería de",
+    "highlight": "Materia Sonora",
+    "description": "En ABD, no solo replicamos instrumentos; modelamos las leyes físicas del sonido. Nuestro <bold>Zero-Latency Spectral Engine™</bold> garantiza que cada interacción armónica ocurra en tiempo real, proporcionando la respuesta táctil del hardware analógico con la precisión infinita de las matemáticas digitales.",
+    "f1_title": "01. Fidelidad",
+    "f1_desc": "Procesamiento interno de punto flotante de 64 bits para una modulación libre de artefactos.",
+    "f2_title": "02. Rendimiento",
+    "f2_desc": "Optimización nativa completa para M1/M2/M3 con gestión de memoria de asignación cero.",
+    "side_title": "ADN Boutique",
+    "side_desc": "Cada instrumento es un proyecto de investigación digital limitado. Priorizamos el carácter sobre el atractivo del mercado masivo."
+  },
+  "features": {
+    "f1_title": "Precisión Industrial",
+    "f1_desc": "Cada componente es modelado con absoluta fidelidad a los circuitos originales.",
+    "f2_title": "Motor de Latencia Cero",
+    "f2_desc": "Optimizado para el rendimiento en tiempo real sin comprometer la calidad del sonido.",
+    "f3_title": "Acceso Alfa/Beta",
+    "f3_desc": "Obtén acceso inmediato a nuestros últimos motores de investigación durante la fase de desarrollo."
+  },
+  "catalog": {
+    "title": "El",
+    "highlight": "Catálogo",
+    "catalog": "Boutique",
+    "description": "Explora nuestra colección de emulaciones auténticas de hardware y plataformas de síntesis de próxima generación.",
+    "total": "Total de Instrumentos"
+  },
+  "connect": {
+    "title": "Investigación",
+    "highlight": "& Desarrollo",
+    "description": "Nuestro laboratorio está en constante evolución. Para consultas técnicas, acceso a pruebas alfa o investigación colaborativa, envíe su transmisión a través de nuestra terminal."
+  }
+}

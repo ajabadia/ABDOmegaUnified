@@ -1,0 +1,40 @@
+{
+  "_schema_hints": {
+    "orientation": "v (vertical filmstrip) | h (horizontal filmstrip)",
+    "mouseResponse": "rotary (rotational drag) | linear (vertical/horizontal drag)",
+    "category": "knob | slider | button | led | switch | vumeter",
+    "polarity": "normal (0 is min) | inverted (0 is max)"
+  },
+  "sequences": [
+    {
+      "id": "moog_knob_sm",
+      "name": "Moog Knob SM",
+      "path": "/assets/elements/sequences/moog_knob_sm.png",
+      "type": "png",
+      "category": "knob",
+      "frameWidth": 30,
+      "frameHeight": 29,
+      "frames": 101,
+      "defaultFrame": 0,
+      "padding": 0,
+      "orientation": "v",
+      "mouseResponse": "rotary",
+      "polarity": "normal"
+    },
+    {
+      "id": "vintage_vumeter",
+      "name": "Vintage VU Meter",
+      "path": "/assets/elements/sequences/vintage_vumeter.png",
+      "type": "png",
+      "category": "vumeter",
+      "frameWidth": 120,
+      "frameHeight": 60,
+      "frames": 64,
+      "defaultFrame": 0,
+      "padding": 0,
+      "orientation": "v",
+      "mouseResponse": "linear",
+      "polarity": "normal"
+    }
+  ]
+}

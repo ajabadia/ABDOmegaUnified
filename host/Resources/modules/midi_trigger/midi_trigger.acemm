@@ -1,0 +1,166 @@
+schemaVersion: 7.2.3
+id: midi_trigger
+metadata:
+  name: MIDI TRIGGER
+  family: midi
+  author: ABD-SynthEngine
+  tags: []
+  rack:
+    hp: 8
+    slot: main
+    height_mode: compact
+ui:
+  dimensions:
+    width: 120
+    height: 210
+  controls:
+    - id: trig_btn
+      type: knob
+      role: control
+      bind: trigger
+      pos:
+        x: 60
+        'y': 100
+      presentation:
+        tab: MAIN
+        variant: A_white
+        component: button
+        offsetX: 0
+        offsetY: 0
+        container: c_main
+        attachments:
+          - type: display
+            position: center
+            offsetX: 0
+            offsetY: -25
+            variant: A_cyan
+            text: NOTE
+          - type: display
+            position: center
+            offsetX: 0
+            offsetY: 25
+            variant: oled_orange
+            text: VEL
+          - type: label
+            position: bottom
+            offsetX: 0
+            offsetY: 0
+            variant: B_cyan
+            text: TRIGGER
+        precision: 6
+        ui_precision: 2
+    - id: midi_out
+      type: knob
+      role: control
+      bind: midi_out
+      pos:
+        x: 59
+        'y': 99
+      presentation:
+        tab: MIDI
+        variant: B_midi
+        component: port
+        offsetX: 0
+        offsetY: 0
+        container: CONTAINER_5964
+        attachments:
+          - type: label
+            position: bottom
+            offsetX: 0
+            offsetY: 0
+            variant: B_cyan
+            text: MIDI Out
+        precision: 6
+        ui_precision: 2
+    - id: setup_note
+      type: knob
+      role: control
+      bind: note_idx
+      label: NOTE
+      pos:
+        x: 49
+        'y': 43
+      presentation:
+        tab: MAIN
+        variant: B_cyan
+        component: stepper
+        offsetX: 0
+        offsetY: 0
+        container: c_setup
+        attachments: []
+        precision: 6
+        ui_precision: 2
+    - id: setup_oct
+      type: knob
+      role: control
+      bind: octave
+      label: OCTAVE
+      pos:
+        x: 91
+        'y': 161
+      presentation:
+        tab: SETUP
+        variant: B_cyan
+        component: stepper
+        offsetX: 0
+        offsetY: 0
+        container: c_setup
+        attachments: []
+        precision: 6
+        ui_precision: 2
+    - id: setup_vel
+      type: knob
+      role: control
+      bind: velocity
+      label: VELOCITY
+      pos:
+        x: 36
+        'y': 160
+      presentation:
+        tab: MAIN
+        variant: B_orange
+        component: stepper
+        offsetX: 0
+        offsetY: 0
+        container: c_setup
+        attachments: []
+        precision: 6
+        ui_precision: 2
+  jacks: []
+  skin: industrial
+  layout:
+    containers:
+      - id: c_main
+        label: TRIGGER
+        pos:
+          x: 5
+          'y': 10
+        size:
+          w: 110
+          h: 190
+        variant: panel
+        tab: MAIN
+      - id: c_setup
+        label: CONFIG
+        pos:
+          x: 5
+          'y': 10
+        size:
+          w: 110
+          h: 190
+        variant: inset
+        tab: MAIN
+      - id: CONTAINER_5964
+        label: OUTPUTS
+        pos:
+          x: 0
+          'y': 21
+        size:
+          w: full
+          h: 162
+        variant: default
+        tab: MIDI
+    activeTab: MAIN
+resources:
+  wasm: module.wasm
+modulations: []
