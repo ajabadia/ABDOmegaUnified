@@ -10,6 +10,7 @@ set(OMEGA_TEST_COMMON_DEPS omega_core Catch2::Catch2WithMain)
 add_executable(omega_core_tests
     AceManifestParser.test.cpp
     AceContractExporter.test.cpp
+    GlobalFxTarget.test.cpp
 )
 target_link_libraries(omega_core_tests PRIVATE ${OMEGA_TEST_COMMON_DEPS})
 

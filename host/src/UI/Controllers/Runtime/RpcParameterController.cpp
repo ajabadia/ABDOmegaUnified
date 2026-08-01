@@ -2,6 +2,7 @@
 #include "OmegaAudioProcessor.h"
 #include "EngineConfigManager.h"
 #include "VarSerialization.h"
+#include "PatchIdentifiers.h"
 
 namespace Omega {
 namespace UI {
@@ -35,7 +36,15 @@ namespace UI {
             }
             else {
                 juce::String target = payload["target"].toString();
-                if (auto* param = mApvts.getParameter(target)) {
+
+                // [Era 7.2.3] Los sliders del GlobalFxStrip disparan
+                // `globalFx.<id>` (id = ParamId 200-204). Resolver contra
+                // doc.globalFxParams + recompile (antes: no-op silencioso).
+                const auto fxId = Core::Model::getGlobalFxParamId(target.toStdString());
+                if (fxId != Core::Model::ParamId::None) {
+                    configStore.updateGlobalFxParameter(fxId, value);
+                }
+                else if (auto* param = mApvts.getParameter(target)) {
                     param->beginChangeGesture();
                     param->setValueNotifyingHost(value);
                     param->endChangeGesture();

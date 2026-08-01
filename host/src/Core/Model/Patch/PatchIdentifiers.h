@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
+#include <cstdlib>
 
 namespace Omega {
 namespace Core {
@@ -86,7 +88,7 @@ namespace Model {
      */
     enum class ParamId : uint16_t {
         None = 0,
-        
+
         // Osciladores
         Frequency = 1,
         Detune = 2,
@@ -111,7 +113,7 @@ namespace Model {
         Sustain = 102,
         Release = 103,
         Amplitude = 150,
-        
+
         // FX / Global
         Mix = 200,
         Feedback = 201,
@@ -119,6 +121,36 @@ namespace Model {
         Speed = 203,
         Intensity = 204
     };
+
+    /**
+     * @brief Rango de IDs de los parámetros FX globales (200-204).
+     * Convención wire: los targets `globalFx.<id>` del frontend y el timer
+     * `updateParameter(0, ...)` de OmegaAudioProcessor usan estos IDs.
+     */
+    inline bool isGlobalFxParamId(ParamId id) {
+        return static_cast<uint16_t>(id) >= 200 && static_cast<uint16_t>(id) <= 204;
+    }
+
+    /**
+     * @brief Parsea un target wire `globalFx.<id>` (ej. "globalFx.203") a ParamId.
+     * Devuelve ParamId::None si el prefijo no coincide o el sufijo no es un ID
+     * global FX válido (200-204). Usado por RpcParameterController::handleSetParameter.
+     */
+    inline ParamId getGlobalFxParamId(const std::string& target) {
+        const std::string prefix = "globalFx.";
+        if (target.rfind(prefix, 0) != 0) return ParamId::None;
+
+        const std::string idStr = target.substr(prefix.length());
+        if (idStr.empty() || idStr.length() > 3) return ParamId::None;
+
+        for (char c : idStr) {
+            if (c < '0' || c > '9') return ParamId::None;
+        }
+
+        const long rawId = std::strtol(idStr.c_str(), nullptr, 10);
+        if (rawId < 200 || rawId > 204) return ParamId::None;
+        return static_cast<ParamId>(rawId);
+    }
 
     /**
      * @brief Tipos de conexión en el Patchbay.

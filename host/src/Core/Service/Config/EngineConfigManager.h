@@ -29,6 +29,15 @@ namespace Omega::Core::Service {
         }
 
         void updateParameter(uint32_t instanceId, Model::ParamId paramId, float value) {
+            // [Era 7.2.3] Los parámetros FX globales (Mix=200..Intensity=204) viven en
+            // doc.globalFxParams, no en módulos. El timer (updateParameter(0, ...)) y el
+            // handler de la UI llegan aquí: rutear por rango de ParamId es la fuente
+            // única para ambas vías (antes el timer era un no-op silencioso).
+            if (Model::isGlobalFxParamId(paramId)) {
+                updateGlobalFxParameter(paramId, value);
+                return;
+            }
+
             auto* mod = const_cast<Model::ModuleInstance*>(mPatchDocument.findModule(instanceId));
             if (mod) {
                 bool found = false;
@@ -38,6 +47,20 @@ namespace Omega::Core::Service {
                 if (!found) mod->parameters.push_back({paramId, value});
                 recompile();
             }
+        }
+
+        /**
+         * @brief Actualiza un parámetro FX global (doc.globalFxParams) y recompila.
+         * Usado por el handler `globalFx.<id>` de la UI y por el routing del timer.
+         */
+        void updateGlobalFxParameter(Model::ParamId paramId, float value) {
+            auto& params = mPatchDocument.globalFxParams;
+            bool found = false;
+            for (auto& p : params) {
+                if (p.id == paramId) { p.value = value; found = true; break; }
+            }
+            if (!found) params.push_back({ paramId, value, 0 });
+            recompile();
         }
 
         void updateParameter(const juce::String& paramName, float value) {
