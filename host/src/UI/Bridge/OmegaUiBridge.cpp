@@ -1,7 +1,6 @@
 #include "OmegaUiBridge.h"
 #include "OmegaAudioProcessor.h"
 #include <juce_core/juce_core.h>
-#include "PatchIdentifiers.h"
 #include "EngineConfigManager.h"
 #include "WasmModuleService.h"
 #include "VarSerialization.h"
@@ -145,10 +144,9 @@ namespace UI {
         push->setProperty("type", "onStateUpdate");
 
         auto& config = mProcessor->getEngineConfigManager();
-        auto doc = config.getPatchDocument();
 
         juce::DynamicObject::Ptr payload = new juce::DynamicObject();
-        payload->setProperty("patch", VarSerialization::buildPatchWireVar(doc));
+        payload->setProperty("patch", VarSerialization::buildPatchWireVar(config.getPatchDocument()));
         payload->setProperty("schemaVersion", "7.0");
 
         push->setProperty("payload", juce::var(payload.get()));
