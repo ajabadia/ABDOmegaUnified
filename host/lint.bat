@@ -7,13 +7,35 @@ chcp 65001 > nul
 
 echo [OMEGA] Initializing Code Auditor...
 
-set "LLVM_BIN=D:\desarrollos\ABDOmega\clang+llvm-22.1.4-x86_64-pc-windows-msvc\bin"
-set "CLANG_TIDY=!LLVM_BIN!\clang-tidy.exe"
+:: --- LLVM Toolchain Resolution ---
+:: Priority: 1) LLVM_HOME env var | 2) known local install | 3) clang-tidy on PATH
+set "LLVM_BIN="
+set "CLANG_TIDY="
 set "REPORT_FILE=lint_report.txt"
 
+if not "%LLVM_HOME%"=="" (
+    set "LLVM_HOME_NORM=%LLVM_HOME%"
+    if "!LLVM_HOME_NORM:~-1!"=="\" set "LLVM_HOME_NORM=!LLVM_HOME_NORM:~0,-1!"
+    set "LLVM_BIN=!LLVM_HOME_NORM!\bin"
+    echo [INFO] LLVM_HOME set: !LLVM_BIN!
+)
+
+if not defined LLVM_BIN (
+    set "LLVM_BIN=D:\desarrollos\ABDOmega\clang+llvm-22.1.4-x86_64-pc-windows-msvc\bin"
+    echo [INFO] LLVM_HOME not set; using default install: !LLVM_BIN!
+)
+
+set "CLANG_TIDY=!LLVM_BIN!\clang-tidy.exe"
+
 if not exist "!CLANG_TIDY!" (
-    echo [ERROR] clang-tidy.exe not found at !CLANG_TIDY!
-    exit /b 1
+    where clang-tidy >nul 2>&1
+    if not errorlevel 1 (
+        set "CLANG_TIDY=clang-tidy"
+        echo [INFO] clang-tidy.exe found on PATH
+    ) else (
+        echo [ERROR] clang-tidy.exe not found. Set LLVM_HOME to the LLVM install root or add clang-tidy.exe to PATH.
+        exit /b 1
+    )
 )
 
 echo [OMEGA] Audit Started: %DATE% %TIME% > "%REPORT_FILE%"
