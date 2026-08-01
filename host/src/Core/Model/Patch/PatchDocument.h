@@ -62,6 +62,7 @@ namespace Model {
         std::string via;       // "instanceId.portId"
         float viaAmount { 0.0f };
         bool active { false };
+        std::string color;     // Color de cable personalizado (hex "#rrggbb"); vacío = por tipo de señal
     };
 
     /**

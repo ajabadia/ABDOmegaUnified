@@ -11,6 +11,7 @@
 import {
     CABLE_PHYSICS,
     CABLE_TENSION,
+    CABLE_BUNDLE,
     getGlobalTension,
 } from './cableConstants.js';
 
@@ -22,6 +23,38 @@ export interface CableEndpoints {
 // Namespace SVG (necesario para crear elementos SVG con JavaScript).
 // Exportado para que el drag-to-patch (Fase 7) reutilice la preview.
 export const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/**
+ * Desplazamiento lateral de un cable dentro de un "mazo" (§9 Ideas Propias).
+ *
+ * Si varios cables conectan el MISMO par de módulos, se separan
+ * perpendicularmente al eje source→target: el cable con `position` central
+ * queda sobre el eje y los demás se desplazan a cada lado. Como el offset
+ * se aplica SOLO a los puntos de control de la Bézier, los extremos quedan
+ * clavados en sus jacks mientras el centro corre paralelo al resto del mazo.
+ *
+ * @param ep         Endpoints base (sin deformación) del cable.
+ * @param position   Índice del cable dentro del grupo (0..groupSize-1).
+ * @param groupSize  Nº de cables del grupo (>= 2; con 1 no hay mazo).
+ */
+export function computeBundleSpread(
+    ep: CableEndpoints,
+    position: number,
+    groupSize: number,
+): { x: number; y: number } {
+    const dx = ep.x2 - ep.x1;
+    const dy = ep.y2 - ep.y1;
+    const length = Math.hypot(dx, dy) || 1;
+
+    // Perpendicular al eje source→target (normalizada)
+    const nx = -dy / length;
+    const ny = dx / length;
+
+    // Centrado: con 2 cables → -SPREAD/2 y +SPREAD/2; con 3 → -SPREAD, 0, +SPREAD
+    const offset = (position - (groupSize - 1) / 2) * CABLE_BUNDLE.SPREAD;
+
+    return { x: nx * offset, y: ny * offset };
+}
 
 export class CableRenderer {
 
@@ -37,10 +70,14 @@ export class CableRenderer {
      *
      * `deform` (opcional, Fase 7.3 repulsión elástica) desplaza AMBOS puntos
      * de control lateralmente para que el cable "se aparte" del cursor.
+     * `bundle` (opcional, §9 mazo) desplaza ambos puntos de control
+     * perpendicularmente al eje para que cables del mismo par de módulos
+     * corran paralelos. Ambos offsets se suman.
      */
     static calculatePath(
         ep: CableEndpoints,
         deform?: { x: number; y: number },
+        bundle?: { x: number; y: number },
     ): string {
         const { x1, y1, x2, y2 } = ep;
 
@@ -63,8 +100,9 @@ export class CableRenderer {
             (1 - CABLE_TENSION.MIN_SAG_RATIO) * (1 - tension)
         );
 
-        const offX = deform?.x ?? 0;
-        const offY = deform?.y ?? 0;
+        // Repulsión (§7.3) + mazo (§9) se combinan en los puntos de control
+        const offX = (deform?.x ?? 0) + (bundle?.x ?? 0);
+        const offY = (deform?.y ?? 0) + (bundle?.y ?? 0);
 
         // Puntos de control: mismo X que los jacks, Y desplazada hacia abajo
         // (+ desplazamiento de repulsión si lo hay)
@@ -87,6 +125,7 @@ export class CableRenderer {
         slotIndex: number,
         endpoints: CableEndpoints,
         signalType: string,
+        color?: string,
     ): SVGPathElement {
         const svg = document.getElementById('patch-cables-overlay');
         if (!svg) throw new Error('[CableRenderer] SVG overlay #patch-cables-overlay not found');
@@ -97,6 +136,10 @@ export class CableRenderer {
         path.setAttribute('data-signal', signalType);
         path.setAttribute('d', CableRenderer.calculatePath(endpoints));
 
+        // Color personalizado del slot (§9): inline style GANA al selector CSS
+        // `[data-signal]`, así que solo se aplica cuando hay override.
+        if (color) path.style.stroke = color;
+
         svg.appendChild(path);
 
         // Quitar la clase 'entering' después de la animación (500ms en CSS)
@@ -106,16 +149,30 @@ export class CableRenderer {
     }
 
     /**
+     * Aplica (o quita) el color personalizado de un cable ya existente.
+     * `color = null` borra el override inline y vuelve al CSS [data-signal].
+     */
+    static setCableColor(path: SVGPathElement, color: string | null): void {
+        if (color) {
+            path.style.stroke = color;
+        } else {
+            path.style.removeProperty('stroke');
+        }
+    }
+
+    /**
      * Actualiza la posición de un cable existente.
      * Se llama al hacer scroll, resize o mover módulos.
      * `deform` opcional: desplazamiento de repulsión (se preserva en redraws).
+     * `bundle` opcional: offset lateral del mazo (§9) (se preserva en redraws).
      */
     static updateCablePath(
         path: SVGPathElement,
         endpoints: CableEndpoints,
         deform?: { x: number; y: number },
+        bundle?: { x: number; y: number },
     ): void {
-        path.setAttribute('d', CableRenderer.calculatePath(endpoints, deform));
+        path.setAttribute('d', CableRenderer.calculatePath(endpoints, deform, bundle));
     }
 
     /**
@@ -173,5 +230,14 @@ export class CableRenderer {
             plugs[1].setAttribute('cx', String(ep.x2));
             plugs[1].setAttribute('cy', String(ep.y2));
         }
+    }
+
+    /**
+     * Recolorea los plugs de un cable existente (fill). Se usa cuando
+     * el color personalizado del slot cambia (§9 Color Picker).
+     */
+    static setPlugsColor(group: SVGGElement, color: string): void {
+        group.querySelectorAll<SVGCircleElement>('circle')
+            .forEach(plug => plug.setAttribute('fill', color));
     }
 }

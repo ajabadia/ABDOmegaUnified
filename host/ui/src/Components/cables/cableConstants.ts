@@ -76,6 +76,66 @@ export const SIGNAL_COLORS: Record<string, string> = {
 };
 
 /* ═══════════════════════════════════════════════════════
+   CONFIG — Paleta de colores del cable (§9 Color Picker)
+   Swatches que ofrece el inspector de la Matrix para personalizar
+   el color de un cable. Los 4 primeros coinciden con los colores
+   por defecto de cada tipo de señal; el resto son extras.
+   El color elegido se persiste en el slot (campo `color`) y se
+   serializa en el patch (C++ VarSerialization/OmegaUiBridge).
+   ═══════════════════════════════════════════════════════ */
+export const CABLE_PALETTE: string[] = [
+    '#10b981', // Verde esmeralda (audio)
+    '#06b6d4', // Cian neón (CV)
+    '#ef4444', // Rojo carmesí (gate)
+    '#a855f7', // Violeta neón (midi)
+    '#f59e0b', // Ámbar
+    '#ec4899', // Rosa neón
+    '#22c55e', // Verde lima
+    '#3b82f6', // Azul
+    '#f97316', // Naranja
+    '#e5e7eb', // Blanco grisáceo
+] as const;
+
+/**
+ * Normaliza un color de cable a formato hex "#rrggbb" (o "#rgb").
+ * Devuelve null si el valor no es un hex válido (evita inyectar
+ * CSS arbitrario en el stroke).
+ */
+export function normalizeCableColor(color: unknown): string | null {
+    if (typeof color !== 'string') return null;
+    const c = color.trim().toLowerCase();
+    if (/^#([0-9a-f]{6}|[0-9a-f]{3})$/.test(c)) return c;
+    return null;
+}
+
+/**
+ * Resuelve el color efectivo de un cable:
+ * color personalizado del slot (si es hex válido) → color del tipo
+ * de señal → cian (CV) por defecto.
+ */
+export function resolveCableColor(slotColor: unknown, signalType: string): string {
+    return normalizeCableColor(slotColor) || SIGNAL_COLORS[signalType] || SIGNAL_COLORS.cv;
+}
+
+/* ═══════════════════════════════════════════════════════
+   CONFIG — Agrupación en "mazo" (§9 Ideas Propias)
+   Si varios cables conectan el MISMO PAR de módulos, se separan
+   perpendicularmente al eje source→target para correr paralelos
+   en el centro del recorrido y abrirse hacia sus jacks en los
+   extremos. Cada cable conserva su propio path (color, tooltip,
+   ghosting, drag-to-patch) — el "mazo" es solo visual.
+   ═══════════════════════════════════════════════════════ */
+export const CABLE_BUNDLE = {
+    /**
+     * Separación lateral (px) entre cables consecutivos de un mazo.
+     * Se aplica a los puntos de control de la Bézier; el centro de
+     * la curva recibe ~0.75× ese desplazamiento, que con stroke de
+     * 4px mantiene los cables del mazo casi tocándose en el centro.
+     */
+    SPREAD: 10,
+} as const;
+
+/* ═══════════════════════════════════════════════════════
    CONFIG — Interacción (Fase 4+)
    ═══════════════════════════════════════════════════════ */
 export const INTERACTION = {
@@ -143,6 +203,36 @@ export const DRAG_TO_PATCH = {
      * (el modal UI usa 32; el backend admite hasta 64).
      */
     MATRIX_SLOT_LIMIT: 32,
+} as const;
+
+/* ═══════════════════════════════════════════════════════
+   CONFIG — Tooltip del cable (§8.2, de Patchcab/VCV Rack)
+   Mantener pulsada la tecla Alt + pasar sobre un cable muestra
+   un tooltip con la ruta (source → target), el tipo de señal
+   y el multiplicador del slot.
+   ═══════════════════════════════════════════════════════ */
+export const TOOLTIP = {
+    /** Tecla modificadora que activa el hover-inspect del cable */
+    MODIFIER_KEY: 'Alt',
+
+    /**
+     * Radio (px) alrededor del cursor que cuenta un cable como "hovered".
+     * El stroke del cable mide 4px, así que con 8 hay margen cómodo.
+     */
+    HOVER_RADIUS: 8,
+
+    /** Puntos a muestrear por cable para hallar el más cercano al cursor */
+    CURVE_SAMPLES: 20,
+
+    /** Clase CSS del tooltip */
+    TOOLTIP_CLASS: 'cable-tooltip',
+
+    /** Desplazamiento (px) del tooltip respecto al cursor */
+    OFFSET_X: 14,
+    OFFSET_Y: 14,
+
+    /** Prefijo del rótulo de slot (ej: "CABLE 04") */
+    SLOT_PREFIX: 'CABLE',
 } as const;
 
 /* ═══════════════════════════════════════════════════════

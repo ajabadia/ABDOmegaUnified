@@ -59,6 +59,38 @@
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
 }
 
+/* ─── Swatches de color de cable (inspector de la Matrix, §9) ─── */
+.cable-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.cable-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.1s ease, border-color 0.1s ease;
+}
+.cable-swatch:hover {
+    transform: scale(1.15);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+.cable-swatch.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px var(--neon-cyan, #00f2ff);
+}
+/* Swatch "AUTO": rayado = color por tipo de señal (sin override) */
+.cable-swatch.reset {
+    background: repeating-linear-gradient(
+        45deg,
+        #2a2a2a 0px, #2a2a2a 4px,
+        #555 4px, #555 8px
+    );
+}
+
 /* ─── Control global de tensión del cable (§9) ─── */
 .cable-tension {
     display: flex;
@@ -210,4 +242,67 @@
     outline-offset: 2px;
     border-radius: 50%;
     box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════
+   Tooltip del cable (§8.2)
+   Alt + hover: source → target, tipo de señal y multiplicador.
+   Es un div fijo en document.body: pointer-events: none para
+   que nunca interfiera con el ratón (misma regla de oro).
+   ═══════════════════════════════════════════════════ */
+.cable-tooltip {
+    position: fixed;
+    z-index: 100;
+    display: none;
+    max-width: 280px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #e8e8e8;
+    background: rgba(12, 12, 16, 0.96);
+    border: 1px solid #2a2a33;
+    border-left: 3px solid var(--neon-cyan, #06b6d4);
+    border-radius: 4px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+    pointer-events: none;
+}
+
+.cable-tooltip-title {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: var(--neon-cyan, #06b6d4);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.cable-tooltip-route {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.cable-tooltip-port {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cable-tooltip-arrow {
+    color: #666;
+}
+
+.cable-tooltip-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #9a9aa5;
+}
+
+.cable-tooltip-signal {
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }

@@ -4,10 +4,11 @@
  * jack endpoints (sag > 0), and longer cables sag more (clamped to MAX_SAG).
  */
 import { describe, it, expect, afterEach } from 'vitest';
-import { CableRenderer } from '../../src/Components/cables/CableRenderer.js';
+import { CableRenderer, computeBundleSpread } from '../../src/Components/cables/CableRenderer.js';
 import {
     CABLE_PHYSICS,
     CABLE_TENSION,
+    CABLE_BUNDLE,
     setGlobalTension,
     getGlobalTension,
 } from '../../src/Components/cables/cableConstants.js';
@@ -122,5 +123,175 @@ describe('CableRenderer tension (§9)', () => {
         const expectedSag = base[3];
         expect(nums[2]).toBe(0 + 30);   // cx1 = x1 + offX
         expect(nums[3]).toBeCloseTo(expectedSag - 10, 5); // cy1 = sag - offY
+    });
+});
+
+describe('CableRenderer cable color (§9 Color Picker)', () => {
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
+    function makePath(): SVGPathElement {
+        const path = document.createElementNS(SVG_NS, 'path');
+        path.setAttribute('data-signal', 'cv');
+        return path;
+    }
+
+    function makePlugs(): SVGGElement {
+        const group = document.createElementNS(SVG_NS, 'g');
+        for (let i = 0; i < 2; i++) {
+            const plug = document.createElementNS(SVG_NS, 'circle');
+            plug.setAttribute('fill', '#000');
+            group.appendChild(plug);
+        }
+        return group;
+    }
+
+    afterEach(() => {
+        document.getElementById('patch-cables-overlay')?.remove();
+    });
+
+    it('createCablePath sets the inline stroke when a color is provided', () => {
+        const svg = document.createElementNS(SVG_NS, 'svg');
+        svg.id = 'patch-cables-overlay';
+        document.body.appendChild(svg);
+
+        const path = CableRenderer.createCablePath(
+            0, { x1: 0, y1: 0, x2: 100, y2: 0 }, 'cv', '#ff8800',
+        );
+        // El inline style GANA a la regla CSS [data-signal]
+        expect(path.style.stroke).toBe('#ff8800');
+        expect(path.getAttribute('data-signal')).toBe('cv');
+    });
+
+    it('createCablePath leaves the inline stroke empty without a custom color', () => {
+        const svg = document.createElementNS(SVG_NS, 'svg');
+        svg.id = 'patch-cables-overlay';
+        document.body.appendChild(svg);
+
+        const path = CableRenderer.createCablePath(
+            0, { x1: 0, y1: 0, x2: 100, y2: 0 }, 'audio', undefined,
+        );
+        // Sin color personalizado → el CSS [data-signal] manda
+        expect(path.style.stroke).toBe('');
+    });
+
+    it('createPlugs fills the plugs with the resolved color', () => {
+        const svg = document.createElementNS(SVG_NS, 'svg');
+        svg.id = 'patch-cables-overlay';
+        document.body.appendChild(svg);
+
+        const group = CableRenderer.createPlugs(10, 20, 30, 40, '#06b6d4');
+        const fills = Array.from(group.querySelectorAll('circle'))
+            .map((c) => c.getAttribute('fill'));
+        expect(fills).toEqual(['#06b6d4', '#06b6d4']);
+    });
+
+    it('setCableColor applies and clears the inline stroke', () => {
+        const path = makePath();
+        CableRenderer.setCableColor(path, '#ec4899');
+        expect(path.style.stroke).toBe('#ec4899');
+        CableRenderer.setCableColor(path, null);
+        expect(path.style.stroke).toBe('');
+    });
+
+    it('setPlugsColor recolors every plug', () => {
+        const group = makePlugs();
+        CableRenderer.setPlugsColor(group, '#f59e0b');
+        const fills = Array.from(group.querySelectorAll('circle'))
+            .map((c) => c.getAttribute('fill'));
+        expect(fills).toEqual(['#f59e0b', '#f59e0b']);
+    });
+});
+
+describe('CableRenderer computeBundleSpread (§9 mazo)', () => {
+    it('spreads perpendicular to a horizontal axis (vertical separation)', () => {
+        const ep = { x1: 0, y1: 0, x2: 100, y2: 0 };
+        const s0 = computeBundleSpread(ep, 0, 2);
+        const s1 = computeBundleSpread(ep, 1, 2);
+        expect(s0.x).toBeCloseTo(0, 5);
+        expect(s1.x).toBeCloseTo(0, 5);
+        expect(s0.y).toBeCloseTo(-CABLE_BUNDLE.SPREAD / 2, 5);
+        expect(s1.y).toBeCloseTo(CABLE_BUNDLE.SPREAD / 2, 5);
+    });
+
+    it('spreads perpendicular to a vertical axis (horizontal separation)', () => {
+        const ep = { x1: 0, y1: 0, x2: 0, y2: 100 };
+        const s0 = computeBundleSpread(ep, 0, 2);
+        const s1 = computeBundleSpread(ep, 1, 2);
+        expect(s0.x).toBeCloseTo(CABLE_BUNDLE.SPREAD / 2, 5);
+        expect(s1.x).toBeCloseTo(-CABLE_BUNDLE.SPREAD / 2, 5);
+        expect(s0.y).toBeCloseTo(0, 5);
+        expect(s1.y).toBeCloseTo(0, 5);
+    });
+
+    it('is always perpendicular to the source→target axis', () => {
+        const ep = { x1: 10, y1: 20, x2: 30, y2: 50 };
+        const axis = { x: 20, y: 30 };
+        for (let i = 0; i < 4; i++) {
+            const s = computeBundleSpread(ep, i, 4);
+            const dot = axis.x * s.x + axis.y * s.y;
+            expect(dot).toBeCloseTo(0, 5);
+        }
+    });
+
+    it('centers the group: middle cable on the axis, symmetric spread', () => {
+        const ep = { x1: 0, y1: 0, x2: 100, y2: 0 };
+        const s0 = computeBundleSpread(ep, 0, 3);
+        const s1 = computeBundleSpread(ep, 1, 3);
+        const s2 = computeBundleSpread(ep, 2, 3);
+        expect(s1.x).toBeCloseTo(0, 5);
+        expect(s1.y).toBeCloseTo(0, 5);
+        expect(s0.y).toBeCloseTo(-s2.y, 5);
+        expect(s2.y).toBeCloseTo(CABLE_BUNDLE.SPREAD, 5);
+    });
+
+    it('a group of 1 has zero spread', () => {
+        const ep = { x1: 0, y1: 0, x2: 100, y2: 0 };
+        const s = computeBundleSpread(ep, 0, 1);
+        expect(s.x).toBeCloseTo(0, 5);
+        expect(s.y).toBeCloseTo(0, 5);
+    });
+});
+
+describe('CableRenderer bundle offset (§9 mazo) in calculatePath', () => {
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
+    it('shifts both control points by the bundle offset, endpoints pinned', () => {
+        const ep = { x1: 100, y1: 80, x2: 400, y2: 300 };
+        const d = CableRenderer.calculatePath(ep, undefined, { x: 20, y: 30 });
+        const nums = parsePath(d).nums;
+        const base = parsePath(CableRenderer.calculatePath(ep)).nums;
+        // extremos intactos
+        expect(nums[0]).toBe(100);
+        expect(nums[1]).toBe(80);
+        expect(nums[6]).toBe(400);
+        expect(nums[7]).toBe(300);
+        // puntos de control desplazados por el offset del mazo
+        expect(nums[2]).toBe(base[2] + 20); // cx1 = x1 + offX
+        expect(nums[3]).toBe(base[3] + 30); // cy1 = y1 + sag + offY
+        expect(nums[4]).toBe(base[4] + 20); // cx2 = x2 + offX
+        expect(nums[5]).toBe(base[5] + 30); // cy2 = y2 + sag + offY
+    });
+
+    it('combines repulsion deform and bundle offset additively', () => {
+        const ep = { x1: 0, y1: 0, x2: 100, y2: 0 };
+        const d = CableRenderer.calculatePath(ep, { x: 1, y: 2 }, { x: 3, y: 4 });
+        const nums = parsePath(d).nums;
+        const base = parsePath(CableRenderer.calculatePath(ep)).nums;
+        expect(nums[2]).toBeCloseTo(base[2] + 1 + 3, 5);
+        expect(nums[3]).toBeCloseTo(base[3] + 2 + 4, 5);
+    });
+
+    it('updateCablePath writes the bundled path', () => {
+        const path = document.createElementNS(SVG_NS, 'path');
+        CableRenderer.updateCablePath(
+            path,
+            { x1: 0, y1: 0, x2: 100, y2: 0 },
+            undefined,
+            { x: 7, y: 0 },
+        );
+        const nums = parsePath(path.getAttribute('d')!).nums;
+        expect(nums[0]).toBe(0);   // x1
+        expect(nums[2]).toBe(7);   // cx1 = x1 + offX
+        expect(nums[6]).toBe(100); // x2
     });
 });

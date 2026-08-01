@@ -41,7 +41,7 @@ export function attachGridListeners(
 }
 
 /**
- * Attaches change/input listeners to inspector controls (selects, ranges, clear button).
+ * Attaches change/input listeners to inspector controls (selects, ranges, color swatches, clear button).
  */
 export function attachInspectorListeners(
   container: HTMLElement,
@@ -56,6 +56,19 @@ export function attachInspectorListeners(
         onSendUpdate(selectedSlot, e.target.dataset.key, val);
       },
     );
+  });
+
+  // Swatches de color de cable (§9): el valor "" restaura el color por tipo de señal.
+  container.querySelectorAll('.cable-swatch').forEach((swatch) => {
+    swatch.addEventListener('click', (e: any) => {
+      const value = e.currentTarget.dataset.value || '';
+      // Reflejo inmediato del swatch activo sin esperar al re-render del inspector
+      const group = e.currentTarget.closest('.cable-swatches');
+      group?.querySelectorAll('.cable-swatch').forEach((s: any) =>
+        s.classList.toggle('active', s === e.currentTarget),
+      );
+      onSendUpdate(selectedSlot, e.currentTarget.dataset.key, value);
+    });
   });
 
   document.getElementById('btn-clear-slot')?.addEventListener('click', () => {

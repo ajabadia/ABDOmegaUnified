@@ -19,7 +19,7 @@
  * Con CURVE_SAMPLES=20 y 30 cables son ~600 comprobaciones por mousemove,
  * agrupadas por frame → perfectamente manejable.
  */
-import { INTERACTION, DRAG_TO_PATCH } from './cableConstants.js';
+import { INTERACTION, DRAG_TO_PATCH, TOOLTIP } from './cableConstants.js';
 import { CableRenderer, SVG_NS } from './CableRenderer.js';
 import { sendUpdate } from '../patchbay/matrixEvents.js';
 import { buildMetadataFromInventory } from '../patchbay/matrixLayout.js';
@@ -581,6 +581,255 @@ export function setupDragToPatch(manager: PatchCableManager): { dispose: () => v
             rack.removeEventListener('pointerdown', onPointerDown);
             document.removeEventListener('pointermove', onPointerMove);
             document.removeEventListener('pointerup', onPointerUp);
+        },
+    };
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Fase 5 (§8.2): Tooltip de información del cable
+   Manteniendo pulsada la tecla Alt y pasando el cursor sobre un cable,
+   se muestra un tooltip con la ruta (source → target), el tipo de señal
+   y el multiplicador del slot.
+
+   CRÍTICO: el overlay, los cables y los plugs tienen `pointer-events:
+   none` (regla de oro: sin ello los knobs no funcionan), así que el
+   hover NUNCA puede detectarse con e.target sobre el cable. En su
+   lugar se usa muestreo de proximidad geométrica a la curva Bézier
+   (el mismo patrón de getPointAtLength() que la repulsión §7.3):
+   `mousemove` sobre el rack → distancia al punto muestreado más
+   cercano de cada path activo → dentro de HOVER_RADIUS = hovered.
+   ══════════════════════════════════════════════════════════════════ */
+
+/** Resultado del hit-test de un cable bajo el cursor. */
+export interface CableHit {
+    slotIndex: number;
+    pathElement: SVGPathElement;
+    distance: number;
+}
+
+/**
+ * Distancia mínima del cursor al path consultable, o null si el path
+ * no admite consultas de longitud (elemento desconectado / longitud 0).
+ */
+export function closestDistanceToPath(
+    path: SVGPathElement,
+    cursorX: number,
+    cursorY: number,
+): number | null {
+    let totalLength: number;
+    try {
+        totalLength = path.getTotalLength();
+    } catch {
+        return null;
+    }
+    if (!totalLength || !Number.isFinite(totalLength) || totalLength <= 0) return null;
+
+    let min = Infinity;
+    const samples = TOOLTIP.CURVE_SAMPLES;
+    for (let i = 0; i <= samples; i++) {
+        const p = path.getPointAtLength((i / samples) * totalLength);
+        const d = Math.hypot(p.x - cursorX, p.y - cursorY);
+        if (d < min) min = d;
+    }
+    return min;
+}
+
+/**
+ * Devuelve el cable más cercano al cursor si está dentro de
+ * TOOLTIP.HOVER_RADIUS, o null si no hay ninguno.
+ */
+export function findCableAtPoint(
+    manager: PatchCableManager,
+    cursorX: number,
+    cursorY: number,
+): CableHit | null {
+    let best: CableHit | null = null;
+    for (const { slotIndex, pathElement } of manager.getActiveCablePaths()) {
+        const distance = closestDistanceToPath(pathElement, cursorX, cursorY);
+        if (distance === null || distance > TOOLTIP.HOVER_RADIUS) continue;
+        if (!best || distance < best.distance) {
+            best = { slotIndex, pathElement, distance };
+        }
+    }
+    return best;
+}
+
+/**
+ * Nombres legibles de puertos { qualifiedId → label } desde la inventory
+ * (ej: "1.saw_out" → "Osc1 SAW OUT"). Si falla, se usan los ids crudos.
+ */
+function buildPortNameMap(): {
+    sourceNames: Map<string, string>;
+    targetNames: Map<string, string>;
+} {
+    const sourceNames = new Map<string, string>();
+    const targetNames = new Map<string, string>();
+    const win = window as any;
+    try {
+        const items = win.inventoryStore?.getAllItems?.() || [];
+        const { sources, targets } = buildMetadataFromInventory(
+            items,
+            win.runtimeStore?.getSnapshot?.(),
+        );
+        for (const item of sources) sourceNames.set(item.id, item.name);
+        for (const item of targets) targetNames.set(item.id, item.name);
+    } catch (err) {
+        OmegaLog.warn('CABLES', 'buildPortNameMap() failed:', err);
+    }
+    return { sourceNames, targetNames };
+}
+
+/**
+ * Configura el tooltip de información del cable (§8.2).
+ *
+ * Flujo:
+ *  1. Se pulsa Alt (TOOLTIP.MODIFIER_KEY) → se arma el hover-inspect.
+ *  2. `mousemove` sobre el rack con Alt → `findCableAtPoint()` localiza el
+ *     cable más cercano dentro de HOVER_RADIUS (muestreo de la curva).
+ *  3. Con cable: el tooltip muestra source → target, tipo de señal y
+ *     multiplicador del slot. Sin cable: se oculta.
+ *
+ * El tooltip es un div fijo en `document.body` (no roba punteros:
+ * `pointer-events: none` por CSS).
+ *
+ * Devuelve `{ dispose }` (mismo patrón que setupCableRepulsion).
+ */
+export function setupCableTooltip(
+    manager: PatchCableManager,
+): { dispose: () => void } {
+    const rack = document.getElementById('omega-rack');
+    if (!rack) return { dispose: () => {} };
+
+    let altDown = false;
+    let disposed = false;
+    let tooltip: HTMLDivElement | null = null;
+    let currentSlot: number | null = null;
+    let lastClientX = 0;
+    let lastClientY = 0;
+
+    const ensureTooltip = (): HTMLDivElement => {
+        if (tooltip) return tooltip;
+        tooltip = document.createElement('div');
+        tooltip.className = TOOLTIP.TOOLTIP_CLASS;
+        tooltip.setAttribute('role', 'tooltip');
+        document.body.appendChild(tooltip);
+        return tooltip;
+    };
+
+    const hide = () => {
+        currentSlot = null;
+        if (tooltip) tooltip.style.display = 'none';
+    };
+
+    const position = (el: HTMLDivElement, clientX: number, clientY: number) => {
+        el.style.left = `${clientX + TOOLTIP.OFFSET_X}px`;
+        el.style.top = `${clientY + TOOLTIP.OFFSET_Y}px`;
+    };
+
+    /** Consulta el cable bajo el cursor y refresca el tooltip. */
+    const updateTooltip = (clientX: number, clientY: number) => {
+        if (disposed) return;
+        lastClientX = clientX;
+        lastClientY = clientY;
+        if (!altDown) {
+            hide();
+            return;
+        }
+
+        const rect = rack.getBoundingClientRect();
+        const hit = findCableAtPoint(manager, clientX - rect.left, clientY - rect.top);
+        if (!hit) {
+            hide();
+            return;
+        }
+
+        if (hit.slotIndex === currentSlot) {
+            // Mismo cable: solo reposicionar para seguir al cursor.
+            if (tooltip) position(tooltip, clientX, clientY);
+            return;
+        }
+
+        const slot = manager.getSlotData(hit.slotIndex);
+        if (!slot) {
+            hide();
+            return;
+        }
+
+        currentSlot = hit.slotIndex;
+        const names = buildPortNameMap();
+        const el = ensureTooltip();
+
+        el.innerHTML = `
+            <div class="cable-tooltip-title">${TOOLTIP.SLOT_PREFIX} ${String(hit.slotIndex + 1).padStart(2, '0')}</div>
+            <div class="cable-tooltip-route">
+                <span class="cable-tooltip-port cable-tooltip-source"></span>
+                <span class="cable-tooltip-arrow">→</span>
+                <span class="cable-tooltip-port cable-tooltip-target"></span>
+            </div>
+            <div class="cable-tooltip-meta">
+                <span class="cable-tooltip-signal"></span>
+                <span class="cable-tooltip-amount"></span>
+            </div>
+        `;
+
+        el.querySelector('.cable-tooltip-source')!.textContent =
+            names.sourceNames.get(slot.source) || slot.source;
+        el.querySelector('.cable-tooltip-target')!.textContent =
+            names.targetNames.get(slot.target) || slot.target;
+        el.querySelector('.cable-tooltip-signal')!.textContent =
+            String(hit.pathElement.getAttribute('data-signal') || 'cv').toUpperCase();
+        el.querySelector('.cable-tooltip-amount')!.textContent =
+            `×${slot.amount.toFixed(2)}`;
+
+        el.style.display = 'block';
+        position(el, clientX, clientY);
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Alt') {
+            altDown = true;
+            // Si ya estaba el cursor sobre un cable al pulsar Alt, se
+            // consulta con la última posición conocida (no hace falta mover).
+            updateTooltip(lastClientX, lastClientY);
+        }
+    };
+
+    const onKeyUp = (e: KeyboardEvent) => {
+        if (e.key === 'Alt') {
+            altDown = false;
+            hide();
+        }
+    };
+
+    const onBlur = () => {
+        altDown = false;
+        hide();
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+        if (disposed) return;
+        updateTooltip(e.clientX, e.clientY);
+    };
+
+    const onMouseLeave = () => hide();
+
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onBlur);
+    rack.addEventListener('mousemove', onMouseMove, { passive: true });
+    rack.addEventListener('mouseleave', onMouseLeave);
+
+    return {
+        dispose: () => {
+            disposed = true;
+            document.removeEventListener('keydown', onKeyDown);
+            document.removeEventListener('keyup', onKeyUp);
+            window.removeEventListener('blur', onBlur);
+            rack.removeEventListener('mousemove', onMouseMove);
+            rack.removeEventListener('mouseleave', onMouseLeave);
+            tooltip?.remove();
+            tooltip = null;
+            currentSlot = null;
         },
     };
 }

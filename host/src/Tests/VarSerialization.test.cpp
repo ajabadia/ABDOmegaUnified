@@ -124,6 +124,7 @@ TEST_CASE("patchDocumentToVar round-trips a full PatchDocument", "[serialization
     slot.amount = 0.25f;
     slot.via = "";
     slot.viaAmount = 0.0f;
+    slot.color = "#ff8800";
     slot.active = true;
     doc.patchbayMatrix.push_back(slot);
 
@@ -160,6 +161,7 @@ TEST_CASE("patchDocumentToVar round-trips a full PatchDocument", "[serialization
     REQUIRE(restored.patchbayMatrix[0].source == "osc1.freq");
     REQUIRE(restored.patchbayMatrix[0].target == "flt.cutoff");
     REQUIRE(restored.patchbayMatrix[0].amount == Catch::Approx(0.25f));
+    REQUIRE(restored.patchbayMatrix[0].color == "#ff8800");
     REQUIRE(restored.patchbayMatrix[0].active == true);
 }
 

@@ -52,6 +52,7 @@ export interface PatchbayMatrixSlotV7 {
   via: string;       // "instanceId.portId"
   viaAmount: number;
   active: boolean;
+  color?: string;    // Color de cable personalizado (hex "#rrggbb"); ausente = por tipo de señal
 }
 
 export interface PatchDocumentV7 {
@@ -157,7 +158,7 @@ export interface ModMetadataResponse extends RpcEnvelope<ModMetadataPayloadV1> {
   type: 'MODMETADATAACK';
 }
 
-export type PatchbaySlotKey = 'source' | 'target' | 'amount' | 'via' | 'viaAmount' | 'active';
+export type PatchbaySlotKey = 'source' | 'target' | 'amount' | 'via' | 'viaAmount' | 'active' | 'color';
 
 export interface PatchbayUpdateRequestPayload {
   slot: number;

@@ -4,6 +4,7 @@
  */
 import { OmegaLog } from '../../RPC/omega_log.js';
 import { getSlotSkeleton, generateOptions, getNameForId, getAmountColor, normalizeList } from './matrixLayout.js';
+import { CABLE_PALETTE, normalizeCableColor } from '../cables/cableConstants.js';
 
 /**
  * Sets up the view mode toggle buttons (COMPOSE / OVERVIEW) in the modal header.
@@ -129,6 +130,31 @@ export function syncSlotsFromState(
 }
 
 /**
+ * Construye los swatches de color de cable para el inspector.
+ * El primer swatch ("AUTO", rayado) limpia el color personalizado del
+ * slot (vuelve al color por tipo de señal). El valor se envía con
+ * data-key="color" vía el handler genérico de la inspector.
+ */
+function renderCableSwatches(currentColor: string): string {
+  const normalized = normalizeCableColor(currentColor) || '';
+  const resetActive = normalized === '' ? ' active' : '';
+  let html = `
+    <button type="button" class="cable-swatch reset${resetActive}"
+      data-key="color" data-value="" title="Default (por tipo de señal)"
+      aria-label="Default cable color"></button>
+  `;
+  for (const hex of CABLE_PALETTE) {
+    const isActive = normalized === hex ? ' active' : '';
+    html += `
+      <button type="button" class="cable-swatch${isActive}"
+        data-key="color" data-value="${hex}" style="background: ${hex}"
+        title="${hex}" aria-label="Cable color ${hex}"></button>
+    `;
+  }
+  return html;
+}
+
+/**
  * Renders the inspector panel for the selected slot.
  */
 export function renderInspector(
@@ -185,6 +211,13 @@ export function renderInspector(
     <div class="control-group">
       <label>VIA AMOUNT</label>
       <input type="range" class="inspector-range" data-key="viaAmount" min="0" max="1" step="0.05" value="${viaAmount}">
+    </div>
+
+    <div class="control-group">
+      <label>CABLE COLOR</label>
+      <div class="cable-swatches" data-key="color">
+        ${renderCableSwatches(slot.color || '')}
+      </div>
     </div>
 
     <div class="inspector-actions" style="margin-top: auto; display: flex; gap: 10px;">

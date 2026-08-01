@@ -105,6 +105,8 @@ namespace UI {
             slot.via = value.toString().toStdString();
         } else if (key == "viaAmount") {
             slot.viaAmount = (float)value;
+        } else if (key == "color") {
+            slot.color = value.toString().toStdString();
         } else {
             return createError("PATCHBAY_UPDATE_ERR", requestId, "Unknown key: " + key);
         }

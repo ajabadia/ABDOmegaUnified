@@ -17,19 +17,21 @@
 import { OmegaLog } from '../../RPC/omega_log.js';
 import {
     SignalTypeResolver,
-    SIGNAL_COLORS,
+    resolveCableColor,
+    normalizeCableColor,
     INTERACTION,
     DRAG_TO_PATCH,
     setGlobalTension,
 } from './cableConstants.js';
 import { JackRegistry } from './JackRegistry.js';
-import { CableRenderer, CableEndpoints } from './CableRenderer.js';
+import { CableRenderer, CableEndpoints, computeBundleSpread } from './CableRenderer.js';
 import {
     setupCableGhosting,
     setupCableVisibilityToggle,
     setupCableRepulsion,
     setupCableSoloMode,
     setupDragToPatch,
+    setupCableTooltip,
 } from './CableInteraction.js';
 
 interface ActiveCable {
@@ -39,10 +41,14 @@ interface ActiveCable {
     signalType: string;
     pathElement: SVGPathElement;
     plugsElement: SVGGElement | null;
+    /** Color personalizado del slot (#rrggbb) o null si usa el del tipo de señal. */
+    color: string | null;
     /** Endpoints base (sin deformación) — se actualizan en cada redraw. */
     base: CableEndpoints;
     /** Desplazamiento de repulsión actual (§7.3), o null si el cable está neutro. */
     deform: { x: number; y: number } | null;
+    /** Offset lateral estático del mazo (§9), o null si el cable va suelto. */
+    bundle: { x: number; y: number } | null;
 }
 
 export class PatchCableManager {
@@ -56,6 +62,7 @@ export class PatchCableManager {
     private unsubscribeStore: (() => void) | null = null;
     private disposeRepulsion: (() => void) | null = null;
     private disposeDragToPatch: (() => void) | null = null;
+    private disposeCableTooltip: (() => void) | null = null;
     /** Slot destacado por la Ruta destacada (§9), o null si no hay ninguno. */
     private highlightedSlot: number | null = null;
 
@@ -78,6 +85,7 @@ export class PatchCableManager {
         setupCableSoloMode();
         this.disposeRepulsion = setupCableRepulsion(this);
         this.disposeDragToPatch = setupDragToPatch(this);
+        this.disposeCableTooltip = setupCableTooltip(this);
 
         // 4. Suscripción al RuntimeStore (cambios estructurales = módulos/matrix)
         this.subscribeStructureChanges();
@@ -105,6 +113,10 @@ export class PatchCableManager {
         if (this.disposeDragToPatch) {
             this.disposeDragToPatch();
             this.disposeDragToPatch = null;
+        }
+        if (this.disposeCableTooltip) {
+            this.disposeCableTooltip();
+            this.disposeCableTooltip = null;
         }
         this.removeAllCables();
     }
@@ -143,6 +155,11 @@ export class PatchCableManager {
                 x2: targetPos.x, y2: targetPos.y,
             };
 
+            const signalType = this.signalTypeResolver.getSignalType(slot.source);
+            // Color personalizado (hex válido) o null → CSS [data-signal] por defecto.
+            const customColor = normalizeCableColor(slot.color);
+            const resolvedColor = resolveCableColor(customColor, signalType);
+
             const existing = this.activeCables.get(index);
 
             // ¿El slot cambió de ruta? Recrear (ids stale).
@@ -151,26 +168,21 @@ export class PatchCableManager {
                 (existing.sourceId !== slot.source || existing.targetId !== slot.target);
 
             if (existing && !routeChanged) {
-                // Caso A: cable ya existe → solo actualizar posición
-                // (preservando el desplazamiento de repulsión si lo hay)
+                // Caso A: cable ya existe → solo actualizar posición + color
+                // (preservando el desplazamiento de repulsión y el mazo si los hay)
                 existing.base = endpoints;
-                CableRenderer.updateCablePath(
-                    existing.pathElement, endpoints, existing.deform ?? undefined,
-                );
+                this.updateCablePathWithOffsets(existing);
                 if (existing.plugsElement) {
                     CableRenderer.updatePlugs(existing.plugsElement, endpoints);
                 }
-            } else {
-                // Caso B (nuevo, o ruta cambiada): crear desde cero
+                this.applyCableColor(existing, signalType, slot.color);
+            } else {                // Caso B (nuevo, o ruta cambiada): crear desde cero
                 if (existing && routeChanged) {
                     this.removeCableAt(index);
                 }
 
-                const signalType = this.signalTypeResolver.getSignalType(slot.source);
-                const color = SIGNAL_COLORS[signalType] || SIGNAL_COLORS.cv;
-
                 const pathElement = CableRenderer.createCablePath(
-                    index, endpoints, signalType,
+                    index, endpoints, signalType, customColor ?? undefined,
                 );
 
                 // Fase 5 (§8.3): pulso de señal opcional. Se aplica DESPUÉS de
@@ -182,7 +194,7 @@ export class PatchCableManager {
                 const plugsElement = CableRenderer.createPlugs(
                     sourcePos.x, sourcePos.y,
                     targetPos.x, targetPos.y,
-                    color,
+                    resolvedColor,
                 );
 
                 this.activeCables.set(index, {
@@ -192,8 +204,10 @@ export class PatchCableManager {
                     signalType,
                     pathElement,
                     plugsElement,
+                    color: customColor,
                     base: endpoints,
                     deform: null,
+                    bundle: null,
                 });
             }
         });
@@ -204,6 +218,11 @@ export class PatchCableManager {
                 this.removeCableAt(slotIndex, cable);
             }
         }
+
+        // Paso 3.5 (§9 mazo): re-agrupar los cables por par de módulos.
+        // Asigna los offsets laterales a los cables que comparten módulos y
+        // redibuja SOLO los que cambiaron de grupo.
+        this.applyCableBundles();
 
         // Paso 4: re-aplicar la Ruta destacada (§9) a los cables creados/actualizados
         this.applyRouteHighlight();
@@ -254,6 +273,32 @@ export class PatchCableManager {
         return result;
     }
 
+    /* ── Fase 5 (§8.2): API pública del tooltip del cable ── */
+
+    /**
+     * Datos de un slot activo para el tooltip: source, target, multiplicador
+     * (amount) y estado. Devuelve null si el slot no existe o no está activo.
+     * El amount se normaliza a número (el backend puede emitir string).
+     */
+    getSlotData(
+        slotIndex: number,
+    ): { source: string; target: string; amount: number; active: true } | null {
+        const slot = this.readMatrix()[slotIndex];
+        if (!slot) return null;
+
+        const isActive =
+            slot?.active === true || slot?.active === 1 || slot?.active === 'true';
+        if (!isActive) return null;
+
+        const amount = Number(slot.amount);
+        return {
+            source: String(slot.source || ''),
+            target: String(slot.target || ''),
+            amount: Number.isFinite(amount) ? amount : 1,
+            active: true,
+        };
+    }
+
     /**
      * Aplica (o limpia) el desplazamiento de repulsión a un cable.
      * `offset = null` restaura la forma base. No-op si el cable no existe
@@ -269,9 +314,7 @@ export class PatchCableManager {
         if (unchanged) return;
 
         cable.deform = offset;
-        CableRenderer.updateCablePath(
-            cable.pathElement, cable.base, offset ?? undefined,
-        );
+        this.updateCablePathWithOffsets(cable);
     }
 
     /** Restaura todos los cables a su forma base (cursor fuera del rack). */
@@ -279,7 +322,7 @@ export class PatchCableManager {
         for (const cable of this.activeCables.values()) {
             if (!cable.deform) continue;
             cable.deform = null;
-            CableRenderer.updateCablePath(cable.pathElement, cable.base);
+            this.updateCablePathWithOffsets(cable);
         }
     }
 
@@ -334,6 +377,105 @@ export class PatchCableManager {
 
     /* ───────────────────────── internos ───────────────────────── */
 
+    /**
+     * Aplica el color a un cable existente (path + plugs).
+     * El stroke inline solo se escribe cuando hay color personalizado válido;
+     * en caso contrario se limpia para que el CSS [data-signal] mande.
+     * Los plugs siempre reciben el fill resuelto. No-op si nada cambió.
+     */
+    private applyCableColor(
+        cable: ActiveCable,
+        signalType: string,
+        slotColor: unknown,
+    ): void {
+        const customColor = normalizeCableColor(slotColor);
+        if (cable.color === customColor && cable.signalType === signalType) return;
+
+        cable.color = customColor;
+        cable.signalType = signalType;
+        CableRenderer.setCableColor(cable.pathElement, customColor);
+        if (cable.plugsElement) {
+            CableRenderer.setPlugsColor(
+                cable.plugsElement,
+                resolveCableColor(customColor, signalType),
+            );
+        }
+    }
+
+    /**
+     * Redibuja el path de un cable con TODOS sus offsets: repulsión (§7.3)
+     * + mazo (§9). Los plugs NO se ven afectados por el mazo (cada cable
+     * sigue enchufado a su jack).
+     */
+    private updateCablePathWithOffsets(cable: ActiveCable): void {
+        CableRenderer.updateCablePath(
+            cable.pathElement, cable.base,
+            cable.deform ?? undefined,
+            cable.bundle ?? undefined,
+        );
+    }
+
+    /** instanceId de un qualifiedId ("1.saw_out" → "1"). */
+    private instanceOf(id: string): string {
+        const dot = id.indexOf('.');
+        return dot >= 0 ? id.slice(0, dot) : id;
+    }
+
+    /** Clave de agrupación del mazo: par de módulos (sin orden). */
+    private cableGroupKey(cable: ActiveCable): string {
+        const a = this.instanceOf(cable.sourceId);
+        const b = this.instanceOf(cable.targetId);
+        return a < b ? `${a}|${b}` : `${b}|${a}`;
+    }
+
+    /**
+     * Agrupa los cables por par de módulos y asigna el offset lateral del
+     * mazo (§9). Los cables que comparten módulos reciben un spread
+     * perpendicular al eje; los que van sueltos se limpian. Solo se
+     * redibuja el cable si su offset cambió (evita escribir el SVG siempre).
+     */
+    private applyCableBundles(): void {
+        const groups = new Map<string, ActiveCable[]>();
+
+        for (const cable of this.activeCables.values()) {
+            const key = this.cableGroupKey(cable);
+            const list = groups.get(key) ?? [];
+            list.push(cable);
+            groups.set(key, list);
+        }
+
+        for (const group of groups.values()) {
+            if (group.length < 2) {
+                for (const cable of group) this.setCableBundle(cable, null);
+                continue;
+            }
+
+            // Orden estable por slot: el cable del slot más bajo se queda
+            // en el centro y los demás se abren a cada lado.
+            group.sort((a, b) => a.slotIndex - b.slotIndex);
+            group.forEach((cable, position) => {
+                this.setCableBundle(
+                    cable,
+                    computeBundleSpread(cable.base, position, group.length),
+                );
+            });
+        }
+    }
+
+    /** Asigna (o limpia) el offset del mazo y redibuja solo si cambió. */
+    private setCableBundle(
+        cable: ActiveCable,
+        spread: { x: number; y: number } | null,
+    ): void {
+        const unchanged =
+            (cable.bundle?.x ?? null) === (spread?.x ?? null) &&
+            (cable.bundle?.y ?? null) === (spread?.y ?? null);
+        if (unchanged) return;
+
+        cable.bundle = spread;
+        this.updateCablePathWithOffsets(cable);
+    }
+
     /** Lee la matrix como array (soporta array y objeto mapeado). */
     private readMatrix(): any[] {
         const win = window as any;
@@ -380,13 +522,19 @@ export class PatchCableManager {
                     x2: targetPos.x, y2: targetPos.y,
                 };
                 cable.base = endpoints;
-                CableRenderer.updateCablePath(
-                    cable.pathElement, endpoints, cable.deform ?? undefined,
-                );
                 if (cable.plugsElement) {
                     CableRenderer.updatePlugs(cable.plugsElement, endpoints);
                 }
             }
+        }
+
+        // El offset del mazo depende del eje source→target (posición),
+        // así que se recomputa tras refrescar las posiciones.
+        this.applyCableBundles();
+
+        // Redibujar todos los paths con deform + bundle actuales
+        for (const [, cable] of this.activeCables) {
+            this.updateCablePathWithOffsets(cable);
         }
     }
 

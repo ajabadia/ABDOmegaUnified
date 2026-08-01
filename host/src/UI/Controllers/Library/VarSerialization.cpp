@@ -153,6 +153,7 @@ namespace VarSerialization {
                 ms.amount = (float)so->getProperty("amount");
                 ms.via = so->getProperty("via").toString().toStdString();
                 ms.viaAmount = (float)so->getProperty("viaAmount");
+                ms.color = so->getProperty("color").toString().toStdString();
                 ms.active = (bool)so->getProperty("active");
                 doc.patchbayMatrix.push_back(ms);
             }

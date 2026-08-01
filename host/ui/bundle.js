@@ -2941,6 +2941,176 @@ var Omega = (() => {
     return 32;
   }
 
+  // src/Components/cables/cableConstants.ts
+  var CABLE_PHYSICS = {
+    /** Caída mínima en píxeles (cable corto entre jacks cercanos) */
+    BASE_SAG: 40,
+    /** Factor de caída según distancia (más lejos → más cuelga) */
+    SAG_FACTOR: 0.15,
+    /** Máxima caída permitida (para que cables muy largos no se salgan del rack) */
+    MAX_SAG: 200,
+    /** Grosor del cable en píxeles */
+    STROKE_WIDTH: 4,
+    /** Radio del círculo "plug" en los extremos del cable */
+    PLUG_RADIUS: 5
+  };
+  var CABLE_TENSION = {
+    /** Tensión por defecto: 0 = "espagueti" (máximo sag, look actual). */
+    DEFAULT: 0,
+    /**
+     * Fracción de sag que conserva un cable al 100% de tensión ("tenso").
+     * 1 = el sag no cambia; 0 = cable completamente recto.
+     */
+    MIN_SAG_RATIO: 0.2
+  };
+  var globalTension = CABLE_TENSION.DEFAULT;
+  function getGlobalTension() {
+    return globalTension;
+  }
+  function setGlobalTension(tension) {
+    globalTension = Math.min(1, Math.max(0, tension));
+  }
+  var SIGNAL_COLORS = {
+    audio: "#10b981",
+    // Verde esmeralda
+    cv: "#06b6d4",
+    // Cian neón
+    gate: "#ef4444",
+    // Rojo carmesí
+    midi: "#a855f7"
+    // Violeta neón
+  };
+  var CABLE_PALETTE = [
+    "#10b981",
+    // Verde esmeralda (audio)
+    "#06b6d4",
+    // Cian neón (CV)
+    "#ef4444",
+    // Rojo carmesí (gate)
+    "#a855f7",
+    // Violeta neón (midi)
+    "#f59e0b",
+    // Ámbar
+    "#ec4899",
+    // Rosa neón
+    "#22c55e",
+    // Verde lima
+    "#3b82f6",
+    // Azul
+    "#f97316",
+    // Naranja
+    "#e5e7eb"
+    // Blanco grisáceo
+  ];
+  function normalizeCableColor(color) {
+    if (typeof color !== "string") return null;
+    const c = color.trim().toLowerCase();
+    if (/^#([0-9a-f]{6}|[0-9a-f]{3})$/.test(c)) return c;
+    return null;
+  }
+  function resolveCableColor(slotColor, signalType) {
+    return normalizeCableColor(slotColor) || SIGNAL_COLORS[signalType] || SIGNAL_COLORS.cv;
+  }
+  var CABLE_BUNDLE = {
+    /**
+     * Separación lateral (px) entre cables consecutivos de un mazo.
+     * Se aplica a los puntos de control de la Bézier; el centro de
+     * la curva recibe ~0.75× ese desplazamiento, que con stroke de
+     * 4px mantiene los cables del mazo casi tocándose en el centro.
+     */
+    SPREAD: 10
+  };
+  var INTERACTION = {
+    /** Radio en px alrededor del cursor para activar ghosting */
+    GHOST_DETECTION_RADIUS: 80,
+    /** Opacidad del cable en modo ghost */
+    GHOST_OPACITY: 0.12,
+    /** Puntos a muestrear en la curva Bézier para detección de colisión */
+    CURVE_SAMPLES: 20,
+    /** Tiempo de debounce para resize/scroll (ms) */
+    DEBOUNCE_MS: 50,
+    /** Clase CSS aplicada a cables en modo ghost */
+    GHOST_CLASS: "ghosted",
+    /** Clase CSS del overlay cuando los cables están ocultos ([H]) */
+    HIDDEN_CLASS: "cables-hidden",
+    /**
+     * Pulso de señal (Fase 5, §8.3 — OPCIONAL).
+     * Animación de "flujo" sobre los cables activos.
+     * DESACTIVADO por defecto: sin telemetría por slot no hay forma de
+     * distinguir un patch guardado de uno sonando, y pulsa todos los cables.
+     * Activarlo: INTERACTION.SIGNAL_PULSE = true.
+     */
+    SIGNAL_PULSE: false,
+    /* ── Estrategia C: Repulsión elástica (§7.3, AVANZADO) ── */
+    /** Distancia (px) bajo la cual el cable empieza a deformarse del cursor */
+    REPULSION_RADIUS: 60,
+    /** Desplazamiento lateral MÁXIMO de los puntos de control (px) */
+    REPULSION_STRENGTH: 90,
+    /** Puntos a muestrear por cable para hallar el punto más cercano al cursor */
+    REPULSION_SAMPLES: 20
+  };
+  var DRAG_TO_PATCH = {
+    /** Distancia mínima (px) antes de que el pointerdown se considere drag */
+    MIN_DRAG_DISTANCE: 6,
+    /** Clase CSS del path de preview colgante */
+    CABLE_PREVIEW_CLASS: "cable-drag-preview",
+    /** Clase CSS del jack de origen mientras hay drag */
+    DRAG_ACTIVE_JACK_CLASS: "drag-active-jack",
+    /** Clase CSS de los jacks de entrada válidos mientras hay drag */
+    TARGET_HIGHLIGHT_CLASS: "target-highlight",
+    /**
+     * Límite de slots de la matrix a respetar al buscar slot libre
+     * (el modal UI usa 32; el backend admite hasta 64).
+     */
+    MATRIX_SLOT_LIMIT: 32
+  };
+  var TOOLTIP = {
+    /** Tecla modificadora que activa el hover-inspect del cable */
+    MODIFIER_KEY: "Alt",
+    /**
+     * Radio (px) alrededor del cursor que cuenta un cable como "hovered".
+     * El stroke del cable mide 4px, así que con 8 hay margen cómodo.
+     */
+    HOVER_RADIUS: 8,
+    /** Puntos a muestrear por cable para hallar el más cercano al cursor */
+    CURVE_SAMPLES: 20,
+    /** Clase CSS del tooltip */
+    TOOLTIP_CLASS: "cable-tooltip",
+    /** Desplazamiento (px) del tooltip respecto al cursor */
+    OFFSET_X: 14,
+    OFFSET_Y: 14,
+    /** Prefijo del rótulo de slot (ej: "CABLE 04") */
+    SLOT_PREFIX: "CABLE"
+  };
+  var SignalTypeResolver = class {
+    signalMap = /* @__PURE__ */ new Map();
+    /**
+     * Refresca el mapa { qualifiedId -> tipo de señal } a partir
+     * del estado actual de la inventory + snapshot de runtimeStore.
+     */
+    refresh(inventoryStore2, state) {
+      const next = /* @__PURE__ */ new Map();
+      try {
+        const items = inventoryStore2?.getAllItems?.() || [];
+        const { sources, targets } = buildMetadataFromInventory(items, state);
+        for (const item of [...sources, ...targets]) {
+          next.set(item.id, String(item.type || "cv"));
+        }
+      } catch (err) {
+        OmegaLog.warn("CABLES", "SignalTypeResolver.refresh() failed:", err);
+      }
+      this.signalMap = next;
+    }
+    /**
+     * Devuelve el tipo de señal en minúsculas ('audio', 'cv', 'gate', 'midi').
+     * Por defecto 'cv' si el qualifiedId no existe en el metadata.
+     */
+    getSignalType(id) {
+      const type = this.signalMap.get(id);
+      return type ? type.toLowerCase() : "cv";
+    }
+  };
+
   // src/Components/patchbay/matrixTemplates.ts
   function setupHeaderToggles(modalHeader, viewMode, onViewChange) {
     if (!modalHeader || document.getElementById("matrix-view-toggles")) return;
@@ -3018,6 +3188,24 @@ var Omega = (() => {
       }
     });
   }
+  function renderCableSwatches(currentColor) {
+    const normalized = normalizeCableColor(currentColor) || "";
+    const resetActive = normalized === "" ? " active" : "";
+    let html = `
+    <button type="button" class="cable-swatch reset${resetActive}"
+      data-key="color" data-value="" title="Default (por tipo de se\xF1al)"
+      aria-label="Default cable color"></button>
+  `;
+    for (const hex of CABLE_PALETTE) {
+      const isActive = normalized === hex ? " active" : "";
+      html += `
+      <button type="button" class="cable-swatch${isActive}"
+        data-key="color" data-value="${hex}" style="background: ${hex}"
+        title="${hex}" aria-label="Cable color ${hex}"></button>
+    `;
+    }
+    return html;
+  }
   function renderInspector(container, slotIdx, matrix, sources, targets) {
     const slot = matrix[slotIdx] || {
       active: false,
@@ -3066,6 +3254,13 @@ var Omega = (() => {
       <input type="range" class="inspector-range" data-key="viaAmount" min="0" max="1" step="0.05" value="${viaAmount}">
     </div>
 
+    <div class="control-group">
+      <label>CABLE COLOR</label>
+      <div class="cable-swatches" data-key="color">
+        ${renderCableSwatches(slot.color || "")}
+      </div>
+    </div>
+
     <div class="inspector-actions" style="margin-top: auto; display: flex; gap: 10px;">
       <button class="aseptic-btn" id="btn-clear-slot" style="flex:1">CLEAR</button>
       <button class="aseptic-btn" id="btn-init-matrix" style="flex:1">INIT ALL</button>
@@ -3110,6 +3305,16 @@ var Omega = (() => {
           onSendUpdate(selectedSlot, e.target.dataset.key, val);
         }
       );
+    });
+    container.querySelectorAll(".cable-swatch").forEach((swatch) => {
+      swatch.addEventListener("click", (e) => {
+        const value = e.currentTarget.dataset.value || "";
+        const group = e.currentTarget.closest(".cable-swatches");
+        group?.querySelectorAll(".cable-swatch").forEach(
+          (s) => s.classList.toggle("active", s === e.currentTarget)
+        );
+        onSendUpdate(selectedSlot, e.currentTarget.dataset.key, value);
+      });
     });
     document.getElementById("btn-clear-slot")?.addEventListener("click", () => {
       onSendUpdate(selectedSlot, "source", "");
@@ -4933,118 +5138,6 @@ var Omega = (() => {
     }
   };
 
-  // src/Components/cables/cableConstants.ts
-  var CABLE_PHYSICS = {
-    /** Caída mínima en píxeles (cable corto entre jacks cercanos) */
-    BASE_SAG: 40,
-    /** Factor de caída según distancia (más lejos → más cuelga) */
-    SAG_FACTOR: 0.15,
-    /** Máxima caída permitida (para que cables muy largos no se salgan del rack) */
-    MAX_SAG: 200,
-    /** Grosor del cable en píxeles */
-    STROKE_WIDTH: 4,
-    /** Radio del círculo "plug" en los extremos del cable */
-    PLUG_RADIUS: 5
-  };
-  var CABLE_TENSION = {
-    /** Tensión por defecto: 0 = "espagueti" (máximo sag, look actual). */
-    DEFAULT: 0,
-    /**
-     * Fracción de sag que conserva un cable al 100% de tensión ("tenso").
-     * 1 = el sag no cambia; 0 = cable completamente recto.
-     */
-    MIN_SAG_RATIO: 0.2
-  };
-  var globalTension = CABLE_TENSION.DEFAULT;
-  function getGlobalTension() {
-    return globalTension;
-  }
-  function setGlobalTension(tension) {
-    globalTension = Math.min(1, Math.max(0, tension));
-  }
-  var SIGNAL_COLORS = {
-    audio: "#10b981",
-    // Verde esmeralda
-    cv: "#06b6d4",
-    // Cian neón
-    gate: "#ef4444",
-    // Rojo carmesí
-    midi: "#a855f7"
-    // Violeta neón
-  };
-  var INTERACTION = {
-    /** Radio en px alrededor del cursor para activar ghosting */
-    GHOST_DETECTION_RADIUS: 80,
-    /** Opacidad del cable en modo ghost */
-    GHOST_OPACITY: 0.12,
-    /** Puntos a muestrear en la curva Bézier para detección de colisión */
-    CURVE_SAMPLES: 20,
-    /** Tiempo de debounce para resize/scroll (ms) */
-    DEBOUNCE_MS: 50,
-    /** Clase CSS aplicada a cables en modo ghost */
-    GHOST_CLASS: "ghosted",
-    /** Clase CSS del overlay cuando los cables están ocultos ([H]) */
-    HIDDEN_CLASS: "cables-hidden",
-    /**
-     * Pulso de señal (Fase 5, §8.3 — OPCIONAL).
-     * Animación de "flujo" sobre los cables activos.
-     * DESACTIVADO por defecto: sin telemetría por slot no hay forma de
-     * distinguir un patch guardado de uno sonando, y pulsa todos los cables.
-     * Activarlo: INTERACTION.SIGNAL_PULSE = true.
-     */
-    SIGNAL_PULSE: false,
-    /* ── Estrategia C: Repulsión elástica (§7.3, AVANZADO) ── */
-    /** Distancia (px) bajo la cual el cable empieza a deformarse del cursor */
-    REPULSION_RADIUS: 60,
-    /** Desplazamiento lateral MÁXIMO de los puntos de control (px) */
-    REPULSION_STRENGTH: 90,
-    /** Puntos a muestrear por cable para hallar el punto más cercano al cursor */
-    REPULSION_SAMPLES: 20
-  };
-  var DRAG_TO_PATCH = {
-    /** Distancia mínima (px) antes de que el pointerdown se considere drag */
-    MIN_DRAG_DISTANCE: 6,
-    /** Clase CSS del path de preview colgante */
-    CABLE_PREVIEW_CLASS: "cable-drag-preview",
-    /** Clase CSS del jack de origen mientras hay drag */
-    DRAG_ACTIVE_JACK_CLASS: "drag-active-jack",
-    /** Clase CSS de los jacks de entrada válidos mientras hay drag */
-    TARGET_HIGHLIGHT_CLASS: "target-highlight",
-    /**
-     * Límite de slots de la matrix a respetar al buscar slot libre
-     * (el modal UI usa 32; el backend admite hasta 64).
-     */
-    MATRIX_SLOT_LIMIT: 32
-  };
-  var SignalTypeResolver = class {
-    signalMap = /* @__PURE__ */ new Map();
-    /**
-     * Refresca el mapa { qualifiedId -> tipo de señal } a partir
-     * del estado actual de la inventory + snapshot de runtimeStore.
-     */
-    refresh(inventoryStore2, state) {
-      const next = /* @__PURE__ */ new Map();
-      try {
-        const items = inventoryStore2?.getAllItems?.() || [];
-        const { sources, targets } = buildMetadataFromInventory(items, state);
-        for (const item of [...sources, ...targets]) {
-          next.set(item.id, String(item.type || "cv"));
-        }
-      } catch (err) {
-        OmegaLog.warn("CABLES", "SignalTypeResolver.refresh() failed:", err);
-      }
-      this.signalMap = next;
-    }
-    /**
-     * Devuelve el tipo de señal en minúsculas ('audio', 'cv', 'gate', 'midi').
-     * Por defecto 'cv' si el qualifiedId no existe en el metadata.
-     */
-    getSignalType(id) {
-      const type = this.signalMap.get(id);
-      return type ? type.toLowerCase() : "cv";
-    }
-  };
-
   // src/Components/cables/JackRegistry.ts
   var JackRegistry = class {
     jacks = /* @__PURE__ */ new Map();
@@ -5127,6 +5220,15 @@ var Omega = (() => {
 
   // src/Components/cables/CableRenderer.ts
   var SVG_NS = "http://www.w3.org/2000/svg";
+  function computeBundleSpread(ep, position, groupSize) {
+    const dx = ep.x2 - ep.x1;
+    const dy = ep.y2 - ep.y1;
+    const length = Math.hypot(dx, dy) || 1;
+    const nx = -dy / length;
+    const ny = dx / length;
+    const offset = (position - (groupSize - 1) / 2) * CABLE_BUNDLE.SPREAD;
+    return { x: nx * offset, y: ny * offset };
+  }
   var CableRenderer = class _CableRenderer {
     /**
      * Calcula el string "d" del path SVG para un cable colgante.
@@ -5140,8 +5242,11 @@ var Omega = (() => {
      *
      * `deform` (opcional, Fase 7.3 repulsión elástica) desplaza AMBOS puntos
      * de control lateralmente para que el cable "se aparte" del cursor.
+     * `bundle` (opcional, §9 mazo) desplaza ambos puntos de control
+     * perpendicularmente al eje para que cables del mismo par de módulos
+     * corran paralelos. Ambos offsets se suman.
      */
-    static calculatePath(ep, deform) {
+    static calculatePath(ep, deform, bundle) {
       const { x1, y1, x2, y2 } = ep;
       const dx = x2 - x1;
       const dy = y2 - y1;
@@ -5152,8 +5257,8 @@ var Omega = (() => {
       );
       const tension = getGlobalTension();
       const sag = baseSag * (CABLE_TENSION.MIN_SAG_RATIO + (1 - CABLE_TENSION.MIN_SAG_RATIO) * (1 - tension));
-      const offX = deform?.x ?? 0;
-      const offY = deform?.y ?? 0;
+      const offX = (deform?.x ?? 0) + (bundle?.x ?? 0);
+      const offY = (deform?.y ?? 0) + (bundle?.y ?? 0);
       const cx1 = x1 + offX;
       const cy1 = y1 + sag + offY;
       const cx2 = x2 + offX;
@@ -5167,7 +5272,7 @@ var Omega = (() => {
      * Los elementos SVG necesitan el namespace SVG para renderizarse.
      * Con createElement('path') el navegador NO lo dibuja.
      */
-    static createCablePath(slotIndex, endpoints, signalType) {
+    static createCablePath(slotIndex, endpoints, signalType, color) {
       const svg = document.getElementById("patch-cables-overlay");
       if (!svg) throw new Error("[CableRenderer] SVG overlay #patch-cables-overlay not found");
       const path = document.createElementNS(SVG_NS, "path");
@@ -5175,17 +5280,30 @@ var Omega = (() => {
       path.setAttribute("data-slot", String(slotIndex));
       path.setAttribute("data-signal", signalType);
       path.setAttribute("d", _CableRenderer.calculatePath(endpoints));
+      if (color) path.style.stroke = color;
       svg.appendChild(path);
       setTimeout(() => path.classList.remove("entering"), 600);
       return path;
     }
     /**
+     * Aplica (o quita) el color personalizado de un cable ya existente.
+     * `color = null` borra el override inline y vuelve al CSS [data-signal].
+     */
+    static setCableColor(path, color) {
+      if (color) {
+        path.style.stroke = color;
+      } else {
+        path.style.removeProperty("stroke");
+      }
+    }
+    /**
      * Actualiza la posición de un cable existente.
      * Se llama al hacer scroll, resize o mover módulos.
      * `deform` opcional: desplazamiento de repulsión (se preserva en redraws).
+     * `bundle` opcional: offset lateral del mazo (§9) (se preserva en redraws).
      */
-    static updateCablePath(path, endpoints, deform) {
-      path.setAttribute("d", _CableRenderer.calculatePath(endpoints, deform));
+    static updateCablePath(path, endpoints, deform, bundle) {
+      path.setAttribute("d", _CableRenderer.calculatePath(endpoints, deform, bundle));
     }
     /**
      * Elimina un cable del SVG con animación de fade-out.
@@ -5233,6 +5351,13 @@ var Omega = (() => {
         plugs[1].setAttribute("cx", String(ep.x2));
         plugs[1].setAttribute("cy", String(ep.y2));
       }
+    }
+    /**
+     * Recolorea los plugs de un cable existente (fill). Se usa cuando
+     * el color personalizado del slot cambia (§9 Color Picker).
+     */
+    static setPlugsColor(group, color) {
+      group.querySelectorAll("circle").forEach((plug) => plug.setAttribute("fill", color));
     }
   };
 
@@ -5567,6 +5692,162 @@ var Omega = (() => {
       }
     };
   }
+  function closestDistanceToPath(path, cursorX, cursorY) {
+    let totalLength;
+    try {
+      totalLength = path.getTotalLength();
+    } catch {
+      return null;
+    }
+    if (!totalLength || !Number.isFinite(totalLength) || totalLength <= 0) return null;
+    let min = Infinity;
+    const samples = TOOLTIP.CURVE_SAMPLES;
+    for (let i = 0; i <= samples; i++) {
+      const p = path.getPointAtLength(i / samples * totalLength);
+      const d = Math.hypot(p.x - cursorX, p.y - cursorY);
+      if (d < min) min = d;
+    }
+    return min;
+  }
+  function findCableAtPoint(manager2, cursorX, cursorY) {
+    let best = null;
+    for (const { slotIndex, pathElement } of manager2.getActiveCablePaths()) {
+      const distance = closestDistanceToPath(pathElement, cursorX, cursorY);
+      if (distance === null || distance > TOOLTIP.HOVER_RADIUS) continue;
+      if (!best || distance < best.distance) {
+        best = { slotIndex, pathElement, distance };
+      }
+    }
+    return best;
+  }
+  function buildPortNameMap() {
+    const sourceNames = /* @__PURE__ */ new Map();
+    const targetNames = /* @__PURE__ */ new Map();
+    const win2 = window;
+    try {
+      const items = win2.inventoryStore?.getAllItems?.() || [];
+      const { sources, targets } = buildMetadataFromInventory(
+        items,
+        win2.runtimeStore?.getSnapshot?.()
+      );
+      for (const item of sources) sourceNames.set(item.id, item.name);
+      for (const item of targets) targetNames.set(item.id, item.name);
+    } catch (err) {
+      OmegaLog.warn("CABLES", "buildPortNameMap() failed:", err);
+    }
+    return { sourceNames, targetNames };
+  }
+  function setupCableTooltip(manager2) {
+    const rack = document.getElementById("omega-rack");
+    if (!rack) return { dispose: () => {
+    } };
+    let altDown = false;
+    let disposed = false;
+    let tooltip = null;
+    let currentSlot = null;
+    let lastClientX = 0;
+    let lastClientY = 0;
+    const ensureTooltip = () => {
+      if (tooltip) return tooltip;
+      tooltip = document.createElement("div");
+      tooltip.className = TOOLTIP.TOOLTIP_CLASS;
+      tooltip.setAttribute("role", "tooltip");
+      document.body.appendChild(tooltip);
+      return tooltip;
+    };
+    const hide = () => {
+      currentSlot = null;
+      if (tooltip) tooltip.style.display = "none";
+    };
+    const position = (el, clientX, clientY) => {
+      el.style.left = `${clientX + TOOLTIP.OFFSET_X}px`;
+      el.style.top = `${clientY + TOOLTIP.OFFSET_Y}px`;
+    };
+    const updateTooltip = (clientX, clientY) => {
+      if (disposed) return;
+      lastClientX = clientX;
+      lastClientY = clientY;
+      if (!altDown) {
+        hide();
+        return;
+      }
+      const rect = rack.getBoundingClientRect();
+      const hit = findCableAtPoint(manager2, clientX - rect.left, clientY - rect.top);
+      if (!hit) {
+        hide();
+        return;
+      }
+      if (hit.slotIndex === currentSlot) {
+        if (tooltip) position(tooltip, clientX, clientY);
+        return;
+      }
+      const slot = manager2.getSlotData(hit.slotIndex);
+      if (!slot) {
+        hide();
+        return;
+      }
+      currentSlot = hit.slotIndex;
+      const names = buildPortNameMap();
+      const el = ensureTooltip();
+      el.innerHTML = `
+            <div class="cable-tooltip-title">${TOOLTIP.SLOT_PREFIX} ${String(hit.slotIndex + 1).padStart(2, "0")}</div>
+            <div class="cable-tooltip-route">
+                <span class="cable-tooltip-port cable-tooltip-source"></span>
+                <span class="cable-tooltip-arrow">\u2192</span>
+                <span class="cable-tooltip-port cable-tooltip-target"></span>
+            </div>
+            <div class="cable-tooltip-meta">
+                <span class="cable-tooltip-signal"></span>
+                <span class="cable-tooltip-amount"></span>
+            </div>
+        `;
+      el.querySelector(".cable-tooltip-source").textContent = names.sourceNames.get(slot.source) || slot.source;
+      el.querySelector(".cable-tooltip-target").textContent = names.targetNames.get(slot.target) || slot.target;
+      el.querySelector(".cable-tooltip-signal").textContent = String(hit.pathElement.getAttribute("data-signal") || "cv").toUpperCase();
+      el.querySelector(".cable-tooltip-amount").textContent = `\xD7${slot.amount.toFixed(2)}`;
+      el.style.display = "block";
+      position(el, clientX, clientY);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === "Alt") {
+        altDown = true;
+        updateTooltip(lastClientX, lastClientY);
+      }
+    };
+    const onKeyUp = (e) => {
+      if (e.key === "Alt") {
+        altDown = false;
+        hide();
+      }
+    };
+    const onBlur = () => {
+      altDown = false;
+      hide();
+    };
+    const onMouseMove = (e) => {
+      if (disposed) return;
+      updateTooltip(e.clientX, e.clientY);
+    };
+    const onMouseLeave = () => hide();
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
+    rack.addEventListener("mousemove", onMouseMove, { passive: true });
+    rack.addEventListener("mouseleave", onMouseLeave);
+    return {
+      dispose: () => {
+        disposed = true;
+        document.removeEventListener("keydown", onKeyDown);
+        document.removeEventListener("keyup", onKeyUp);
+        window.removeEventListener("blur", onBlur);
+        rack.removeEventListener("mousemove", onMouseMove);
+        rack.removeEventListener("mouseleave", onMouseLeave);
+        tooltip?.remove();
+        tooltip = null;
+        currentSlot = null;
+      }
+    };
+  }
 
   // src/Components/cables/PatchCableManager.ts
   var PatchCableManager = class {
@@ -5579,6 +5860,7 @@ var Omega = (() => {
     unsubscribeStore = null;
     disposeRepulsion = null;
     disposeDragToPatch = null;
+    disposeCableTooltip = null;
     /** Slot destacado por la Ruta destacada (§9), o null si no hay ninguno. */
     highlightedSlot = null;
     init() {
@@ -5593,6 +5875,7 @@ var Omega = (() => {
       setupCableSoloMode();
       this.disposeRepulsion = setupCableRepulsion(this);
       this.disposeDragToPatch = setupDragToPatch(this);
+      this.disposeCableTooltip = setupCableTooltip(this);
       this.subscribeStructureChanges();
       requestAnimationFrame(() => this.syncCablesFromState());
       OmegaLog.info(
@@ -5614,6 +5897,10 @@ var Omega = (() => {
       if (this.disposeDragToPatch) {
         this.disposeDragToPatch();
         this.disposeDragToPatch = null;
+      }
+      if (this.disposeCableTooltip) {
+        this.disposeCableTooltip();
+        this.disposeCableTooltip = null;
       }
       this.removeAllCables();
     }
@@ -5643,28 +5930,27 @@ var Omega = (() => {
           x2: targetPos.x,
           y2: targetPos.y
         };
+        const signalType = this.signalTypeResolver.getSignalType(slot.source);
+        const customColor = normalizeCableColor(slot.color);
+        const resolvedColor = resolveCableColor(customColor, signalType);
         const existing = this.activeCables.get(index);
         const routeChanged = existing && (existing.sourceId !== slot.source || existing.targetId !== slot.target);
         if (existing && !routeChanged) {
           existing.base = endpoints;
-          CableRenderer.updateCablePath(
-            existing.pathElement,
-            endpoints,
-            existing.deform ?? void 0
-          );
+          this.updateCablePathWithOffsets(existing);
           if (existing.plugsElement) {
             CableRenderer.updatePlugs(existing.plugsElement, endpoints);
           }
+          this.applyCableColor(existing, signalType, slot.color);
         } else {
           if (existing && routeChanged) {
             this.removeCableAt(index);
           }
-          const signalType = this.signalTypeResolver.getSignalType(slot.source);
-          const color = SIGNAL_COLORS[signalType] || SIGNAL_COLORS.cv;
           const pathElement = CableRenderer.createCablePath(
             index,
             endpoints,
-            signalType
+            signalType,
+            customColor ?? void 0
           );
           if (INTERACTION.SIGNAL_PULSE) {
             setTimeout(() => pathElement.classList.add("signal-active"), 600);
@@ -5674,7 +5960,7 @@ var Omega = (() => {
             sourcePos.y,
             targetPos.x,
             targetPos.y,
-            color
+            resolvedColor
           );
           this.activeCables.set(index, {
             slotIndex: index,
@@ -5683,8 +5969,10 @@ var Omega = (() => {
             signalType,
             pathElement,
             plugsElement,
+            color: customColor,
             base: endpoints,
-            deform: null
+            deform: null,
+            bundle: null
           });
         }
       });
@@ -5693,6 +5981,7 @@ var Omega = (() => {
           this.removeCableAt(slotIndex, cable);
         }
       }
+      this.applyCableBundles();
       this.applyRouteHighlight();
     }
     /** Conteo de enlaces activos en la matrix (utilidad de verificación). */
@@ -5733,6 +6022,25 @@ var Omega = (() => {
       }
       return result;
     }
+    /* ── Fase 5 (§8.2): API pública del tooltip del cable ── */
+    /**
+     * Datos de un slot activo para el tooltip: source, target, multiplicador
+     * (amount) y estado. Devuelve null si el slot no existe o no está activo.
+     * El amount se normaliza a número (el backend puede emitir string).
+     */
+    getSlotData(slotIndex) {
+      const slot = this.readMatrix()[slotIndex];
+      if (!slot) return null;
+      const isActive = slot?.active === true || slot?.active === 1 || slot?.active === "true";
+      if (!isActive) return null;
+      const amount = Number(slot.amount);
+      return {
+        source: String(slot.source || ""),
+        target: String(slot.target || ""),
+        amount: Number.isFinite(amount) ? amount : 1,
+        active: true
+      };
+    }
     /**
      * Aplica (o limpia) el desplazamiento de repulsión a un cable.
      * `offset = null` restaura la forma base. No-op si el cable no existe
@@ -5744,18 +6052,14 @@ var Omega = (() => {
       const unchanged = (cable.deform?.x ?? null) === (offset?.x ?? null) && (cable.deform?.y ?? null) === (offset?.y ?? null);
       if (unchanged) return;
       cable.deform = offset;
-      CableRenderer.updateCablePath(
-        cable.pathElement,
-        cable.base,
-        offset ?? void 0
-      );
+      this.updateCablePathWithOffsets(cable);
     }
     /** Restaura todos los cables a su forma base (cursor fuera del rack). */
     resetAllDeforms() {
       for (const cable of this.activeCables.values()) {
         if (!cable.deform) continue;
         cable.deform = null;
-        CableRenderer.updateCablePath(cable.pathElement, cable.base);
+        this.updateCablePathWithOffsets(cable);
       }
     }
     /**
@@ -5800,6 +6104,84 @@ var Omega = (() => {
       }
     }
     /* ───────────────────────── internos ───────────────────────── */
+    /**
+     * Aplica el color a un cable existente (path + plugs).
+     * El stroke inline solo se escribe cuando hay color personalizado válido;
+     * en caso contrario se limpia para que el CSS [data-signal] mande.
+     * Los plugs siempre reciben el fill resuelto. No-op si nada cambió.
+     */
+    applyCableColor(cable, signalType, slotColor) {
+      const customColor = normalizeCableColor(slotColor);
+      if (cable.color === customColor && cable.signalType === signalType) return;
+      cable.color = customColor;
+      cable.signalType = signalType;
+      CableRenderer.setCableColor(cable.pathElement, customColor);
+      if (cable.plugsElement) {
+        CableRenderer.setPlugsColor(
+          cable.plugsElement,
+          resolveCableColor(customColor, signalType)
+        );
+      }
+    }
+    /**
+     * Redibuja el path de un cable con TODOS sus offsets: repulsión (§7.3)
+     * + mazo (§9). Los plugs NO se ven afectados por el mazo (cada cable
+     * sigue enchufado a su jack).
+     */
+    updateCablePathWithOffsets(cable) {
+      CableRenderer.updateCablePath(
+        cable.pathElement,
+        cable.base,
+        cable.deform ?? void 0,
+        cable.bundle ?? void 0
+      );
+    }
+    /** instanceId de un qualifiedId ("1.saw_out" → "1"). */
+    instanceOf(id) {
+      const dot = id.indexOf(".");
+      return dot >= 0 ? id.slice(0, dot) : id;
+    }
+    /** Clave de agrupación del mazo: par de módulos (sin orden). */
+    cableGroupKey(cable) {
+      const a = this.instanceOf(cable.sourceId);
+      const b = this.instanceOf(cable.targetId);
+      return a < b ? `${a}|${b}` : `${b}|${a}`;
+    }
+    /**
+     * Agrupa los cables por par de módulos y asigna el offset lateral del
+     * mazo (§9). Los cables que comparten módulos reciben un spread
+     * perpendicular al eje; los que van sueltos se limpian. Solo se
+     * redibuja el cable si su offset cambió (evita escribir el SVG siempre).
+     */
+    applyCableBundles() {
+      const groups = /* @__PURE__ */ new Map();
+      for (const cable of this.activeCables.values()) {
+        const key = this.cableGroupKey(cable);
+        const list = groups.get(key) ?? [];
+        list.push(cable);
+        groups.set(key, list);
+      }
+      for (const group of groups.values()) {
+        if (group.length < 2) {
+          for (const cable of group) this.setCableBundle(cable, null);
+          continue;
+        }
+        group.sort((a, b) => a.slotIndex - b.slotIndex);
+        group.forEach((cable, position) => {
+          this.setCableBundle(
+            cable,
+            computeBundleSpread(cable.base, position, group.length)
+          );
+        });
+      }
+    }
+    /** Asigna (o limpia) el offset del mazo y redibuja solo si cambió. */
+    setCableBundle(cable, spread) {
+      const unchanged = (cable.bundle?.x ?? null) === (spread?.x ?? null) && (cable.bundle?.y ?? null) === (spread?.y ?? null);
+      if (unchanged) return;
+      cable.bundle = spread;
+      this.updateCablePathWithOffsets(cable);
+    }
     /** Lee la matrix como array (soporta array y objeto mapeado). */
     readMatrix() {
       const win2 = window;
@@ -5838,15 +6220,14 @@ var Omega = (() => {
             y2: targetPos.y
           };
           cable.base = endpoints;
-          CableRenderer.updateCablePath(
-            cable.pathElement,
-            endpoints,
-            cable.deform ?? void 0
-          );
           if (cable.plugsElement) {
             CableRenderer.updatePlugs(cable.plugsElement, endpoints);
           }
         }
+      }
+      this.applyCableBundles();
+      for (const [, cable] of this.activeCables) {
+        this.updateCablePathWithOffsets(cable);
       }
     }
     /**

@@ -175,6 +175,7 @@ namespace UI {
             so->setProperty("amount", s.amount);
             so->setProperty("via", juce::String(s.via));
             so->setProperty("viaAmount", s.viaAmount);
+            so->setProperty("color", juce::String(s.color));
             so->setProperty("active", s.active);
             matrixArr.add(juce::var(so.get()));
         }

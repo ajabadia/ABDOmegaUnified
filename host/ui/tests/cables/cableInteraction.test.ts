@@ -12,6 +12,9 @@ import {
     setupCableRepulsion,
     setupCableSoloMode,
     setupDragToPatch,
+    closestDistanceToPath,
+    findCableAtPoint,
+    setupCableTooltip,
 } from '../../src/Components/cables/CableInteraction.js';
 
 /** Path fake: 100px long horizontal line at y=50. Points at length L = (L, 50). */
@@ -579,5 +582,201 @@ describe('setupDragToPatch (§9 Drag-to-patch)', () => {
 
         expect(h.svg.querySelector('.cable-drag-preview')).toBeNull();
         expect(h.dispatches).toHaveLength(0);
+    });
+});
+
+/* ══════════════════════════════════════════════════════════════════
+   Fase 5 (§8.2): Tooltip de información del cable
+   Alt + hover sobre un cable → muestreo de proximidad a la curva
+   (getPointAtLength), igual que la repulsión §7.3.
+   ══════════════════════════════════════════════════════════════════ */
+
+/** Cable fake: 100px de línea horizontal en y dado, con data-signal. */
+function makeCablePath(y: number, signal: string): SVGPathElement {
+    const el = document.createElement('div') as unknown as SVGPathElement;
+    Object.assign(el, {
+        getTotalLength: () => 100,
+        getPointAtLength: (len: number) => ({ x: len, y }),
+    });
+    el.setAttribute('data-signal', signal);
+    return el;
+}
+
+function tooltipManager() {
+    return {
+        getActiveCablePaths: () => [
+            { slotIndex: 0, pathElement: makeCablePath(50, 'cv') },
+            { slotIndex: 1, pathElement: makeCablePath(80, 'audio') },
+        ],
+        getSlotData: (slot: number) =>
+            slot === 0
+                ? { source: '1.saw_out', target: '1.fm_in', amount: 0.75, active: true as const }
+                : slot === 1
+                    ? { source: '2.lfo_out', target: '3.pwm_in', amount: 1, active: true as const }
+                    : null,
+    } as unknown as Parameters<typeof setupCableTooltip>[0];
+}
+
+function makeTooltipHarness(opts?: { withNames?: boolean }): {
+    rack: HTMLElement;
+    dispose: () => void;
+} {
+    const rack = document.createElement('div');
+    rack.id = 'omega-rack';
+    document.body.appendChild(rack);
+
+    if (opts?.withNames) {
+        (window as any).inventoryStore = {
+            getAllItems: () => [{
+                id: 'osc1',
+                name: 'Osc1',
+                registry: [
+                    { id: 'saw_out', label: 'Saw', type: 'CV', roles: ['output'] },
+                    { id: 'fm_in', label: 'FM', type: 'CV', roles: ['input'] },
+                ],
+            }],
+        };
+        (window as any).runtimeStore = {
+            getSnapshot: () => ({
+                patch: { modules: [{ componentId: 'osc1', instanceId: '1', name: 'Osc1' }] },
+            }),
+        };
+    }
+
+    const { dispose } = setupCableTooltip(tooltipManager());
+    return { rack, dispose };
+}
+
+/** El tooltip se crea de forma perezosa: solo existe en el DOM si se mostró. */
+function tooltipShown(): boolean {
+    const el = document.querySelector('.cable-tooltip') as HTMLElement | null;
+    return el !== null && el.style.display !== 'none';
+}
+
+describe('closestDistanceToPath (§8.2)', () => {
+    it('returns the distance from the cursor to a line path', () => {
+        const path = makeCablePath(50, 'cv');
+        expect(closestDistanceToPath(path, 50, 50)).toBeCloseTo(0, 5);
+        expect(closestDistanceToPath(path, 50, 60)).toBeCloseTo(10, 5);
+    });
+
+    it('returns null for zero-length or throwing paths', () => {
+        const zero = { getTotalLength: () => 0 } as unknown as SVGPathElement;
+        const thrower = { getTotalLength: () => { throw new Error('x'); } } as unknown as SVGPathElement;
+        expect(closestDistanceToPath(zero, 0, 0)).toBeNull();
+        expect(closestDistanceToPath(thrower, 0, 0)).toBeNull();
+    });
+});
+
+describe('findCableAtPoint (§8.2)', () => {
+    it('returns the nearest cable within the hover radius', () => {
+        const manager = tooltipManager();
+        const hit = findCableAtPoint(manager, 50, 50);
+        expect(hit).not.toBeNull();
+        expect(hit!.slotIndex).toBe(0);
+        expect(hit!.distance).toBeCloseTo(0, 5);
+    });
+
+    it('returns null when the cursor is beyond the hover radius', () => {
+        const manager = tooltipManager();
+        expect(findCableAtPoint(manager, 50, 200)).toBeNull();
+    });
+
+    it('skips paths that cannot be queried', () => {
+        const badPath = { getTotalLength: () => { throw new Error('x'); } } as unknown as SVGPathElement;
+        const manager = { getActiveCablePaths: () => [{ slotIndex: 0, pathElement: badPath }] };
+        expect(findCableAtPoint(manager as any, 0, 0)).toBeNull();
+    });
+});
+
+describe('setupCableTooltip (§8.2 Tooltip del cable)', () => {
+    afterEach(() => {
+        document.getElementById('omega-rack')?.remove();
+        document.querySelector('.cable-tooltip')?.remove();
+        delete (window as any).inventoryStore;
+        delete (window as any).runtimeStore;
+    });
+
+    it('shows the tooltip with route, signal and amount while Alt is held', () => {
+        const { rack, dispose } = makeTooltipHarness({ withNames: true });
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+        rack.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 50 }));
+
+        const tip = document.querySelector('.cable-tooltip') as HTMLElement;
+        expect(tip).not.toBeNull();
+        expect(tip.style.display).toBe('block');
+        expect(tip.textContent).toContain('CABLE 01');
+        expect(tip.textContent).toContain('Osc1 Saw');   // source legible
+        expect(tip.textContent).toContain('Osc1 FM');    // target legible
+        expect(tip.textContent).toContain('CV');         // tipo de señal
+        expect(tip.textContent).toContain('×0.75');      // multiplicador
+
+        dispose();
+    });
+
+    it('does not show the tooltip without Alt held', () => {
+        const { rack, dispose } = makeTooltipHarness();
+
+        rack.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 50 }));
+        expect(tooltipShown()).toBe(false);
+
+        dispose();
+    });
+
+    it('does not show when the cursor is not near any cable', () => {
+        const { rack, dispose } = makeTooltipHarness();
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+        rack.dispatchEvent(new MouseEvent('mousemove', { clientX: 500, clientY: 500 }));
+        expect(tooltipShown()).toBe(false);
+
+        dispose();
+    });
+
+    it('hides the tooltip when Alt is released', () => {
+        const { rack, dispose } = makeTooltipHarness();
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+        rack.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 50 }));
+        expect(tooltipShown()).toBe(true);
+
+        document.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
+        expect(tooltipShown()).toBe(false);
+
+        dispose();
+    });
+
+    it('switches content when the cursor moves onto another cable', () => {
+        const { rack, dispose } = makeTooltipHarness();
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+
+        rack.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 50 }));
+        expect(document.querySelector('.cable-tooltip')!.textContent).toContain('CABLE 01');
+
+        rack.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 80 }));
+        const tip = document.querySelector('.cable-tooltip') as HTMLElement;
+        expect(tip.textContent).toContain('CABLE 02');
+        expect(tip.textContent).toContain('2.lfo_out');
+        expect(tip.textContent).toContain('3.pwm_in');
+        expect(tip.textContent).toContain('AUDIO');
+
+        dispose();
+    });
+
+    it('dispose removes listeners and removes the tooltip element', () => {
+        const { rack, dispose } = makeTooltipHarness();
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
+        rack.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 50 }));
+        expect(document.querySelector('.cable-tooltip')).not.toBeNull();
+
+        dispose();
+        expect(document.querySelector('.cable-tooltip')).toBeNull();
+
+        // Listener eliminado: mover el ratón ya no crea tooltip nuevo.
+        rack.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 50 }));
+        expect(document.querySelector('.cable-tooltip')).toBeNull();
     });
 });
