@@ -7,21 +7,11 @@ echo.
 
 :: 0. Validacion estatica: parentesis sin escapar en bloques .bat (preventivo, fix #714)
 echo 0. Validando scripts .bat - parentesis en bloques multilinea...
-where node >nul 2>&1
+call "%~dp0..\scripts\check_bat_parens.cmd" /strict
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] node no encontrado en PATH - necesario para check_bat_parens.mjs.
+    echo [ERROR] Validacion de scripts .bat fallida - abortando build.
     exit /b 1
 )
-if not exist "%~dp0..\scripts\check_bat_parens.mjs" (
-    echo [ERROR] Escaner scripts\check_bat_parens.mjs no encontrado - no se puede validar.
-    exit /b 1
-)
-node "%~dp0..\scripts\check_bat_parens.mjs"
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] check_bat_parens.mjs detecto parentesis sin escapar en bloques .bat - abortando build.
-    exit /b 1
-)
-echo [OK] Scripts .bat validados.
 
 :: 1. Intentar localizar CMake localmente primero
 set "CMAKE_PATH=cmake"

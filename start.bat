@@ -5,6 +5,13 @@ echo  Iniciando ABDOmega Unified Dev Server en puerto 6789...
 echo ================================================================
 echo.
 
+:: 0. Guardia pre-arranque: parentesis sin escapar en bloques .bat
+call "%~dp0scripts\check_bat_parens.cmd"
+if errorlevel 1 (
+    echo [ERROR] Validacion de scripts .bat fallida - abortando arranque.
+    exit /b 1
+)
+
 :: 1. Verificar Enlace Junction de Interfaz (host/ui -> web/public/host-ui)
 if not exist "%~dp0web\public\host-ui" (
     echo [LINK] Creando Enlace Junction para mantener Fuente Unica de Verdad...

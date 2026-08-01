@@ -2,6 +2,47 @@
 
 Este archivo registra todos los cambios significativos, mejoras y correcciones del sintetizador OMEGA.
 
+## [Build #720] - 2026-08-01 — "Escáner: detección de '::' dentro de bloques (convención REM automatizada)"
+
+### Added
+- **`scripts/check_bat_parens.mjs` ahora detecta también `::` dentro de bloques parenthesized multilínea** (regresión de #717): si una línea `::` aparece mientras el stack de paréntesis tiene un `(` abierto de una línea anterior, se flaggea `L#: '::' comment inside multi-line block - use REM (#717)`. Esto **automatiza la convención REM** — cualquier `::` en bloque hace fallar `build_auto.bat` (paso 0) y los launchers (exit 1).
+- **NO flaggea**: `::` top-level (headers de sección, stack vacío), labels de un colon (`:label` — `startsWith('::')` solo matchea doble colon), ni `REM` dentro de bloques. La lógica de paréntesis (#714) se preserva (stack compartido, mismo orden de mutación).
+- **Fixtures canónicos permanentes en `scripts/_bat_test/`**: `colond_in_block.bat` (debe flaggear), `colond_top_level.bat`, `label_in_block.bat`, `rem_in_block.bat` (no deben flaggear). `_bat_test/` se excluyó de `collectBats` para no ensuciar el conteo del repo.
+
+### Validation
+- Fixtures: `::` en bloque → issue L4 + exit 1 (correcto); `::` top-level → exit 0; `:label` en bloque → exit 0; `REM` en bloque → exit 0.
+- Repo completo: **0 issues** en los 15 `.bat` reales (ninguno tiene `::` en bloques tras #717); `node --check` OK.
+- Gate confirmado: la detección es un **hard gate** (no warn) para build_auto.bat y launchers.
+
+## [Build #719] - 2026-08-01 — "Normalización de line endings a CRLF en .bat/.cmd"
+
+### Refactor
+- **14 archivos batch normalizados de LF a CRLF** (convención de `build_wasm.bat` / #714): `host/lint.bat`, `host/pack_lab_monitor.bat`, `host/scripts/build_plugins.bat`, `host/show_build_errors.bat`, `host/start-editor.bat`, `host/sync_omega_ui.bat`, `scripts/check_bat_parens.cmd`, `start.bat`, `start_synth.bat`, `web/omega-audit.bat`, `web/scripts/generate_delta.bat`, `web/scripts/start_editor.bat`, `web/scripts/start_watchdog.bat`, `web/start.bat`. Incluye los `.bat` gitignored de `host/` (sync_omega_ui.bat, pack_lab_monitor.bat, show_build_errors.bat, start-editor.bat) que se usan en runtime.
+- **Nuevo `.gitattributes` en la raíz** que fija la convención a nivel de repo: `*.bat text eol=crlf` y `*.cmd text eol=crlf`. Con `core.autocrlf=true` (ya activo), git almacena LF en el index y produce CRLF en checkout — el diff de git solo muestra los archivos con cambios de contenido reales.
+- Conversión sin doble CRLF (`\r\n` canónico, verificado 0 `\r\r\n`).
+- **Whitelist en `host/.gitignore`**: `sync_omega_ui.bat`, `pack_lab_monitor.bat`, `show_build_errors.bat` y `start-editor.bat` (antes gitignored) ahora se trackean — el `.gitattributes` los protege y la convención CRLF "pega" a nivel repo (precedente: `build_auto.bat`/`lint.bat` en #718).
+
+### Validation
+- Escáner `check_bat_parens.mjs`: **0 issues** en los 15 `.bat` del repo tras la conversión (sigue parseando CRLF correctamente vía `split(/\r?\n/)`).
+- Smoke test cmd.exe real con guardia en CRLF (réplica desde root): `[OK] Scripts .bat validados.` + flujo continúa, exit 0.
+- `git add --renormalize` + reset: los 10 archivos de solo line-endings quedan limpios en git (el index almacena LF normalizado); solo quedan como ` M` los 4 con cambios de contenido de #718 (build_auto.bat, start.bat, start_synth.bat, web/start.bat) + 2 nuevos (`.gitattributes`, `scripts/check_bat_parens.cmd`).
+
+## [Build #718] - 2026-08-01 — "Guardia pre-arranque de paréntesis en launchers"
+
+### Added
+- **Nuevo `scripts/check_bat_parens.cmd`** — guardia `call`-able que envuelve al escáner `check_bat_parens.mjs`, con dos modos:
+    - **Híbrido (default)**: si `node` o el escáner faltan → `[WARN]` y continúa (exit 0); si el escáner detecta issues → `[ERROR]` y aborta (exit 1). Crítico para `start_synth.bat` (lanza un binario nativo, no requiere node).
+    - **`/strict`** (usado por `build_auto.bat`): tooling ausente → `[ERROR]` y aborta (exit 1).
+- **Launchers integrados como guardia de pre-arranque**: `start.bat` y `start_synth.bat` (raíz) → `call "%~dp0scripts\check_bat_parens.cmd"`; `web/start.bat` → `call "%~dp0..\scripts\check_bat_parens.cmd"` — todos seguidos de `if errorlevel 1 (... exit /b 1)`.
+- **DRY — `build_auto.bat` ya NO duplica el bloque inline (#716)**: su paso 0 ahora delega en `call "%~dp0..\scripts\check_bat_parens.cmd" /strict` (mismo fail-fast de antes, un único punto de invocación del escáner).
+
+### Validation
+- Probado end-to-end con cmd.exe real:
+    - Con `.bat` roto temporal (`(emsdk).`) → `[ERROR] ... abortando arranque.` exit 1.
+    - Repo limpio (réplica root y réplica web) → `[OK] Scripts .bat validados.` + flujo continúa, exit 0.
+    - Escáner renombrado temporalmente → modo híbrido `[WARN] ... Continuando...` exit 0; modo `/strict` `[ERROR] ...` exit 1.
+- Escáner: **0 issues** en los 3 launchers modificados, en `build_auto.bat` y en el repo completo (15 `.bat`); line endings LF de los launchers y CRLF de `build_auto.bat` preservados.
+
 ## [Build #717] - 2026-08-01 — "Migración de comentarios :: a REM dentro de bloques en .bat"
 
 ### Refactor

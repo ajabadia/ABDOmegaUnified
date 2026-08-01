@@ -13,6 +13,10 @@
 !/CMakeLists.txt
 !/build_auto.bat
 !/lint.bat
+!/sync_omega_ui.bat
+!/pack_lab_monitor.bat
+!/show_build_errors.bat
+!/start-editor.bat
 !/ui/
 !/tools/
 !/DOCUMENTACION/

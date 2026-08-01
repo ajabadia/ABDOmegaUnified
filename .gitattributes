@@ -1,0 +1,4 @@
+# Batch scripts (Windows): convención CRLF (fix #714 — build_wasm.bat).
+# El repo almacena LF (text normalization); el checkout produce CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf

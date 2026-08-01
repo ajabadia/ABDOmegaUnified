@@ -6,6 +6,13 @@ echo    OMEGA MANIFEST EDITOR - INICIO LOCAL
 echo ==========================================
 echo.
 
+:: 0. Guardia pre-arranque: parentesis sin escapar en bloques .bat
+call "%~dp0..\scripts\check_bat_parens.cmd"
+if errorlevel 1 (
+    echo [ERROR] Validacion de scripts .bat fallida - abortando arranque.
+    exit /b 1
+)
+
 echo [0/3] Comprobando si el puerto %PORT% esta ocupado...
 FOR /F "tokens=5" %%P IN ('netstat -aon ^| findstr ":%PORT% " ^| findstr "LISTENING"') DO (
     echo [0/3] Proceso encontrado: PID %%P. Terminando...
