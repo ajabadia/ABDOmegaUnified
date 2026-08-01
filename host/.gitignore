@@ -11,6 +11,8 @@
 !/changelog.md
 !/build_no.txt
 !/CMakeLists.txt
+!/build_auto.bat
+!/lint.bat
 !/ui/
 !/tools/
 !/DOCUMENTACION/

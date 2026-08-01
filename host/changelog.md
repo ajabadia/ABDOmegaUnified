@@ -2,6 +2,39 @@
 
 Este archivo registra todos los cambios significativos, mejoras y correcciones del sintetizador OMEGA.
 
+## [Build #717] - 2026-08-01 — "Migración de comentarios :: a REM dentro de bloques en .bat"
+
+### Refactor
+- **Comentarios `::` indentadas migradas a `REM`** en los 2 `.bat` que tenían `::` dentro de bloques parenthesized:
+    - `host/scripts/build_plugins.bat` — 7 líneas (L24 Priority 2, L47 Determine Compiler, L54 Determine Output Directory, L60 Compile to WASM, L61 Added -fno-exceptions, L67 Era 7 Extract Contract, L73 AOT Optimization).
+    - `host/lint.bat` — 2 líneas (L29, L43 "Added --checks").
+- Las cabeceras top-level de sección (`:: OMEGA...`, `:: 1. Check for Clang`, etc.) se conservan como `::` (seguras a nivel top-level).
+
+### Validation
+- Evidencia empírica con cmd.exe real (bats mínimos): las `::` dentro de bloques **no fallaron** en casos simples (if/for/goto) — el footgun documentado de `::` es sutil (interacción con `goto` y re-parseo de labels), por lo que la migración es **preventiva/buena práctica**, no un fix de bug observado. `REM` es la forma canónica segura dentro de bloques.
+- Escáner `check_bat_parens.mjs`: **0 issues** en el repo completo (15 `.bat`) y sin `::` indentadas restantes en ningún `.bat` real.
+
+## [Build #716] - 2026-08-01 — "Validación del escáner de paréntesis en build_auto.bat"
+
+### Added
+- **`host/build_auto.bat` integra `scripts/check_bat_parens.mjs` como paso 0 (fail-fast)**: antes de localizar CMake, verifica que `node` exista y ejecuta el escáner; si algún `.bat` del repo tiene el bug de paréntesis (#714), el build se aborta con `[ERROR] check_bat_parens.mjs detecto parentesis sin escapar...`. Previene regresiones futuras en scripts `.bat`.
+
+### Validation
+- Bloque probado end-to-end con cmd.exe real: repo limpio → `[OK] Scripts .bat validados.` exit 0; con un `.bat` roto temporal (`(emsdk)`) → `[ERROR] ... abortando build.` exit 1.
+- El bloque insertado pasa el escáner (0 issues) y preserva CRLF.
+
+## [Build #715] - 2026-08-01 — "Auditoría preventiva: paréntesis sin escapar en .bat"
+
+### Audit
+- Se revisaron los **15 `.bat` del proyecto** (build_auto.bat, sync_omega_ui.bat, build_plugins.bat, start.bat, start_synth.bat, scripts/build_wasm.bat, web/start.bat, web/omega-audit.bat, web/scripts/*.bat, host/*.bat) buscando el patrón que rompía build_wasm.bat (#714): paréntesis sin escapar dentro de bloques `if (...)`/`for ... do (...)`/`else (` multilínea.
+- **Método:** escáner diagnóstico `scripts/check_bat_parens.mjs` — stack de paréntesis consciente de bloques multilínea (ignora regiones `%...%` y escapes `^x`; flaggea cualquier `)` sin escapar dentro de bloque multilínea con contenido sobrante; excluye patrones legítimos `) else (` y `) do (`).
+- **Resultado: 0 archivos afectados** — el único infractor era build_wasm.bat (corregido en #714). No se aplicaron fixes preventivos porque no existen otros patrones peligrosos. El escáner se conserva como diagnóstico reutilizable.
+
+### Validation
+- Evidencia empírica contra cmd.exe real (5 bats mínimos): `(emsdk).` dentro de bloque → `No se esperaba . en este momento` (fail); `^(emsdk^)` → OK; `%ProgramFiles(x86)%` dentro de bloque `else` → OK (las regiones `%var%` están exentas); paréntesis en `echo` top-level → OK; `for /f ... in (...) do (` dentro de bloque `if` → OK (exit 0).
+- El patrón FOR de `build_auto.bat` L18 (`in (...) do (`) queda validado como sintaxis correcta.
+- Code review: metodología empírica correcta, conclusión válida (sin fixes que aplicar).
+
 ## [Build #714] - 2026-08-01 — "Fix build_wasm.bat: pipeline WASM validado tras la limpieza"
 
 ### Fixed
