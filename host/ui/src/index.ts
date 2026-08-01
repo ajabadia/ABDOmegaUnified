@@ -15,6 +15,7 @@ import { ManifestRenderer } from './Renderers/ManifestRenderer.js';
 import { ModulePatchbayMatrix } from './Components/ModulePatchbayMatrix.js';
 import { ModulePatchModal } from './Components/ModulePatchModal.js';
 import { ModuleBrowser } from './Components/ModuleBrowser.js';
+import { GlobalFxStrip } from './Components/GlobalFxStrip.js';
 import { InventoryStore } from './Logic/InventoryStore.js';
 import { RpcCommandDispatcher } from './RPC/RpcCommandDispatcher.js';
 import { RuntimeStore, GraphStore, SessionStore } from './Logic/runtimeStores.js';
@@ -100,6 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const matrixHub = new ModulePatchbayMatrix();
         win.patchbayHub = matrixHub;
+
+        // Global FX strip: renderiza patch.globalFxParams (Era 7.2.3).
+        const globalFxStrip = new GlobalFxStrip();
+        globalFxStrip.init();
+        win.globalFxStrip = globalFxStrip;
 
         const configModal = new ModulePatchModal();
         win.modulePatchModal = configModal;

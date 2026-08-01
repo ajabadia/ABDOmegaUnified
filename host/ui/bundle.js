@@ -4673,6 +4673,105 @@
     window.ModuleBrowser = ModuleBrowser;
   }
 
+  // src/Components/GlobalFxStrip.ts
+  var GLOBAL_FX_PARAM_META = [
+    { id: "200", label: "MIX", max: 1 },
+    { id: "201", label: "FEEDBACK", max: 1 },
+    { id: "202", label: "TIME", max: 1 },
+    { id: "203", label: "SPEED", max: 1 },
+    { id: "204", label: "INTENSITY", max: 1 }
+  ];
+  function readGlobalFxParams(patch) {
+    if (!patch || typeof patch !== "object") return {};
+    const fx = patch.globalFxParams;
+    if (!fx || typeof fx !== "object") return {};
+    const out = {};
+    for (const [key, val] of Object.entries(fx)) {
+      if (typeof val === "number" && Number.isFinite(val)) out[key] = val;
+    }
+    return out;
+  }
+  function formatFxValue(value) {
+    return `${Math.round((value || 0) * 100)}%`;
+  }
+  var GlobalFxStrip = class {
+    el = null;
+    unsubscribe = null;
+    lastRendered = {};
+    constructor() {
+    }
+    init() {
+      this.el = document.getElementById("global-fx-strip");
+      if (!this.el) {
+        OmegaLog.warn("GLOBALFX", "#global-fx-strip container not found; strip disabled.");
+        return;
+      }
+      const store = window.runtimeStore;
+      if (store?.subscribe) {
+        this.unsubscribe = store.subscribe(() => this.syncFromStore());
+      }
+      this.render();
+      this.syncFromStore();
+    }
+    destroy() {
+      if (this.unsubscribe) {
+        this.unsubscribe();
+        this.unsubscribe = null;
+      }
+      this.el = null;
+    }
+    render() {
+      if (!this.el) return;
+      const rows = GLOBAL_FX_PARAM_META.map(
+        (meta) => `
+            <div class="global-fx-param" data-fx-id="${meta.id}">
+                <span class="global-fx-label">${meta.label}</span>
+                <input type="range" class="global-fx-slider" data-fx-id="${meta.id}"
+                       min="0" max="${meta.max}" step="0.01" value="0" />
+                <span class="global-fx-value" data-fx-id="${meta.id}">0%</span>
+            </div>`
+      ).join("");
+      this.el.innerHTML = `
+            <div class="global-fx-strip">
+                <div class="global-fx-title">GLOBAL FX</div>
+                ${rows}
+            </div>`;
+      this.el.querySelectorAll(".global-fx-slider").forEach((slider) => {
+        slider.addEventListener("input", () => {
+          const id = slider.dataset.fxId || "";
+          const value = Number(slider.value) || 0;
+          const valLabel = this.el?.querySelector(`.global-fx-value[data-fx-id="${id}"]`);
+          if (valLabel) valLabel.textContent = formatFxValue(value);
+          window.rpcCommandDispatcher?.dispatch({
+            type: "setParameter",
+            payload: { target: `globalFx.${id}`, value }
+          });
+        });
+      });
+    }
+    syncFromStore() {
+      if (!this.el) return;
+      const store = window.runtimeStore;
+      const snapshot = store?.getSnapshot?.();
+      const params = readGlobalFxParams(snapshot?.patch);
+      const unchanged = GLOBAL_FX_PARAM_META.every(
+        (meta) => (this.lastRendered[meta.id] ?? 0) === (params[meta.id] ?? 0)
+      );
+      if (unchanged && Object.keys(this.lastRendered).length > 0) return;
+      this.lastRendered = { ...params };
+      GLOBAL_FX_PARAM_META.forEach((meta) => {
+        const value = params[meta.id] ?? 0;
+        const slider = this.el?.querySelector(
+          `.global-fx-slider[data-fx-id="${meta.id}"]`
+        );
+        const valLabel = this.el?.querySelector(`.global-fx-value[data-fx-id="${meta.id}"]`);
+        if (slider) slider.value = String(value);
+        if (valLabel) valLabel.textContent = formatFxValue(value);
+      });
+      OmegaLog.debug("GLOBALFX", `Synced global FX params:`, params);
+    }
+  };
+
   // src/Logic/runtimeStores.ts
   var BaseStore = class {
     listeners = /* @__PURE__ */ new Set();
@@ -4707,6 +4806,13 @@
     getTelemetry(paramKey) {
       const sample = this.state.telemetry[paramKey];
       return sample ? sample.v ?? 0 : 0;
+    }
+    /**
+     * Parámetros FX globales del patch actual (Era 7.2.3).
+     * Keyed por id-string del ParamId (p. ej. "200") -> valor 0..1.
+     */
+    getGlobalFxParams() {
+      return this.state.patch?.globalFxParams || {};
     }
     applyState(payload) {
       if (!payload) return;
@@ -6326,13 +6432,16 @@
       if (j.backend) OmegaLog.debug("DIAG", "__JUCE__.backend keys:", Object.keys(j.backend));
     }
     if (window.juce) OmegaLog.debug("DIAG", "juce found:", Object.keys(window.juce));
-    const buildId = 720;
+    const buildId = "721";
     OmegaLog.info("BOOT", `Booting Era 7 Aseptic UI [BUILD #${buildId}]`);
     try {
       Preferences.init();
       PresetBrowser.init();
       const matrixHub = new ModulePatchbayMatrix();
       win.patchbayHub = matrixHub;
+      const globalFxStrip = new GlobalFxStrip();
+      globalFxStrip.init();
+      win.globalFxStrip = globalFxStrip;
       const configModal = new ModulePatchModal();
       win.modulePatchModal = configModal;
       const cableManager = new PatchCableManager();

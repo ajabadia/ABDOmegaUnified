@@ -4,6 +4,7 @@
 #include "PatchIdentifiers.h"
 #include "EngineConfigManager.h"
 #include "WasmModuleService.h"
+#include "VarSerialization.h"
 
 namespace Omega {
 namespace UI {
@@ -142,47 +143,12 @@ namespace UI {
     void OmegaUiBridge::forceRepaint() {
         juce::DynamicObject::Ptr push = new juce::DynamicObject();
         push->setProperty("type", "onStateUpdate");
-        
+
         auto& config = mProcessor->getEngineConfigManager();
         auto doc = config.getPatchDocument();
-        
-        juce::DynamicObject::Ptr patchObj = new juce::DynamicObject();
-        patchObj->setProperty("masterGainDb", doc.masterGainDb);
-        
-        juce::Array<juce::var> modules;
-        for (const auto& m : doc.modules) {
-            juce::DynamicObject::Ptr mo = new juce::DynamicObject();
-            mo->setProperty("instanceId", (int)m.instanceId);
-            mo->setProperty("typeId", (int)m.typeId);
-            mo->setProperty("componentId", juce::String(Core::Model::mapTypeToId(m.typeId)));
-            mo->setProperty("rack", m.position.rack == 1 ? "upper" : "lower");
-            mo->setProperty("slot", m.position.slot);
-            
-            juce::DynamicObject::Ptr params = new juce::DynamicObject();
-            for (const auto& p : m.parameters) {
-                params->setProperty(juce::String((int)p.id), p.value);
-            }
-            mo->setProperty("parameters", params.get());
-            modules.add(mo.get());
-        }
-        patchObj->setProperty("modules", modules);
-        
-        juce::Array<juce::var> matrixArr;
-        for (const auto& s : doc.patchbayMatrix) {
-            juce::DynamicObject::Ptr so = new juce::DynamicObject();
-            so->setProperty("source", juce::String(s.source));
-            so->setProperty("target", juce::String(s.target));
-            so->setProperty("amount", s.amount);
-            so->setProperty("via", juce::String(s.via));
-            so->setProperty("viaAmount", s.viaAmount);
-            so->setProperty("color", juce::String(s.color));
-            so->setProperty("active", s.active);
-            matrixArr.add(juce::var(so.get()));
-        }
-        patchObj->setProperty("patchbayMatrix", matrixArr);
-        
+
         juce::DynamicObject::Ptr payload = new juce::DynamicObject();
-        payload->setProperty("patch", patchObj.get());
+        payload->setProperty("patch", VarSerialization::buildPatchWireVar(doc));
         payload->setProperty("schemaVersion", "7.0");
 
         push->setProperty("payload", juce::var(payload.get()));

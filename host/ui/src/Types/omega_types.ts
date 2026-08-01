@@ -61,6 +61,12 @@ export interface PatchDocumentV7 {
   masterGainDb: number;
   modules: PatchModuleV7[];
   patchbayMatrix: PatchbayMatrixSlotV7[];
+  /**
+   * Parámetros FX globales del patch (Era 7.2.3).
+   * Keyed por id-string del ParamId (p. ej. "200") -> valor 0..1.
+   * Empujados por OmegaUiBridge::forceRepaint() vía serializeParamsToVar.
+   */
+  globalFxParams?: Record<string, number>;
 }
 
 export interface StatePayloadV1 {

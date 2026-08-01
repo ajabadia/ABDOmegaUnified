@@ -186,6 +186,53 @@ namespace VarSerialization {
         return doc;
     }
 
+    juce::var serializeParamsToVar(const std::vector<Core::Model::ParamValue>& params)
+    {
+        juce::DynamicObject::Ptr obj = new juce::DynamicObject();
+        for (const auto& p : params)
+            obj->setProperty(juce::String((int)p.id), p.value);
+        return juce::var(obj.get());
+    }
+
+    juce::var buildPatchWireVar(const Core::Model::PatchDocument& doc)
+    {
+        juce::DynamicObject::Ptr patchObj = new juce::DynamicObject();
+        patchObj->setProperty("name", juce::String(doc.metadata.name));
+        patchObj->setProperty("author", juce::String(doc.metadata.author));
+        patchObj->setProperty("masterGainDb", doc.masterGainDb);
+
+        juce::Array<juce::var> modules;
+        for (const auto& m : doc.modules) {
+            juce::DynamicObject::Ptr mo = new juce::DynamicObject();
+            mo->setProperty("instanceId", (int)m.instanceId);
+            mo->setProperty("typeId", (int)m.typeId);
+            mo->setProperty("componentId", juce::String(Core::Model::mapTypeToId(m.typeId)));
+            mo->setProperty("rack", m.position.rack == 1 ? "upper" : "lower");
+            mo->setProperty("slot", m.position.slot);
+            mo->setProperty("parameters", serializeParamsToVar(m.parameters));
+            modules.add(juce::var(mo.get()));
+        }
+        patchObj->setProperty("modules", modules);
+
+        patchObj->setProperty("globalFxParams", serializeParamsToVar(doc.globalFxParams));
+
+        juce::Array<juce::var> matrixArr;
+        for (const auto& s : doc.patchbayMatrix) {
+            juce::DynamicObject::Ptr so = new juce::DynamicObject();
+            so->setProperty("source", juce::String(s.source));
+            so->setProperty("target", juce::String(s.target));
+            so->setProperty("amount", s.amount);
+            so->setProperty("via", juce::String(s.via));
+            so->setProperty("viaAmount", s.viaAmount);
+            so->setProperty("color", juce::String(s.color));
+            so->setProperty("active", s.active);
+            matrixArr.add(juce::var(so.get()));
+        }
+        patchObj->setProperty("patchbayMatrix", matrixArr);
+
+        return juce::var(patchObj.get());
+    }
+
     juce::var valueTreeToVar(const juce::ValueTree& tree) {
         if (!tree.isValid()) return juce::var();
         juce::DynamicObject::Ptr obj = new juce::DynamicObject();

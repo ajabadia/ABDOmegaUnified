@@ -2,6 +2,23 @@
 
 Este archivo registra todos los cambios significativos, mejoras y correcciones del sintetizador OMEGA.
 
+## [Build #721] - 2026-08-01 — "VarSerialization: round-trip completo + globalFxParams + push bridge"
+
+### Fixed
+- **Bug de round-trip preexistente en `patchDocumentToVar` (color del patchbayMatrix)**: la serialización de los slots de matrix escribía `source/target/amount/via/viaAmount/active` pero **omitía `color`** — mientras que `varToPatchDocument` sí lo lee (`so->getProperty("color")`). Resultado: el color de cable se perdía al guardar/restaurar un patch (`"" == "#ff8800"` en el test preexistente `VarSerialization.test.cpp:164`, el 1 fallo que arrastraban los `omega_ui_tests` 9/10). **Fix de 1 línea**: `so->setProperty("color", juce::String(s.color));` entre `viaAmount` y `active`. Verificado que `OmegaUiBridge::forceRepaint()` ya escribía `color` correctamente — el bug era exclusivo del módulo extraído en la Fase 5.1.
+
+### Added
+- **Serialización completa de `globalFxParams`** (antes omitida simétricamente en ambos sentidos — no rompía el round-trip pero perdía datos): `patchDocumentToVar` ahora escribe `doc.globalFxParams` con el mismo esquema que `parameters` (`id`/`value`/`modulationBindingId`) y `varToPatchDocument` lo parsea (saltando elementos no-objeto, robusto ante clave ausente). El vector se puebla en `OmegaAudioProcessor.cpp` vía `writeParams`/`readParams` (L201/L264) — ahora persiste en presets/saves.
+- **Push preparatorio de `globalFxParams` en `OmegaUiBridge::forceRepaint()`** (formato wire del bridge: DynamicObject keyed por `juce::String((int)p.id)` → `p.value`, idéntico al de los params de módulos). El frontend TS aún no lo consume (0 matches) — queda el canal listo en `onStateUpdate`.
+- **Helper DRY `serializeParamsToVar()`** en `OmegaUiBridge` (método privado estático + include de `PatchDocument.h`): elimina la duplicación del patrón de serialización de params entre el bloque de módulos y el nuevo `globalFxParams` de `forceRepaint()`.
+
+### Tests
+- **`VarSerialization.test.cpp` ampliado**: aserciones de `via`/`viaAmount` con valores no triviales en el round-trip completo (antes `via=""`/`viaAmount=0` hacían que pasaran trivialmente) + aserciones de `globalFxParams` (size/id/value/modulationBindingId) + `REQUIRE(globalFxParams.empty())` en los tests de "missing keys" y "unexpected field types" + nuevo TEST_CASE de slot 100% default (verifica que via="", viaAmount=0, active=false, color="" sobreviven el round-trip).
+
+### Validation
+- Build Release exit 0 (3 targets de test); **suite completa Catch2: `omega_core_tests` ✅, `omega_ui_tests` ✅ 11/11 (83 assertions), `omega_plugin_tests` ✅** — el fallo preexistente de `VarSerialization.test.cpp:164` queda cerrado y la cobertura sube de 66 a 83 aserciones (65→83 passed).
+- Code review: fix simétrico (misma clave/tipo), sin omisiones restantes en `PatchbayMatrixSlot` (7/7 campos), `ParamId::Mix` = 200 existe, helper wire-preserving con lifetime correcto.
+
 ## [Build #720] - 2026-08-01 — "Escáner: detección de '::' dentro de bloques (convención REM automatizada)"
 
 ### Added

@@ -26,6 +26,23 @@ namespace VarSerialization {
      */
     juce::var valueTreeToVar(const juce::ValueTree& tree);
 
+    /**
+     * @brief Serializes a vector of ParamValue into a DynamicObject var
+     * keyed by param id-string -> value (wire format of the UI bridge).
+     * Shared by OmegaUiBridge::forceRepaint and RpcParameterController::handleGetState.
+     */
+    juce::var serializeParamsToVar(const std::vector<Core::Model::ParamValue>& params);
+
+    /**
+     * @brief Builds the Era 7 UI wire patch object (single source of truth for
+     * the patch shape pushed to the WebUI):
+     * name/author/masterGainDb + modules (keyed params) + globalFxParams +
+     * patchbayMatrix. Shared by OmegaUiBridge::forceRepaint (onStateUpdate)
+     * and RpcParameterController::handleGetState (getState) so both emit
+     * identical payloads.
+     */
+    juce::var buildPatchWireVar(const Core::Model::PatchDocument& doc);
+
 } // namespace VarSerialization
 } // namespace UI
 } // namespace Omega

@@ -75,6 +75,14 @@ export class RuntimeStore extends BaseStore {
     return sample ? (sample.v ?? 0) : 0;
   }
 
+  /**
+   * Parámetros FX globales del patch actual (Era 7.2.3).
+   * Keyed por id-string del ParamId (p. ej. "200") -> valor 0..1.
+   */
+  getGlobalFxParams(): Record<string, number> {
+    return this.state.patch?.globalFxParams || {};
+  }
+
   applyState(payload: StatePayloadV7 | StatePayloadV1): void {
     if (!payload) return;
     

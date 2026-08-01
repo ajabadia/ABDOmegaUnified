@@ -85,6 +85,115 @@ TEST_CASE("valueTreeToVar round-trips multiple property types", "[serialization]
 }
 
 // ---------------------------------------------------------------------------
+// serializeParamsToVar (wire format keyed by id-string)
+// ---------------------------------------------------------------------------
+
+TEST_CASE("serializeParamsToVar keys a DynamicObject by param id-string", "[serialization][wireformat]") {
+    std::vector<ParamValue> params;
+    params.push_back({ ParamId::Mix, 0.6f, 0 });
+    params.push_back({ ParamId::Feedback, 0.25f, 0 });
+
+    auto var = VarSerialization::serializeParamsToVar(params);
+    auto* obj = var.getDynamicObject();
+    REQUIRE(obj != nullptr);
+    REQUIRE(obj->getProperties().size() == 2);
+    REQUIRE((double)obj->getProperty("200") == Catch::Approx(0.6));  // ParamId::Mix
+    REQUIRE((double)obj->getProperty("201") == Catch::Approx(0.25)); // ParamId::Feedback
+}
+
+TEST_CASE("serializeParamsToVar returns empty object for no params", "[serialization][wireformat]") {
+    auto var = VarSerialization::serializeParamsToVar({});
+    auto* obj = var.getDynamicObject();
+    REQUIRE(obj != nullptr);
+    REQUIRE(obj->getProperties().size() == 0);
+}
+
+// ---------------------------------------------------------------------------
+// buildPatchWireVar (UI wire patch shape, shared by getState/onStateUpdate)
+// ---------------------------------------------------------------------------
+
+TEST_CASE("buildPatchWireVar emits the full UI wire patch shape", "[serialization][wireformat]") {
+    PatchDocument doc;
+    doc.metadata.name = "Wire Patch";
+    doc.metadata.author = "Tester";
+    doc.masterGainDb = -3.5f;
+
+    ModuleInstance mod;
+    mod.instanceId = 7;
+    mod.typeId = ModuleTypeId::VaOscillator;
+    mod.position.rack = 1;
+    mod.position.slot = 3;
+    mod.parameters.push_back({ ParamId::Frequency, 0.5f, 0 });
+    doc.modules.push_back(mod);
+
+    doc.globalFxParams.push_back({ ParamId::Mix, 0.6f, 0 });
+
+    PatchbayMatrixSlot slot;
+    slot.source = "osc1.freq";
+    slot.target = "flt.cutoff";
+    slot.amount = 0.25f;
+    slot.via = "lfo1.rate";
+    slot.viaAmount = 0.5f;
+    slot.color = "#ff8800";
+    slot.active = true;
+    doc.patchbayMatrix.push_back(slot);
+
+    auto var = VarSerialization::buildPatchWireVar(doc);
+    auto* patch = var.getDynamicObject();
+    REQUIRE(patch != nullptr);
+    REQUIRE(patch->getProperty("name").toString() == "Wire Patch");
+    REQUIRE(patch->getProperty("author").toString() == "Tester");
+    REQUIRE((double)patch->getProperty("masterGainDb") == Catch::Approx(-3.5));
+
+    // Modules: keyed params (wire format), componentId/rack/slot
+    auto* modsArr = patch->getProperty("modules").getArray();
+    REQUIRE(modsArr != nullptr);
+    REQUIRE(modsArr->size() == 1);
+    auto* mo = (*modsArr)[0].getDynamicObject();
+    REQUIRE(mo != nullptr);
+    REQUIRE((int)mo->getProperty("instanceId") == 7);
+    REQUIRE(mo->getProperty("componentId").toString() == "osc_va_basic");
+    REQUIRE(mo->getProperty("rack").toString() == "upper");
+    REQUIRE((int)mo->getProperty("slot") == 3);
+    auto* params = mo->getProperty("parameters").getDynamicObject();
+    REQUIRE(params != nullptr);
+    REQUIRE((double)params->getProperty("1") == Catch::Approx(0.5)); // ParamId::Frequency
+
+    // Global FX: keyed by id-string
+    auto* fx = patch->getProperty("globalFxParams").getDynamicObject();
+    REQUIRE(fx != nullptr);
+    REQUIRE((double)fx->getProperty("200") == Catch::Approx(0.6)); // ParamId::Mix
+
+    // Patchbay matrix: full slot fields
+    auto* matrixArr = patch->getProperty("patchbayMatrix").getArray();
+    REQUIRE(matrixArr != nullptr);
+    REQUIRE(matrixArr->size() == 1);
+    auto* so = (*matrixArr)[0].getDynamicObject();
+    REQUIRE(so != nullptr);
+    REQUIRE(so->getProperty("source").toString() == "osc1.freq");
+    REQUIRE(so->getProperty("target").toString() == "flt.cutoff");
+    REQUIRE((double)so->getProperty("amount") == Catch::Approx(0.25));
+    REQUIRE(so->getProperty("via").toString() == "lfo1.rate");
+    REQUIRE((double)so->getProperty("viaAmount") == Catch::Approx(0.5));
+    REQUIRE(so->getProperty("color").toString() == "#ff8800");
+    REQUIRE((bool)so->getProperty("active") == true);
+}
+
+TEST_CASE("buildPatchWireVar handles an empty document", "[serialization][wireformat]") {
+    PatchDocument doc;
+    auto var = VarSerialization::buildPatchWireVar(doc);
+    auto* patch = var.getDynamicObject();
+    REQUIRE(patch != nullptr);
+    REQUIRE(patch->getProperty("name").toString().isEmpty());
+    REQUIRE((double)patch->getProperty("masterGainDb") == Catch::Approx(0.0));
+    REQUIRE(patch->getProperty("modules").getArray() != nullptr);
+    REQUIRE(patch->getProperty("modules").getArray()->size() == 0);
+    REQUIRE(patch->getProperty("globalFxParams").getDynamicObject() != nullptr);
+    REQUIRE(patch->getProperty("patchbayMatrix").getArray() != nullptr);
+    REQUIRE(patch->getProperty("patchbayMatrix").getArray()->size() == 0);
+}
+
+// ---------------------------------------------------------------------------
 // patchDocumentToVar / varToPatchDocument (round-trip)
 // ---------------------------------------------------------------------------
 

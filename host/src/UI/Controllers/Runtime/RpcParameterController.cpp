@@ -1,6 +1,7 @@
 #include "RpcParameterController.h"
 #include "OmegaAudioProcessor.h"
 #include "EngineConfigManager.h"
+#include "VarSerialization.h"
 
 namespace Omega {
 namespace UI {
@@ -55,30 +56,10 @@ namespace UI {
         stateObj->setProperty("schemaVersion", "7.0"); // Era 7 Aseptic SOT
         
         if (mProcessor) {
+            // Mismo patch shape que onStateUpdate (forceRepaint):
+            // name/author/masterGainDb + modules + globalFxParams + patchbayMatrix.
             const auto& doc = mProcessor->getEngineConfigManager().getPatchDocument();
-            
-            juce::DynamicObject::Ptr docObj = new juce::DynamicObject();
-            docObj->setProperty("name", juce::String(doc.metadata.name));
-            docObj->setProperty("author", juce::String(doc.metadata.author));
-            docObj->setProperty("masterGainDb", doc.masterGainDb);
-            
-            juce::Array<juce::var> modules;
-            for (const auto& m : doc.modules) {
-                juce::DynamicObject::Ptr mObj = new juce::DynamicObject();
-                mObj->setProperty("instanceId", (int)m.instanceId);
-                mObj->setProperty("typeId", (int)m.typeId);
-                mObj->setProperty("componentId", juce::String(Core::Model::mapTypeToId(m.typeId)));
-                mObj->setProperty("rack", m.position.rack == 1 ? "upper" : "lower");
-                
-                juce::DynamicObject::Ptr params = new juce::DynamicObject();
-                for (const auto& p : m.parameters) {
-                    params->setProperty(juce::String((int)p.id), p.value);
-                }
-                mObj->setProperty("params", juce::var(params.get()));
-                modules.add(juce::var(mObj.get()));
-            }
-            docObj->setProperty("modules", modules);
-            stateObj->setProperty("patch", juce::var(docObj.get()));
+            stateObj->setProperty("patch", VarSerialization::buildPatchWireVar(doc));
         }
 
         juce::DynamicObject::Ptr resp = new juce::DynamicObject();
