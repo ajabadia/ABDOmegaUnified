@@ -2,10 +2,10 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:07
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
-import type { OMEGA_Manifest } from '../types/manifest';
+import type { OMEGA_Manifest } from '../types/manifest.js';
 
 /**
  * @purpose Gestiona tokens de color desde una manifestación OMEGA para resolverlos en valores HEX/RGBA para renderizar.

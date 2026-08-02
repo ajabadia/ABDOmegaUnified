@@ -206,7 +206,13 @@ namespace VarSerialization {
             juce::DynamicObject::Ptr mo = new juce::DynamicObject();
             mo->setProperty("instanceId", (int)m.instanceId);
             mo->setProperty("typeId", (int)m.typeId);
-            mo->setProperty("componentId", juce::String(Core::Model::mapTypeToId(m.typeId)));
+            // Fallback explícito: un typeId no mapeado nunca debe emitir un
+            // componentId vacío en el wire (el frontend usa componentId para
+            // resolver el schema del módulo). mapTypeToId ya devuelve "unknown"
+            // por default; este guard blinda también el caso de cadena vacía.
+            auto componentId = Core::Model::mapTypeToId(m.typeId);
+            if (componentId.empty()) componentId = "unknown";
+            mo->setProperty("componentId", juce::String(componentId));
             mo->setProperty("rack", m.position.rack == 1 ? "upper" : "lower");
             mo->setProperty("slot", m.position.slot);
             mo->setProperty("parameters", serializeParamsToVar(m.parameters));

@@ -33,7 +33,9 @@ import { ACEMM_CATALOG, getOrFetchManifest } from './Catalog/AcemmCatalog.js';
 // Bridge to window for legacy component compatibility (limited)
 const win = window as any;
 
-// Global Singleton Initialization
+// Global Singleton Initialization (module scope: disponible en cuanto el bundle
+// se importa — no depende de DOMContentLoaded, que jsdom/import dinámico no
+// siempre disparan y que el smoke test del boot no lanza).
 const runtimeStore = win.runtimeStore || new RuntimeStore();
 const schemaStore = win.schemaStore || new SchemaStore();
 const graphStore = win.graphStore || new GraphStore();
@@ -63,6 +65,8 @@ win.Preferences = Preferences;
 win.ServiceMode = ServiceMode;
 win.ModuleRenderer = ModuleRenderer;
 win.ManifestRenderer = ManifestRenderer;
+win.GlobalFxStrip = GlobalFxStrip;
+win.RuntimeEventHub = RuntimeEventHub;
 win.getOrFetchManifest = getOrFetchManifest;
 win.ACEMM_CATALOG = ACEMM_CATALOG;
 

@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:04
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 'use client';
@@ -19,9 +19,9 @@
 
 import React from 'react';
 import { motion, type PanInfo } from 'framer-motion';
-import type { OmegaNode, OMEGA_Manifest } from '../../types/manifest';
-import type { UCADebugContext } from '../ucaTypes';
-import { computeRotationUpdates, getNodeRotation } from '../utils/scaleUtils';
+import type { OmegaNode, OMEGA_Manifest } from '../../types/manifest.js';
+import type { UCADebugContext } from '../ucaTypes.js';
+import { computeRotationUpdates, getNodeRotation } from '../utils/scaleUtils.js';
 
 interface RotationHandleProps {
   node: OmegaNode;

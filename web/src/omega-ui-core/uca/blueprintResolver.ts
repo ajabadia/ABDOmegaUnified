@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:06
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -15,7 +15,7 @@
  * @lastUpdated 2026-06-15T16:10:51.285Z
  */
 
-import type { OmegaNode, OMEGA_Manifest, LayoutMode } from '../types/manifest';
+import type { OmegaNode, OMEGA_Manifest, LayoutMode } from '../types/manifest.js';
 
 /**
  * OMEGA UCA - Blueprint Resolver (Phase 20.4)

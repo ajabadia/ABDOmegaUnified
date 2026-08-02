@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:06
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -15,7 +15,7 @@
  * @lastUpdated 2026-06-15T16:16:17.105Z
  */
 
-import type { OMEGA_Manifest, OmegaNode } from '../../types/manifest';
+import type { OMEGA_Manifest, OmegaNode } from '../../types/manifest.js';
 
 /**
  * manifestToTree
@@ -35,10 +35,10 @@ export function manifestToTree(manifest: OMEGA_Manifest, existingTree?: OmegaNod
     id: manifest.id || 'anonymous_rack',
     kind: 'rack',
     role: 'root',
-    layout: {
-      pos: existingTree?.layout?.pos || { x: 0, y: 0 },
-      size: existingTree?.layout?.size || ui?.dimensions
-    },
+      layout: {
+        pos: existingTree?.layout?.pos || { x: 0, y: 0 },
+        size: existingTree?.layout?.size || ui?.dimensions
+      },
     children: []
   };
 
@@ -94,16 +94,13 @@ export function manifestToTree(manifest: OMEGA_Manifest, existingTree?: OmegaNod
       layout: {
         pos: entity.pos,
         size: entity.presentation?.size ? {
-          width: entity.presentation.size.width ?? (entity.presentation.size as any).w,
-          height: entity.presentation.size.height ?? (entity.presentation.size as any).h
+          width: entity.presentation.size.width,
+          height: entity.presentation.size.height
         } : undefined,
         zIndex: entity.presentation?.style?.zIndex
       },
       style: entity.presentation?.style,
-      cellRef: (entity.type || entity.presentation?.component) as string,
-      meta: entity.meta || {
-        label: entity.label || entity.presentation?.attachments?.find((a: any) => a.type === 'label')?.text
-      }
+      cellRef: entity.type as string
     };
 
     const containerId = entity.presentation?.container;

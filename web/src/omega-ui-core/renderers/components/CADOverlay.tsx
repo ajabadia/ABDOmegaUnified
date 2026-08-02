@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:04
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 'use client';
@@ -17,8 +17,8 @@
  * @lastUpdated 2026-06-15T15:18:23.181Z
  */
 
-import type { OmegaNode, OMEGA_Manifest, GridConfig } from '../../types/manifest';
-import { getParentRect, getNodeSize, snapToGrid, clampChildToParent } from '../../uca/spatialConstraints';
+import type { OmegaNode, OMEGA_Manifest, GridConfig } from '../../types/manifest.js';
+import { getParentRect, getNodeSize, snapToGrid, clampChildToParent } from '../../uca/spatialConstraints.js';
 
 export interface CADOverlayProps {
   node: OmegaNode;

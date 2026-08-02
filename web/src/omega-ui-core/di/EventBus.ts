@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:04
+   Sync Timestamp: 2026-08-02 11:27:38
    ================================================================= */
 
 /**
@@ -15,7 +15,7 @@
  * @lastUpdated 2026-06-22
  */
 
-import type { OmegaEventMap, OmegaEventName } from './eventTypes';
+import type { OmegaEventMap, OmegaEventName } from './eventTypes.js';
 
 export interface IEventBus {
   on<E extends OmegaEventName>(event: E, handler: (payload: OmegaEventMap[E]) => void): () => void;

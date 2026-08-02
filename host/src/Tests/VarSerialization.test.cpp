@@ -179,6 +179,32 @@ TEST_CASE("buildPatchWireVar emits the full UI wire patch shape", "[serializatio
     REQUIRE((bool)so->getProperty("active") == true);
 }
 
+TEST_CASE("buildPatchWireVar falls back to 'unknown' for unmapped typeIds", "[serialization][wireformat]") {
+    PatchDocument doc;
+
+    // ModuleTypeId::None (0) no está en el switch de mapTypeToId: cae al
+    // default "unknown". El guard explícito de buildPatchWireVar blinda
+    // también el caso hipotético de cadena vacía.
+    ModuleInstance mod;
+    mod.instanceId = 9;
+    mod.typeId = ModuleTypeId::None;
+    mod.position.rack = 0;
+    mod.position.slot = 1;
+    doc.modules.push_back(mod);
+
+    auto var = VarSerialization::buildPatchWireVar(doc);
+    auto* patch = var.getDynamicObject();
+    REQUIRE(patch != nullptr);
+    auto* modsArr = patch->getProperty("modules").getArray();
+    REQUIRE(modsArr != nullptr);
+    REQUIRE(modsArr->size() == 1);
+    auto* mo = (*modsArr)[0].getDynamicObject();
+    REQUIRE(mo != nullptr);
+    REQUIRE((int)mo->getProperty("instanceId") == 9);
+    REQUIRE_FALSE(mo->getProperty("componentId").toString().isEmpty());
+    REQUIRE(mo->getProperty("componentId").toString() == "unknown");
+}
+
 TEST_CASE("buildPatchWireVar handles an empty document", "[serialization][wireformat]") {
     PatchDocument doc;
     auto var = VarSerialization::buildPatchWireVar(doc);

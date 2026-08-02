@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:05
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 /**
@@ -15,19 +15,19 @@
  * @lastUpdated 2026-06-19T18:56:38.821Z
  */
 
-import type { OmegaNode, Attachment } from '../types/manifest';
-import type { CellOptions, MasterRendererProps } from './cellRendererTypes';
-import { COMP_RENDERER_MAP } from './cellRendererMap';
-import { renderRackHTML } from './chassisRenderer';
-import { renderContainerHTML } from './ContainerRenderer';
-import { parseVariant } from './utils/VariantParser';
-import { getComponentRadius } from './utils/CellMetrics';
-import { renderAttachmentStackHTML } from './utils/AttachmentStack';
-import { getInheritedTypography } from './utils/TypographyInheritance';
-import { resolveNodeStyle } from '../utils/StyleResolver';
+import type { OmegaNode, Attachment } from '../types/manifest.js';
+import type { CellOptions, MasterRendererProps } from './cellRendererTypes.js';
+import { COMP_RENDERER_MAP } from './cellRendererMap.js';
+import { renderRackHTML } from './chassisRenderer.js';
+import { renderContainerHTML } from './ContainerRenderer.js';
+import { parseVariant } from './utils/VariantParser.js';
+import { getComponentRadius } from './utils/CellMetrics.js';
+import { renderAttachmentStackHTML } from './utils/AttachmentStack.js';
+import { getInheritedTypography } from './utils/TypographyInheritance.js';
+import { resolveNodeStyle } from '../utils/StyleResolver.js';
 
-export type { CellOptions } from './cellRendererTypes';
-export type { MasterRendererProps } from './cellRendererTypes';
+export type { CellOptions } from './cellRendererTypes.js';
+export type { MasterRendererProps } from './cellRendererTypes.js';
 
 export class CellRenderer {
   /**
@@ -37,16 +37,18 @@ export class CellRenderer {
     const { runtimeValue, steps, isSelected, resolveAsset, manifest } = options;
     const compType = node.cellRef || node.kind || 'knob';
 
+    const nodeId = node.id || '';
+
     // 1. RACK BRANCH
     if (compType === 'rack') {
-      return renderRackHTML(node, options);
+      return renderRackHTML(node, options, nodeId);
     }
 
     // 2. ARCHITECTURAL BRANCH
     const isArchitectural = compType === 'container' || compType === 'group' || compType === 'face';
     if (isArchitectural) {
       return `
-        <div class="architectural-cell" style="width: 100%; height: 100%; position: relative;">
+        <div class="architectural-cell" data-node-id="${nodeId}" style="width: 100%; height: 100%; position: relative;">
           ${renderContainerHTML(node, options)}
         </div>
       `.trim();
@@ -107,7 +109,7 @@ export class CellRenderer {
     const containerHeight = resolvedStyle.height !== undefined ? resolvedStyle.height : (compRadius * 2 * 1.5);
 
     return `
-      <div class="control-cell variant-${variant}" style="--comp-radius: ${compRadius}px;">
+      <div class="control-cell variant-${variant}" data-node-id="${nodeId}" style="--comp-radius: ${compRadius}px;">
         ${renderAttachmentStackHTML('top', attachments, stackOptions)}
         ${renderAttachmentStackHTML('bottom', attachments, stackOptions)}
         ${renderAttachmentStackHTML('left', attachments, stackOptions)}

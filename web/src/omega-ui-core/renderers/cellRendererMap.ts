@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:05
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 /**
@@ -15,23 +15,23 @@
  * @lastUpdated 2026-06-19T18:56:49.593Z
  */
 
-import type { OmegaNode, OmegaStyleNode } from '../types/manifest';
-import type { SelectOption } from './SelectRenderer';
-import type { MasterRendererProps, RendererExtraOptions } from './cellRendererTypes';
-import { resolveNodeStyle } from '../utils/StyleResolver';
-import { renderKnobHTML } from './KnobRenderer';
-import { renderPortHTML } from './PortRenderer';
-import { renderLedHTML } from './LedRenderer';
-import { renderSliderHTML } from './SliderRenderer';
-import { renderDisplayHTML } from './DisplayRenderer';
-import { renderSwitchHTML } from './SwitchRenderer';
-import { renderStepperHTML } from './StepperRenderer';
-import { renderSelectHTML } from './SelectRenderer';
-import { renderScopeHTML } from './ScopeRenderer';
-import { renderTerminalHTML } from './TerminalRenderer';
-import { renderIllustrationHTML } from './IllustrationRenderer';
-import { renderSequenceHTML } from './SequenceRenderer';
-import { AttachmentRenderer } from './AttachmentRenderer';
+import type { OmegaNode, OmegaStyleNode } from '../types/manifest.js';
+import type { SelectOption } from './SelectRenderer.js';
+import type { MasterRendererProps, RendererExtraOptions } from './cellRendererTypes.js';
+import { resolveNodeStyle } from '../utils/StyleResolver.js';
+import { renderKnobHTML } from './KnobRenderer.js';
+import { renderPortHTML } from './PortRenderer.js';
+import { renderLedHTML } from './LedRenderer.js';
+import { renderSliderHTML } from './SliderRenderer.js';
+import { renderDisplayHTML } from './DisplayRenderer.js';
+import { renderSwitchHTML } from './SwitchRenderer.js';
+import { renderStepperHTML } from './StepperRenderer.js';
+import { renderSelectHTML } from './SelectRenderer.js';
+import { renderScopeHTML } from './ScopeRenderer.js';
+import { renderTerminalHTML } from './TerminalRenderer.js';
+import { renderIllustrationHTML } from './IllustrationRenderer.js';
+import { renderSequenceHTML } from './SequenceRenderer.js';
+import { AttachmentRenderer } from './AttachmentRenderer.js';
 
 export const COMP_RENDERER_MAP: Record<string, (node: OmegaNode, props: MasterRendererProps, options: RendererExtraOptions) => string> = {
   'sequence-layer': (node, _props, opt) => {
@@ -209,11 +209,10 @@ export const COMP_RENDERER_MAP: Record<string, (node: OmegaNode, props: MasterRe
   },
   'scope': (node, _props, opt) => {
     const resolved = resolveNodeStyle(node, opt.manifest);
-    const sz = node.layout?.size || { width: 220, height: 150 };
     return renderScopeHTML({
-      variant: node.style?.variant || 'phosphor',
+      variant: node.style?.variant || 'default',
       bind: node.bind || '',
-      size: { width: sz.width || 220, height: sz.height || 150 },
+      size: (node.style?.width && node.style?.height) ? { width: node.style.width, height: node.style.height } : { width: 100, height: 100 },
       color: resolved.style.color || (node.style?.color as string | undefined),
       font: resolved.style.font || (node.style?.font as string | undefined),
       inheritedFont: resolved.style.font || (opt.inherited.font as string | undefined),
@@ -223,11 +222,10 @@ export const COMP_RENDERER_MAP: Record<string, (node: OmegaNode, props: MasterRe
   },
   'terminal': (node, _props, opt) => {
     const resolved = resolveNodeStyle(node, opt.manifest);
-    const sz = node.layout?.size || { width: 220, height: 120 };
     return renderTerminalHTML({
-      variant: node.style?.variant || 'amber',
+      variant: node.style?.variant || 'default',
       bind: node.bind || '',
-      size: { width: sz.width || 220, height: sz.height || 120 },
+      size: (node.style?.width && node.style?.height) ? { width: node.style.width, height: node.style.height } : { width: 100, height: 100 },
       color: resolved.style.color || (node.style?.color as string | undefined),
       font: resolved.style.font || (node.style?.font as string | undefined),
       inheritedFont: resolved.style.font || (opt.inherited.font as string | undefined),

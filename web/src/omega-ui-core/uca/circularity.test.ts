@@ -2,14 +2,14 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:06
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
  * OMEGA Circularity Audit Tests (Phase 17.2/3)
  */
-import { CircularityAuditor } from './utils/circularityAuditor';
-import type { OMEGA_Manifest } from '../types/manifest';
+import { CircularityAuditor } from './utils/circularityAuditor.js';
+import type { OMEGA_Manifest } from '../types/manifest.js';
 
 describe('CircularityAuditor', () => {
   it('should pass DAG (no cycles)', () => {

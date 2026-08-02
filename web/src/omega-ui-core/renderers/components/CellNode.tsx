@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:04
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 'use client';
@@ -19,39 +19,25 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import type { OmegaNode, OMEGA_Manifest, CellTemplate } from '../../types/manifest';
-import type { ComponentNode, ComponentType } from '../../types/rack';
-import { renderComponentNode } from '../primitives';
-import { CellRenderer } from '../CellRenderer';
-import { useUCADrag } from '../hooks/useUCADrag';
-import { UCADebugHUD } from './UCADebugHUD';
-import { CADOverlay } from './CADOverlay';
-import { GovernedOverlay } from './GovernedOverlay';
-import { UniversalRenderer } from '../UniversalRenderer';
-import type { UCADebugContext } from '../ucaTypes';
-import { useDesignTokens } from '../../hooks/useDesignTokens';
-import { useA11y } from '../hooks/useA11y';
+import type { OmegaNode, OMEGA_Manifest, CellTemplate } from '../../types/manifest.js';
+import type { ComponentNode, ComponentType } from '../../types/rack.js';
+import { renderComponentNode } from '../primitives.js';
+import { useUCADrag } from '../hooks/useUCADrag.js';
+import { UCADebugHUD } from './UCADebugHUD.js';
+import { CADOverlay } from './CADOverlay.js';
+import { GovernedOverlay } from './GovernedOverlay.js';
+import { UniversalRenderer } from '../UniversalRenderer.js';
+import type { UCADebugContext } from '../ucaTypes.js';
+import { useDesignTokens } from '../../hooks/useDesignTokens.js';
+import { useA11y } from '../hooks/useA11y.js';
 import { IntegrityOverlay } from '@/features/manifest-editor/components/viewport/IntegrityOverlay';
-import { ReorderIndicator } from './ReorderIndicator';
-import { ResizeHandles } from './ResizeHandles';
+import { ReorderIndicator } from './ReorderIndicator.js';
+import { ResizeHandles } from './ResizeHandles.js';
 
 const COMP_TYPE_MAP: Record<string, ComponentType> = {
-  'knob': 'knob',
-  'slider-v': 'slider',
-  'slider-h': 'slider',
-  'slider': 'slider',
-  'switch': 'switch',
-  'button': 'button',
-  'push': 'button',
-  'stepper': 'button',
-  'port': 'port',
-  'led': 'led',
-  'display': 'display',
-  'label': 'label',
-  'select': 'select',
-  'illustration': 'illustration',
-  'scope': 'scope',
-  'terminal': 'terminal',
+  'knob': 'knob', 'slider-v': 'slider', 'slider-h': 'slider',
+  'slider': 'slider', 'switch': 'switch', 'button': 'button',
+  'port': 'port', 'led': 'led', 'display': 'display', 'label': 'label'
 };
 
 function omegaNodeToComponentNode(node: OmegaNode): ComponentNode {
@@ -113,24 +99,11 @@ export function CellNode({
 
   const runtimeValue = debugContext?.runtimeValues?.[node.id] ?? 0;
 
-  const isSelected = debugContext?.selectedId === node.id;
-  const isMultiSelected = !isSelected && (debugContext?.multiSelectedIds?.includes(node.id) ?? false);
-  const isResizeMode = isSelected && debugContext?.activeTool === 'transform';
-
   const componentNode = omegaNodeToComponentNode(node);
   const renderedComponent = renderComponentNode(componentNode, {
     value: runtimeValue,
     assetUrl: resolveAsset ? resolveAsset(node.style?.asset) : node.style?.asset,
   });
-  const rawHTML = !renderedComponent ? CellRenderer.renderCellHTML(node, {
-    skin: 'default',
-    zoom: 1,
-    steps: 128,
-    runtimeValue,
-    manifest,
-    resolveAsset,
-    isSelected
-  }) : null;
 
   // LIVE mode knob rotation: transparent overlay with vertical drag → 0-1 value
   const isKnob = (node.cellRef || node.kind) === 'knob';
@@ -158,6 +131,10 @@ export function CellNode({
   };
 
   const { cssVars } = useDesignTokens(manifest);
+
+  const isSelected = debugContext?.selectedId === node.id;
+  const isMultiSelected = !isSelected && (debugContext?.multiSelectedIds?.includes(node.id) ?? false);
+  const isResizeMode = isSelected && debugContext?.activeTool === 'transform';
 
   const a11y = useA11y(
     node,
@@ -197,7 +174,6 @@ export function CellNode({
 
   // Compute visual scale for primitive elements to stretch them in real-time
   const kind = node.cellRef || node.kind || 'knob';
-  const isScaledPrimitive = kind === 'knob' || kind === 'button' || kind === 'push' || kind === 'stepper' || kind === 'switch' || kind === 'port' || kind === 'led';
   const BASE_SIZES: Record<string, { width: number; height: number }> = {
     'knob': { width: 36, height: 36 },
     'slider-v': { width: 20, height: 64 },
@@ -209,8 +185,8 @@ export function CellNode({
     'label': { width: 60, height: 16 }
   };
   const baseSize = BASE_SIZES[kind] || { width: 48, height: 48 };
-  const scaleX = isScaledPrimitive ? currentW / baseSize.width : 1;
-  const scaleY = isScaledPrimitive ? currentH / baseSize.height : 1;
+  const scaleX = currentW / baseSize.width;
+  const scaleY = currentH / baseSize.height;
 
   return (
     <motion.div
@@ -292,12 +268,7 @@ export function CellNode({
           transformOrigin: 'center center'
         }}
       >
-        {renderedComponent || (rawHTML && (
-          <div 
-            className="w-full h-full"
-            dangerouslySetInnerHTML={{ __html: rawHTML }} 
-          />
-        ))}
+        {renderedComponent}
       </div>
 
       {/* LIVE mode KnobDragOverlay — vertical drag controls 0–1 value */}

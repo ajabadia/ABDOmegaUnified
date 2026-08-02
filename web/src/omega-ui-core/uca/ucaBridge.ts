@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:06
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -27,10 +27,10 @@ import type {
   CellTemplate,
   BlueprintPlaceholderValues,
   OmegaBlueprintNode
-} from '../types/manifest';
-import { manifestToTree as legacyMigrator } from './converters/manifestToTree';
-import { treeToManifest as legacySerializer } from './converters/treeToManifest';
-import { resolvePath, normalizeModulationTarget } from './utils/pathResolver';
+} from '../types/manifest.js';
+import { manifestToTree as legacyMigrator } from './converters/manifestToTree.js';
+import { treeToManifest as legacySerializer } from './converters/treeToManifest.js';
+import { resolvePath, normalizeModulationTarget } from './utils/pathResolver.js';
 
 /**
  * formalizeUCA (Internal Gateway)
@@ -315,4 +315,4 @@ export function omegaTreeToManifest(tree: OmegaNode): Partial<OMEGA_Manifest> {
 
 export { legacyMigrator as _rawManifestToTree };
 export { legacySerializer as _rawTreeToManifest };
-export { congealSnapshot } from './treeUtils';
+export { congealSnapshot } from './treeUtils.js';

@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:04
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 'use client';
@@ -17,9 +17,9 @@
  * @lastUpdated 2026-06-20T18:38:16.663Z
  */
 
-import type { OmegaNode } from '../../types/manifest';
-import type { UCADebugContext } from '../ucaTypes';
-import { BASE_CELL_SIZES } from '../utils/cellNodeUtils';
+import type { OmegaNode } from '../../types/manifest.js';
+import type { UCADebugContext } from '../ucaTypes.js';
+import { BASE_CELL_SIZES } from '../utils/cellNodeUtils.js';
 
 interface UseCellNodeDimensionsOptions {
   node: OmegaNode;

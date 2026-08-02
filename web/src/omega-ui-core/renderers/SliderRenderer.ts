@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:05
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 /**
@@ -20,7 +20,7 @@
  * Single Source of Truth for Slider HTML Structure.
  */
  
- import type { OmegaStyleNode } from '../types/manifest';
+ import type { OmegaStyleNode } from '../types/manifest.js';
  
  export interface SliderProps {
    type: 'slider-v' | 'slider-h';

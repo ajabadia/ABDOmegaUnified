@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:05
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 /**
@@ -15,14 +15,14 @@
  * @lastUpdated 2026-06-19T18:57:06.508Z
  */
 
-import type { OmegaNode, OmegaStyleNode, StyleVariant, Attachment } from '../types/manifest';
-import type { CellOptions } from './cellRendererTypes';
-import { ColorResolver } from '../utils/ColorResolver';
+import type { OmegaNode, OmegaStyleNode, StyleVariant, Attachment } from '../types/manifest.js';
+import type { CellOptions } from './cellRendererTypes.js';
+import { ColorResolver } from '../utils/ColorResolver.js';
 
 /**
  * Renders the main module frame (chassis) with canonical screw positioning.
  */
-export function renderRackHTML(node: OmegaNode, options: CellOptions): string {
+export function renderRackHTML(node: OmegaNode, options: CellOptions, nodeId: string = ''): string {
   const { manifest, resolveAsset, activeTab = 'MAIN' } = options;
   const style = node.style || {};
   const variant = style.variant || 'default';
@@ -156,7 +156,7 @@ export function renderRackHTML(node: OmegaNode, options: CellOptions): string {
   };
 
   return `
-      <div class="industrial-rack-chassis"
+      <div class="industrial-rack-chassis" data-node-id="${nodeId}"
         style="position: absolute; inset: 0; background-color: ${bgColor}; ${bgStyles} border-radius: ${rounding}px; border: ${borderWidth}px solid rgba(255,255,255,0.05); overflow: hidden;">
         ${screwFragment ? positions.map((p, i) => renderScrew(p, i)).join('') : ''}
       </div>

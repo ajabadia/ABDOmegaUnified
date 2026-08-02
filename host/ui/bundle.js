@@ -6415,6 +6415,8 @@
   win.ServiceMode = ServiceMode;
   win.ModuleRenderer = ModuleRenderer;
   win.ManifestRenderer = ManifestRenderer;
+  win.GlobalFxStrip = GlobalFxStrip;
+  win.RuntimeEventHub = RuntimeEventHub;
   win.getOrFetchManifest = getOrFetchManifest;
   win.ACEMM_CATALOG = ACEMM_CATALOG;
   document.addEventListener("DOMContentLoaded", () => {

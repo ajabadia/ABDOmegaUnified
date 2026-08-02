@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:04
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 'use client';
@@ -19,16 +19,16 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import type { OmegaNode, OMEGA_Manifest, CellTemplate } from '../../types/manifest';
-import { useUCADrag } from '../hooks/useUCADrag';
-import { UCADebugHUD } from './UCADebugHUD';
-import { CADOverlay } from './CADOverlay';
-import { GovernedOverlay } from './GovernedOverlay';
-import { UniversalRenderer } from '../UniversalRenderer';
-import type { UCADebugContext } from '../ucaTypes';
-import { useDesignTokens } from '../../hooks/useDesignTokens';
-import { ReorderIndicator } from './ReorderIndicator';
-import { ResizeHandles } from './ResizeHandles';
+import type { OmegaNode, OMEGA_Manifest, CellTemplate } from '../../types/manifest.js';
+import { useUCADrag } from '../hooks/useUCADrag.js';
+import { UCADebugHUD } from './UCADebugHUD.js';
+import { CADOverlay } from './CADOverlay.js';
+import { GovernedOverlay } from './GovernedOverlay.js';
+import { UniversalRenderer } from '../UniversalRenderer.js';
+import type { UCADebugContext } from '../ucaTypes.js';
+import { useDesignTokens } from '../../hooks/useDesignTokens.js';
+import { ReorderIndicator } from './ReorderIndicator.js';
+import { ResizeHandles } from './ResizeHandles.js';
 
 interface StructuralNodeProps {
   node: OmegaNode;

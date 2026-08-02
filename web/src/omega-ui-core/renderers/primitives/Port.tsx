@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:05
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 /**
@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import type { ComponentStyle, BindConfig } from '../../types/rack';
+import type { ComponentStyle, BindConfig } from '../../types/rack.js';
 
 export interface PortRendererProps {
   id: string;

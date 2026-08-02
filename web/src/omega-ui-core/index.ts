@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:07
+   Sync Timestamp: 2026-08-02 11:27:41
    ================================================================= */
 
 /**
@@ -21,14 +21,43 @@
  */
 
 /* ─── Color Resolution ─── */
-export { ColorResolver } from './utils/ColorResolver';
+export { ColorResolver } from './utils/ColorResolver.js';
 
 /* ─── Design Tokens ─── */
-export { DESIGN_TOKENS } from './constants/design-tokens';
-export type { DesignTokens } from './constants/design-tokens';
+export { DESIGN_TOKENS } from './constants/design-tokens.js';
+export type { DesignTokens } from './constants/design-tokens.js';
 
 /* ─── Hooks ─── */
-export { useDesignTokens } from './hooks/useDesignTokens';
+export { useDesignTokens } from './hooks/useDesignTokens.js';
+
+/* ─── Panel Contract (render + interacción + geometría) ─── */
+export { collectBindingsFromTree, PANEL_SELECTORS } from './types/panelRenderer.js';
+export type {
+  PanelGeometry,
+  PanelBinding,
+  PanelBindingKind,
+  PanelBindingRange,
+  RenderPanelOptions,
+  ResolvedRenderOptions,
+  RenderPanelResult,
+  SetParamPayload,
+  PanelTransport,
+  PanelEvent,
+  PanelEventType,
+  RackUnit,
+} from './types/panelRenderer.js';
+
+export {
+  RACK_UNIT_HEIGHT_PX,
+  RACK_HP_WIDTH_PX,
+  MIN_CHASSIS_WIDTH_PX,
+  rackHeightForUnits,
+  resolvePanelGeometry,
+  resolvePanelContentSize,
+  resolveRenderOptions,
+} from './uca/panelGeometry.js';
+
+export { InteractionManager, KNOB_SENSITIVITY_PX } from './interaction/InteractionManager.js';
 
 /* ─── Types (re-export most used) ─── */
 export type {
@@ -58,4 +87,4 @@ export type {
   HybridEntityUpdate,
   UcaDebugConfig,
   GridConfig,
-} from './types/manifest';
+} from './types/manifest.js';

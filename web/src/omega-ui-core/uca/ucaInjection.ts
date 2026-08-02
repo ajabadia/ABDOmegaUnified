@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:06
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -25,16 +25,16 @@ import type {
   OmegaNode, 
   BlueprintDefinition,
   CellTemplate
-} from '../types/manifest';
+} from '../types/manifest.js';
 import type { 
   BlueprintInjectionRequest, 
   BlueprintInjectionResult, 
   BlueprintInjectionReport,
   BlueprintInsertionStrategy
-} from '../types/blueprint';
-import { blueprintToTree, treeToManifest, manifestToTree } from './ucaBridge';
-import { IdManager } from './utils/idManager';
-import { AutoWireResolver } from './utils/autoWireResolver';
+} from '../types/blueprint.js';
+import { blueprintToTree, treeToManifest, manifestToTree } from './ucaBridge.js';
+import { IdManager } from './utils/idManager.js';
+import { AutoWireResolver } from './utils/autoWireResolver.js';
 
 /**
  * injectBlueprint

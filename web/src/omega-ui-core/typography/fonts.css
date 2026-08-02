@@ -1,9 +1,23 @@
+/* =================================================================
+   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
+   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
+   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
+   Sync Timestamp: 2026-08-02 11:27:40
+   ================================================================= */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ⚠️ OMEGA UI CORE — DO NOT EDIT (READ-ONLY REPLICA NOTICE)
+   ---------------------------------------------------------------------------
+   Master Source: d:/desarrollos/ABDSynthsWeb/abd-ia_synths/src/omega-ui-core/
+   Any changes made here in ABDOmega/ui/omega-ui-core WILL BE OVERWRITTEN.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 /* -------------------------------------------------
    INTER (UI & Content)
    ------------------------------------------------- */
 @font-face {
     font-family: 'Inter';
-    src: url('/fonts/Inter/Inter-Regular.woff2') format('woff2');
+    src: url('./fonts/Inter/Inter-Regular.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -11,7 +25,7 @@
 
 @font-face {
     font-family: 'Inter';
-    src: url('/fonts/Inter/Inter-Medium.woff2') format('woff2');
+    src: url('./fonts/Inter/Inter-Medium.woff2') format('woff2');
     font-weight: 500;
     font-style: normal;
     font-display: swap;
@@ -19,7 +33,7 @@
 
 @font-face {
     font-family: 'Inter';
-    src: url('/fonts/Inter/Inter-Bold.woff2') format('woff2');
+    src: url('./fonts/Inter/Inter-Bold.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -27,7 +41,7 @@
 
 @font-face {
     font-family: 'Inter';
-    src: url('/fonts/Inter/Inter-Black.woff2') format('woff2');
+    src: url('./fonts/Inter/Inter-Black.woff2') format('woff2');
     font-weight: 900;
     font-style: normal;
     font-display: swap;
@@ -38,7 +52,7 @@
    ------------------------------------------------- */
 @font-face {
     font-family: 'Outfit';
-    src: url('/fonts/Outfit/Outfit-Regular.ttf') format('truetype');
+    src: url('./fonts/Outfit/Outfit-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -46,7 +60,7 @@
 
 @font-face {
     font-family: 'Outfit';
-    src: url('/fonts/Outfit/Outfit-Bold.ttf') format('truetype');
+    src: url('./fonts/Outfit/Outfit-Bold.ttf') format('truetype');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -54,7 +68,7 @@
 
 @font-face {
     font-family: 'Outfit';
-    src: url('/fonts/Outfit/Outfit-Black.ttf') format('truetype');
+    src: url('./fonts/Outfit/Outfit-Black.ttf') format('truetype');
     font-weight: 900;
     font-style: normal;
     font-display: swap;
@@ -65,7 +79,7 @@
    ------------------------------------------------- */
 @font-face {
     font-family: 'Seven Segment';
-    src: url('/fonts/SevenSegment.ttf') format('truetype');
+    src: url('./fonts/SevenSegment.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -73,7 +87,7 @@
 
 @font-face {
     font-family: 'Microgramma';
-    src: url('/fonts/microgrammanormal.ttf') format('truetype');
+    src: url('./fonts/microgrammanormal.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;

@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:05
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -29,8 +29,8 @@
  * to avoid ambiguity.
  */
 
-export * from './blueprints';
-export * from './manifest';
+export * from './blueprints.js';
+export * from './manifest.js';
 
 // Rack exports — alias ComponentType to avoid collision with manifest's ComponentType
 export type {
@@ -46,6 +46,6 @@ export type {
   GroupNode,
   GridGuide,
   RackManifest,
-} from './rack';
+} from './rack.js';
 
-export * from './validation';
+export * from './validation.js';

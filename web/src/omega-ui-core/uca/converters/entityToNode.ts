@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:06
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -15,7 +15,7 @@
  * @lastUpdated 2026-06-15T16:11:03.830Z
  */
 
-import type { ManifestEntity, OmegaNode, NodeRole } from '../../types/manifest';
+import type { ManifestEntity, OmegaNode, NodeRole } from '../../types/manifest.js';
 
 /**
  * OMEGA UCA - Entity to Node Converter
@@ -40,7 +40,7 @@ export function entityToNode(entity: ManifestEntity): OmegaNode {
       asset: entity.presentation?.asset || entity.presentation?.style?.asset,
       fitting: entity.presentation?.fitting || entity.presentation?.style?.fitting
     },
-    cellRef: entity.type || entity.presentation?.component,
+    cellRef: entity.type,
     children: (entity.presentation?.attachments || []).map(a => ({
       id: a.id,
       kind: 'asset-layer',

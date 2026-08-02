@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:04
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -233,7 +233,7 @@
 .scope-display.variant-amber .scope-canvas { filter: drop-shadow(0 0 4px #ffaa00); }
 
 /* Sizes (dynamic via manifest) */
-.scope-display { width: 100%; height: 100%; }
+.scope-display { width: var(--scope-width, 100%); height: var(--scope-height, 100%); }
 
 
 /* ── TERMINAL (Log / Console) ────────────────────────────────────────── */
@@ -276,4 +276,4 @@
 .terminal-display.variant-cyan .terminal-line { color: var(--wb-primary); text-shadow: 0 0 4px rgba(0, 240, 255, 0.4); }
 
 /* Sizes (dynamic via manifest) */
-.terminal-display { width: 100%; height: 100%; }
+.terminal-display { width: var(--terminal-width, 100%); height: var(--terminal-height, 100%); }

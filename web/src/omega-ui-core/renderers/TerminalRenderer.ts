@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:05
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 /**
@@ -32,13 +32,16 @@ export interface TerminalProps {
 }
 
 export function renderTerminalHTML(props: TerminalProps): string {
-  const { variant, bind, color = 'var(--terminal-color, #ffcc00)', font = 'monospace' } = props;
+  const { variant, bind, size, color = 'var(--terminal-color, #ffcc00)', font = 'monospace' } = props;
+  const zoom = 1.5;
+  const w = size.width * zoom;
+  const h = size.height * zoom;
 
   return `
     <div class="terminal-display variant-${variant}" 
          data-bind="${bind}"
-         style="width: 100%; height: 100%; color: ${color}; font-family: ${font};">
-        <div class="terminal-container" style="padding: 6px; font-size: 10px; opacity: 0.85; height: 100%; overflow: hidden; box-sizing: border-box;">&gt; SYS_OK: Telemetry online...</div>
+         style="--terminal-width: ${w}px; --terminal-height: ${h}px; color: ${color}; font-family: ${font};">
+        <div class="terminal-container"></div>
     </div>
   `;
 }

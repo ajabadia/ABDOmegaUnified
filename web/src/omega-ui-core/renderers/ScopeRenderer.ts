@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:05
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 /**
@@ -33,13 +33,14 @@ export interface ScopeProps {
 
 export function renderScopeHTML(props: ScopeProps): string {
   const { variant, bind, size, color = 'var(--scope-color, #00ff88)' } = props;
-  const w = size.width || 220;
-  const h = size.height || 125;
+  const zoom = 1.5;
+  const w = size.width * zoom;
+  const h = size.height * zoom;
 
   return `
     <div class="scope-display variant-${variant}" 
          data-bind="${bind}"
-         style="width: 100%; height: 100%; --scope-color: ${color};">
+         style="--scope-width: ${w}px; --scope-height: ${h}px; --scope-color: ${color};">
         <canvas class="scope-canvas" width="${w}" height="${h}"></canvas>
         <div class="scope-grid"></div>
     </div>

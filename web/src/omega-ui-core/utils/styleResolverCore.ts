@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:07
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -15,9 +15,9 @@
  * @lastUpdated 2026-06-19T18:57:35.445Z
  */
 
-import type { OmegaNode, OMEGA_Manifest, OmegaStyleNode, StyleVariant } from '../types/manifest';
-import { ColorResolver } from './ColorResolver';
-import type { ResolvedNodeStyle } from './styleResolverTypes';
+import type { OmegaNode, OMEGA_Manifest, OmegaStyleNode, StyleVariant } from '../types/manifest.js';
+import { ColorResolver } from './ColorResolver.js';
+import type { ResolvedNodeStyle } from './styleResolverTypes.js';
 
 /**
  * Resolve a node's visual style following the 3-level chain:

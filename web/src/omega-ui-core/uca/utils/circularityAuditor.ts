@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:06
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -15,9 +15,9 @@
  * @lastUpdated 2026-06-15T16:54:49.756Z
  */
 
-import type { OMEGA_Manifest } from '../../types/manifest';
-import type { ValidationIssue } from '../../types/validation';
-import { parsePath } from './pathResolver';
+import type { OMEGA_Manifest } from '../../types/manifest.js';
+import type { ValidationIssue } from '../../types/validation.js';
+import { parsePath } from './pathResolver.js';
 
 /**
  * OMEGA Phase 17.2/3 - Circularity Auditor (Robust Component)

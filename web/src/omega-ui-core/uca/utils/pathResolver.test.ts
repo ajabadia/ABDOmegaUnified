@@ -2,13 +2,13 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:06
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
  * PathResolver Hardenings Tests (Phase 18 - Canonical Contract)
  */
-import { resolvePath, parsePath, normalizeModulationTarget } from './pathResolver';
+import { resolvePath, parsePath, normalizeModulationTarget } from './pathResolver.js';
 
 describe('PathResolver', () => {
   describe('resolvePath', () => {

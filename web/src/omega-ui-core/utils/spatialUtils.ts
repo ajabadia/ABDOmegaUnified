@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:07
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -15,7 +15,7 @@
  * @lastUpdated 2026-06-15T16:55:59.680Z
  */
 
-import type { OMEGA_Manifest, OmegaNode } from '../types/manifest';
+import type { OMEGA_Manifest, OmegaNode } from '../types/manifest.js';
 
 interface CollisionBox {
   x: number;

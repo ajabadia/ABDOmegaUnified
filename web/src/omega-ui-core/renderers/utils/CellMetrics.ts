@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:05
+   Sync Timestamp: 2026-08-02 11:27:39
    ================================================================= */
 
 /**
@@ -23,8 +23,8 @@
  * as fallback for manifests that haven't been migrated yet.
  */
  
-import type { OmegaNode, OMEGA_Manifest } from '../../types/manifest';
-import { parseVariant } from './VariantParser';
+import type { OmegaNode, OMEGA_Manifest } from '../../types/manifest.js';
+import { parseVariant } from './VariantParser.js';
  
 const RADIUS_MAP: Record<string, Record<string, number>> = {
   knob: { A: 24, B: 18, C: 12, D: 9 },

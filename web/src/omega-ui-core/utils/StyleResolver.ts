@@ -2,7 +2,7 @@
    DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
    Any changes here will be OVERWRITTEN by sync_omega_ui.bat
    Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-06-25 12:16:07
+   Sync Timestamp: 2026-08-02 11:27:40
    ================================================================= */
 
 /**
@@ -19,13 +19,13 @@ export type {
   ResolvedNodeStyle,
   UnusedResources,
   SubtreeResources,
-} from './styleResolverTypes';
+} from './styleResolverTypes.js';
 
 export {
   resolveNodeStyle,
   resolveSize,
   resolveColor,
-} from './styleResolverCore';
+} from './styleResolverCore.js';
 
 export {
   expandNodeStyle,
@@ -34,10 +34,10 @@ export {
   pruneUnusedStyles,
   fossilizeLegacyStyles,
   distillManifest,
-} from './styleResolverDistill';
+} from './styleResolverDistill.js';
 
 export {
   getUnusedStylesAndAssets,
   extractSubtreeResources,
   pruneUnusedAssets,
-} from './styleResolverAssets';
+} from './styleResolverAssets.js';
