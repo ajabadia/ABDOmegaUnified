@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,23 +15,23 @@
  * @lastUpdated 2026-06-19T18:56:49.593Z
  */
 
-import type { OmegaNode, OmegaStyleNode } from '../types/manifest.js';
-import type { SelectOption } from './SelectRenderer.js';
-import type { MasterRendererProps, RendererExtraOptions } from './cellRendererTypes.js';
-import { resolveNodeStyle } from '../utils/StyleResolver.js';
-import { renderKnobHTML } from './KnobRenderer.js';
-import { renderPortHTML } from './PortRenderer.js';
-import { renderLedHTML } from './LedRenderer.js';
-import { renderSliderHTML } from './SliderRenderer.js';
-import { renderDisplayHTML } from './DisplayRenderer.js';
-import { renderSwitchHTML } from './SwitchRenderer.js';
-import { renderStepperHTML } from './StepperRenderer.js';
-import { renderSelectHTML } from './SelectRenderer.js';
-import { renderScopeHTML } from './ScopeRenderer.js';
-import { renderTerminalHTML } from './TerminalRenderer.js';
-import { renderIllustrationHTML } from './IllustrationRenderer.js';
-import { renderSequenceHTML } from './SequenceRenderer.js';
-import { AttachmentRenderer } from './AttachmentRenderer.js';
+import type { OmegaNode, OmegaStyleNode } from '../types/manifest';
+import type { SelectOption } from './SelectRenderer';
+import type { MasterRendererProps, RendererExtraOptions } from './cellRendererTypes';
+import { resolveNodeStyle } from '../utils/StyleResolver';
+import { renderKnobHTML } from './KnobRenderer';
+import { renderPortHTML } from './PortRenderer';
+import { renderLedHTML } from './LedRenderer';
+import { renderSliderHTML } from './SliderRenderer';
+import { renderDisplayHTML } from './DisplayRenderer';
+import { renderSwitchHTML } from './SwitchRenderer';
+import { renderStepperHTML } from './StepperRenderer';
+import { renderSelectHTML } from './SelectRenderer';
+import { renderScopeHTML } from './ScopeRenderer';
+import { renderTerminalHTML } from './TerminalRenderer';
+import { renderIllustrationHTML } from './IllustrationRenderer';
+import { renderSequenceHTML } from './SequenceRenderer';
+import { AttachmentRenderer } from './AttachmentRenderer';
 
 export const COMP_RENDERER_MAP: Record<string, (node: OmegaNode, props: MasterRendererProps, options: RendererExtraOptions) => string> = {
   'sequence-layer': (node, _props, opt) => {

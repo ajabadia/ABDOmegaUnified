@@ -25,11 +25,14 @@ interface LogicSectionProps {
   availableBinds?: string[] | undefined;
   onHelp?: ((sectionId: string) => void) | undefined;
   highlightPath?: (string | null) | undefined;
+  /** Spec declarativa de parámetros del módulo (bloque `params:` del .acemm). */
+  paramSpecs?: Record<string, import('@/omega-ui-core/types/contract').OmegaParamSpec> | undefined;
+  onUpdateParams?: ((id: string, updates: Partial<import('@/omega-ui-core/types/contract').OmegaParamSpec>) => void) | undefined;
 }
  
 const EXTENDED_ROLES = ['control', 'input', 'output', 'telemetry', 'expert', 'stream', 'mod_source', 'mod_target'];
  
-export default function LogicSection({ item, onUpdate, availableBinds = [], onHelp, highlightPath }: LogicSectionProps) {
+export default function LogicSection({ item, onUpdate, availableBinds = [], onHelp, highlightPath, paramSpecs, onUpdateParams }: LogicSectionProps) {
   const currentType = item.cellRef || item.kind || 'knob';
   const isHighlighted = (key: string) => !!highlightPath?.includes(key);
  
@@ -45,6 +48,8 @@ export default function LogicSection({ item, onUpdate, availableBinds = [], onHe
         isHighlighted={isHighlighted} 
         onUpdate={onUpdate} 
         onHelp={onHelp} 
+        paramSpecs={paramSpecs}
+        onUpdateParams={onUpdateParams}
       />
  
       <RoleSelector 

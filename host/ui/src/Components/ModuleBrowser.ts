@@ -2,6 +2,7 @@ import { AssetResolver } from '../Util/AssetResolver.js';
 import { ManifestRenderer } from '../Renderers/ManifestRenderer.js';
 import { resolveRackTarget } from '../Logic/RackRouter.js';
 import { getOrFetchManifest } from '../Catalog/AcemmCatalog.js';
+import { dismissLoaderOverlay } from '../Util/moduleLoader.js';
 
 export class ModuleBrowser {
     private el: HTMLElement | null = null;
@@ -150,26 +151,32 @@ export class ModuleBrowser {
         if (!this.gallery) return;
         const images = m.images || [];
         if (images.length === 0) {
+            const frontImg = AssetResolver.resolve(m.id, 'mockup_front.png') || '';
+            const angleImg = AssetResolver.resolve(m.id, 'mockup_angle.png') || '';
+            const detailImg = AssetResolver.resolve(m.id, 'mockup_detail.png') || '';
             this.gallery.innerHTML = `
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/modules/${m.id}/mockup_front.png')"></div>
+                    <div class="gallery-image" style="background-image: url('${frontImg}')"></div>
                     <label>FRONT</label>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/modules/${m.id}/mockup_angle.png')"></div>
+                    <div class="gallery-image" style="background-image: url('${angleImg}')"></div>
                     <label>ANGLE</label>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/modules/${m.id}/mockup_detail.png')"></div>
+                    <div class="gallery-image" style="background-image: url('${detailImg}')"></div>
                     <label>DETAIL</label>
                 </div>
             `;
         } else {
-            this.gallery.innerHTML = images.map((img: string) => `
+            this.gallery.innerHTML = images.map((img: string) => {
+                const resolved = AssetResolver.resolve(m.id, img) || img;
+                return `
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('${img}')"></div>
+                    <div class="gallery-image" style="background-image: url('${resolved}')"></div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         const addBtn = document.getElementById('btn-add-module-exec');
@@ -180,7 +187,6 @@ export class ModuleBrowser {
 
     private getIconForModule(m: any): string {
         const id = m.id || m.componentId;
-        const logoPath = AssetResolver.resolve(id, 'module_logo.svg');
         const icons: any = {
             'osc-analog': '🔊',
             'midi-util': '🎹',
@@ -188,10 +194,10 @@ export class ModuleBrowser {
             'env-standard': '📐'
         };
         const emoji = icons[m.icon] || '📦';
-        const illustrationPath = AssetResolver.resolve(id, 'illustration.svg');
+        const illustrationPath = AssetResolver.resolve(id, 'illustration.svg') || '';
         
-        return `<img src="${logoPath}" class="card-illustration" alt="${m.name}" 
-                     onerror="this.src='${illustrationPath}'; this.onerror=function(){ this.style.display='none'; this.nextElementSibling.style.display='block'; };">
+        return `<img src="${illustrationPath}" class="card-illustration" alt="${m.name}" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <div class="card-icon-fallback" style="display:none; font-size: 2rem;">${emoji}</div>`;
     }
 
@@ -275,6 +281,9 @@ export class ModuleBrowser {
                     `;
                 }
                 targetContainer.appendChild(modCard);
+
+                // Auto-dismiss loader overlay when images load or after timeout
+                dismissLoaderOverlay(modCard);
 
                 // Notify Patchbay Matrix to refresh ports for newly added module
                 (window as any).modulePatchbayMatrix?.loadMetadata?.();

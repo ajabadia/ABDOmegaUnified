@@ -1,14 +1,14 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import type { OmegaNode } from '../../types/manifest.js';
+import type { OmegaNode } from '../../types/manifest';
 
 export interface A11yAttributes {
   role: string;

@@ -21,7 +21,7 @@ export class RpcCommandDispatcher {
         'updatePatchbayMatrixSlot', 'subscribeTelemetry',
         'getUiSchemas', 'getSystemSettings', 'serviceAction',
         'setSystemSetting', 'uiReady', 'exit', 'clearRack', 'undo', 'redo',
-        'listAce', 'listPresets', 'getBrowserData', 'getHistory',
+        'listAce', 'listPresets', 'getBrowserData', 'getHistory', 'deletePreset',
         'addModule', 'removeModule', 'moveModule',
         'getModulationMetadata',
         'getTelemetry', 'getTelemetrySources', 'getModConnections',

@@ -51,16 +51,28 @@ echo %build_no% > %VERSION_FILE%
 echo #define OMEGA_BUILD_VERSION "%build_no%" > "src/Core/BuildVersion.h"
 echo #define OMEGA_BUILD_TIMESTAMP "%DATE% %TIME%" >> "src/Core/BuildVersion.h"
 
-:: 4. Sincronizar UI Core (Era 7.2.3 Parity)
-echo.
-echo 0. Sincronizando OMEGA UI Core...
-call sync_omega_ui.bat
-
 echo.
 echo 0.5 Validando Contratos RPC (Vitest)...
 pushd ui
 call npx vitest run tests/rpc_contract.test.ts || (echo [ERROR] Contrato RPC VIOLADO. Abortando build. & popd & exit /b 1)
 popd
+
+:: 0.6 Convergencia de manifiestos: fuente unica en modules/ (junctions + catalogo)
+echo 0.6 Verificando convergencia de manifiestos (fuente unica: modules/)...
+node "%~dp0..\scripts\check_manifest_parity.mjs" || (
+    REM nota #714: parentesis dentro de bloques deben escaparse con ^ en cmd.exe
+    echo [ERROR] Manifiestos desincronizados ^(copia real o catalogo obsoleto^). Abortando build.
+    exit /b 1
+)
+echo [INFO] Regenerando ACEMM_CATALOG desde modules/...
+node "%~dp0..\scripts\generate_acemm_catalog.mjs" || exit /b 1
+
+:: 0.7 Guard DRY de defaults canonicos: constantes DEFAULT_* sin literales reintroducidos (fuente unica omega-ui-core)
+echo 0.7 Verificando guard de defaults canonicos (DEFAULT_* sin literales)...
+node "%~dp0..\scripts\check_canonical_defaults.mjs" || (
+    echo [ERROR] Guard de defaults canonicos VIOLADO - literal canonico fuera de su DEFAULT_*. Abortando build.
+    exit /b 1
+)
 
 echo.
 echo 1. Compilando y Empaquetando WebUI...
@@ -68,6 +80,8 @@ pushd ui
 call npx --package typescript tsc -p tsconfig.json || (popd & exit /b 1)
 echo [INFO] Generando bundle aséptico para Era 7.2.3 (Build #%build_no%)...
 call npx -y esbuild src/index.ts --bundle --outfile=bundle.js --platform=browser --target=es2022 --define:window.OMEGA_BUILD_ID=\"%build_no%\" || (popd & exit /b 1)
+echo [INFO] Validando bundle regenerado: smoke aridad + paridad visual...
+call npm run test:smoke || (popd & exit /b 1)
 popd
 
 :: 4. Configurar y Compilar

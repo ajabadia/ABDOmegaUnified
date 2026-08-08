@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 'use client';
@@ -19,10 +19,10 @@
 
 import React from 'react';
 import type { PanInfo } from 'framer-motion';
-import type { OmegaNode, OMEGA_Manifest, GridConfig } from '../../types/manifest.js';
-import type { UCADebugContext } from '../ucaTypes.js';
-import { getOriginalNodeSize, computeScaleUpdates } from '../utils/scaleUtils.js';
-import { checkSubtreeMinSize } from '../utils/gridSnapUtils.js';
+import type { OmegaNode, OMEGA_Manifest, GridConfig } from '../../types/manifest';
+import type { UCADebugContext } from '../ucaTypes';
+import { getOriginalNodeSize, computeScaleUpdates } from '../utils/scaleUtils';
+import { checkSubtreeMinSize } from '../utils/gridSnapUtils';
 
 interface UseUCAResizeProps {
   node: OmegaNode;

@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,7 +15,7 @@
  * @lastUpdated 2026-08-02T00:00:00.000Z
  */
 
-import type { OMEGA_Manifest, OmegaNode, ManifestEntity } from './manifest.js';
+import type { OMEGA_Manifest, OmegaNode, ManifestEntity } from './manifest';
 
 /* ─── Panel Geometry (derived from hardware metadata, NOT hardcoded) ─── */
 
@@ -102,14 +102,22 @@ export interface RenderPanelOptions {
 }
 
 /**
- * ResolvedRenderOptions — `RenderPanelOptions` con los campos críticos de render
- * ya resueltos a valores concretos (skin/zoom/runtimeValue/steps), lista para
- * spread directo en `CellOptions`. `resolveRenderOptions` la produce con defaults
- * canónicos; el host/editor ya no maneja opcionales en el render.
+ * Defined<T> — Elimina `undefined` de una unión de forma distributiva.
+ * `Required<Pick<...>>` NO basta: solo quita el modificador `?`, pero deja
+ * intacto el `| undefined` explícito de las propiedades opcionales
+ * (p.ej. `skin?: string | undefined`). `Defined` lo erradica de raíz.
  */
-export type ResolvedRenderOptions = Required<
-  Pick<RenderPanelOptions, 'skin' | 'zoom' | 'runtimeValue' | 'steps'>
-> &
+type Defined<T> = T extends undefined ? never : T;
+
+/**
+ * ResolvedRenderOptions — `RenderPanelOptions` con los campos críticos de render
+ * ya resueltos a valores concretos SIN `undefined` (skin/zoom/runtimeValue/steps),
+ * lista para spread directo en `CellOptions`. `resolveRenderOptions` la produce
+ * con defaults canónicos; el host/editor ya no maneja opcionales en el render.
+ */
+export type ResolvedRenderOptions = {
+  [K in 'skin' | 'zoom' | 'runtimeValue' | 'steps']: Defined<RenderPanelOptions[K]>;
+} &
   Omit<RenderPanelOptions, 'skin' | 'zoom' | 'runtimeValue' | 'steps'>;
 
 /**

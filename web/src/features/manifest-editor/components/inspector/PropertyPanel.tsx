@@ -53,6 +53,13 @@ interface ItemProps {
   availableBinds?: string[] | undefined;
 }
 
+// Spec declarativa de parámetros del módulo (bloque `params:` del .acemm).
+// Se edita desde el bind del control; onUpdateParams escribe en manifest.params.
+interface ParamSpecProps {
+  paramSpecs?: Record<string, import('@/omega-ui-core/types/contract').OmegaParamSpec> | undefined;
+  onUpdateParams?: ((id: string, updates: Partial<import('@/omega-ui-core/types/contract').OmegaParamSpec>) => void) | undefined;
+}
+
 interface CallbackProps {
   onClose?: (() => void) | undefined;
   onUpdate?: ((updates: Partial<OMEGA_Manifest> | HybridEntityUpdate) => void) | undefined;
@@ -116,7 +123,7 @@ interface DisplayProps {
   onToggleRackSection?: ((section: string) => void) | undefined;
 }
 
-export type PropertyPanelProps = ItemProps & CallbackProps & ModulationProps & ContainerProps & BlueprintProps & ResourceProps & DisplayProps;
+export type PropertyPanelProps = ItemProps & CallbackProps & ModulationProps & ContainerProps & BlueprintProps & ResourceProps & DisplayProps & ParamSpecProps;
 
 import TieredSection from './TieredSection';
 import { getSectionMeta } from './sections/config';
@@ -434,7 +441,7 @@ export default function PropertyPanel(props: PropertyPanelProps) {
           ) : (
             <TieredSection {...getSectionMeta('architecture', isModule)}>
                <div className="space-y-6">
-                  <LogicSection item={liveItem as OmegaNode} onUpdate={(u) => props.onUpdate?.(u)} availableBinds={props.availableBinds || []} onHelp={props.onHelp} highlightPath={props.highlightPath} />
+                  <LogicSection item={liveItem as OmegaNode} onUpdate={(u) => props.onUpdate?.(u)} availableBinds={props.availableBinds || []} onHelp={props.onHelp} highlightPath={props.highlightPath} paramSpecs={props.paramSpecs} onUpdateParams={props.onUpdateParams} />
                   <AttachmentsSection item={liveItem as OmegaNode} manifest={enrichedManifest} onUpdate={(u) => props.onUpdate?.(u)} availableBinds={props.availableBinds || []} onHelp={props.onHelp} onOpenConfig={props.onOpenConfig} />
                </div>
             </TieredSection>

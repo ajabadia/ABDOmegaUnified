@@ -102,6 +102,10 @@ beforeAll(async () => {
 
 afterAll(() => {
     sendSpy?.mockRestore();
+    // Limpia el intervalo del health-monitor del bundle (setInterval 2s en
+    // OmegaRPC.startHealthMonitor) para evitar open handles en vitest.
+    const timer = (window as any).omegaRPC?.healthTimer;
+    if (timer) clearInterval(timer);
     const container = document.getElementById('global-fx-strip');
     if (container) container.remove();
 });
@@ -229,6 +233,48 @@ describe('GlobalFxStrip write-path (slider → RpcCommandDispatcher real → rpc
         // dispatch captura el error internamente (OmegaLog.error) y resuelve.
         // La señal de que la validación corrió es que rpc.send NUNCA se invoca.
         await dispatcher.dispatch({ type: 'setParameter', payload: {} });
+        await flushAsync();
+        expect(sendSpy).not.toHaveBeenCalled();
+    });
+
+    it('dispatch(setParameter) con instanceId/paramId numéricos (sin target) también llega a rpc.send', async () => {
+        const dispatcher = (window as any).rpcCommandDispatcher;
+        sendSpy.mockClear();
+
+        // El otro camino de validación de handleCoreCommand: sin target, pero con
+        // instanceId Y paramId definidos → `!p.target && (undefined || undefined)`
+        // es false → la validación pasa y el comando llega a rpc.send intacto.
+        await dispatcher.dispatch({
+            type: 'setParameter',
+            payload: { instanceId: 42, paramId: 7, value: 0.5 },
+        });
+        await flushAsync();
+
+        // 1) rpc.send recibe el payload EXACTO (el dispatcher no lo reescribe)
+        expect(sendSpy).toHaveBeenCalledTimes(1);
+        expect(sendSpy).toHaveBeenCalledWith('setParameter', {
+            instanceId: 42,
+            paramId: 7,
+            value: 0.5,
+        });
+
+        // 2) El "C++" (FakeHostBridge) recibe el mismo payload por el wire
+        const received = host.getLastCall();
+        expect(received.type).toBe('setParameter');
+        expect(received.payload).toEqual({ instanceId: 42, paramId: 7, value: 0.5 });
+    });
+
+    it('bloquea setParameter asimétrico con instanceId pero sin paramId (no llega a rpc.send)', async () => {
+        const dispatcher = (window as any).rpcCommandDispatcher;
+        sendSpy.mockClear();
+
+        // Última rama de la validación del ||: `!p.target && (false || true)` →
+        // true → handleCoreCommand lanza y rpc.send NUNCA se invoca (los IDs
+        // numéricos solo son válidos si AMBOS, instanceId Y paramId, existen).
+        await dispatcher.dispatch({
+            type: 'setParameter',
+            payload: { instanceId: 42, value: 0.5 },
+        });
         await flushAsync();
         expect(sendSpy).not.toHaveBeenCalled();
     });

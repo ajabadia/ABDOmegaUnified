@@ -64,6 +64,10 @@ namespace Ace {
                             info.engine = "WASM";
                         }
                     }
+
+                    // [Era 8.1] Load the module into the WAMR service so its
+                    // instances are available to the voice renderer at audio time.
+                    Wasm::WasmModuleService::getInstance().loadModule(info.id, wasmFile.getFullPathName().toStdString());
                 }
 
                 mCatalog.registerComponent(info);
@@ -82,6 +86,8 @@ namespace Ace {
                     info.sourcePath = directory.getFullPathName().toStdString();
                     info.isPackaged = false;
                     info.isCompliant = directory.getChildFile("AUDIT_REPORT.md").existsAsFile();
+                    // [Era 8.1] Make the module available to the audio thread
+                    Wasm::WasmModuleService::getInstance().loadModule(info.id, wasmFile.getFullPathName().toStdString());
                     mCatalog.registerComponent(info);
                     return true;
                 }

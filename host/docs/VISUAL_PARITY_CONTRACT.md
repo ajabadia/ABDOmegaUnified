@@ -604,15 +604,15 @@ height = manifest.ui.dimensions.height × RENDER_SCALE  (SOT: el manifiesto)
 
 **Resolución**: `ABDSynthsWeb/abd-ia_synths/src/omega-ui-core/` es la ubicación canónica.
 
-**Justificación**: ABDSynthsWeb es la fuente de verdad visual porque tiene hot-reload para iterar CSS en segundos. Si el CSS viviera en OMEGA, cada cambio estético requeriría editar allí, sincronizar al editor, y verificar en dos sitios. Con Opción C, editas con feedback instantáneo y OMEGA solo ejecuta `sync_omega_ui.bat`.
+**Justificación**: `web/src/omega-ui-core` es la fuente de verdad visual porque tiene hot-reload para iterar CSS en segundos. Si el CSS viviera en OMEGA, cada cambio estético requeriría editar allí, sincronizar al editor, y verificar en dos sitios. Con Opción C, editas con feedback instantáneo y OMEGA lo consume vía junction (actualizado 2026-08-04: el script `sync_omega_ui.bat` fue eliminado).
 
 **Flujo de trabajo**:
 ```
-ABDSynthsWeb/abd-ia_synths/src/omega-ui-core/  (EDITAR AQUÍ)
+ABDOmegaUnified/web/src/omega-ui-core/  (EDITAR AQUÍ — fuente canónica)
         │
-        │  sync_omega_ui.bat (robocopy, unidireccional)
+        │  junction NTFS (host/ui/omega-ui-core → web/src/omega-ui-core)
         ▼
-ABDOmega/ui/omega-ui-core/  (COPIA — NO EDITAR)
+ABDOmegaUnified/host/ui/omega-ui-core/  (mismo archivo físico — sin copia)
 ```
 
 > [!CAUTION]

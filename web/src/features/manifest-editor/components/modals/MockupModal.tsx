@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toPng } from 'html-to-image';
 import type { OMEGA_Manifest } from '@/types/manifest';
 import type { AuditResult } from '@/omega-ui-core/types/audit';
+import { DEFAULT_PANEL_HEIGHT, DEFAULT_RACK_HP, DEFAULT_SKIN } from '@/omega-ui-core/uca/panelGeometry';
 import { useFocusTrap } from '@/features/manifest-editor/hooks/useFocusTrap';
 
 // Atomic Mockup Components
@@ -54,11 +55,11 @@ export default function MockupModal({ isOpen, onClose, manifest, audit, resolveA
   if (!isOpen) return null;
 
   const activeTab = manifest.ui?.layout?.activeTab || 'MAIN';
-  const hp = manifest.metadata?.rack?.hp || 12;
+  const hp = manifest.metadata?.rack?.hp || DEFAULT_RACK_HP;
   const isCompact = manifest?.metadata?.rack?.height_mode === 'compact';
   const width = hp * 15 * 1.5;
-  const height = (isCompact ? 210 : 420) * 1.5;
-  const skin = manifest.ui?.skin || 'industrial';
+  const height = (isCompact ? 210 : DEFAULT_PANEL_HEIGHT) * 1.5;
+  const skin = manifest.ui?.skin || DEFAULT_SKIN;
 
   const handleExport = async () => {
     if (!viewportRef.current) return;

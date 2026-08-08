@@ -14,13 +14,23 @@ namespace Wasm {
 
     /**
      * @brief Singleton service for the WAMR (WebAssembly Micro Runtime).
+     *
+     * [Era 8.1] Multi-module: each manifestId keeps its own WAMR module and a
+     * pool of `kInstancesPerModule` instances. The pool is assigned to voices
+     * on demand (round-robin), so a CompiledVoicePlan containing several
+     * generator/processor units (osc + filter + env) executes each module's
+     * own .wasm instead of re-running a single shared module.
      */
     class WasmModuleService {
     public:
         static WasmModuleService& getInstance();
 
+        static constexpr int kMaxSlots = 64;
+        static constexpr int kInstancesPerModule = 16;
+
         /**
-         * @brief Loads a .wasm or .aot module from disk.
+         * @brief Loads a .wasm or .aot module from disk and instantiates a
+         * pool of instances. Re-loading the same manifestId replaces it.
          */
         bool loadModule(const std::string& manifestId, const std::string& path);
 
@@ -31,13 +41,44 @@ namespace Wasm {
 
         /**
          * @brief Executes the process function of a module instance.
+         * Instance is resolved by (manifestId, voiceIdx) with round-robin
+         * assignment across the module's pool.
+         */
+        void process(const std::string& manifestId, int voiceIdx, int unitId, float* buffer, int length);
+
+        /**
+         * @brief Legacy single-module process (used by the global modulation rack).
+         * Resolves the instance from the last loaded module.
          */
         void process(int voiceIdx, int unitId, float* buffer, int length);
 
         /**
          * @brief Dispatches a MIDI event to a module instance.
+         * [P0-2] Single-module legacy path (last loaded module).
          */
         void dispatchMidi(int voiceIdx, uint8_t status, uint8_t d1, uint8_t d2);
+
+        /**
+         * @brief Dispatches a MIDI event to the instance of a SPECIFIC module
+         * (manifestId) bound to a voice. [P0-2] Usado por el puente modular:
+         * el sistema inyecta al módulo midi_in y el render despacha el bus MIDI
+         * de la voz a los midiTargets del plan.
+         */
+        void dispatchMidi(const std::string& manifestId, int voiceIdx,
+                          uint8_t status, uint8_t d1, uint8_t d2);
+
+        /**
+         * [P0-2] Callback de disparo de voz: cuando un módulo publica MIDI
+         * (omega_publish_midi) y el mensaje es NoteOn/NoteOff, el host activa la
+         * voz del engine correspondiente. Registrado por VirtualAnalogEngine en
+         * prepare(). El flujo modular completo queda: sistema → midi_in.omega_on_midi
+         * → omega_publish_midi → (callback) engine.noteOn + bus modularMidi.
+         */
+        using VoiceTriggerCallback = std::function<void(int voiceIdx, uint8_t status, uint8_t d1, uint8_t d2)>;
+        void setVoiceTriggerCallback(VoiceTriggerCallback cb) { m_voiceTriggerCallback = std::move(cb); }
+        void triggerVoice(int voiceIdx, uint8_t status, uint8_t d1, uint8_t d2) {
+            if (m_voiceTriggerCallback) m_voiceTriggerCallback(voiceIdx, status, d1, d2);
+        }
 
         /**
          * @brief Updates environment metadata for WASM modules.
@@ -66,8 +107,11 @@ namespace Wasm {
             return (voiceIdx >= 0 && voiceIdx < 64) ? m_voiceStates[voiceIdx] : nullptr;
         }
 
+        /**
+         * @brief Maps a WAMR instance back to the voice that currently owns it.
+         */
         int findVoiceIdxByInst(wasm_module_inst_t inst) const {
-            for (int i = 0; i < 64; ++i) if (m_instances[i] == inst) return i;
+            for (int i = 0; i < kMaxSlots; ++i) if (m_instances[i] == inst) return m_slotToVoice[i];
             return -1;
         }
 
@@ -92,6 +136,12 @@ namespace Wasm {
             if (m_midiPublishCallback) m_midiPublishCallback(port, status, d1, d2);
         }
 
+        /**
+         * @brief True when a module for manifestId has been loaded and has free
+         * pool capacity to serve a new voice.
+         */
+        bool hasModule(const std::string& manifestId) const { return m_modules.count(manifestId) != 0; }
+
     private:
         WasmModuleService();
         ~WasmModuleService();
@@ -100,13 +150,30 @@ namespace Wasm {
         WasmModuleService(const WasmModuleService&) = delete;
         WasmModuleService& operator=(const WasmModuleService&) = delete;
 
+        struct ModuleRecord {
+            wasm_module_t module = nullptr;
+            std::vector<int> slots;   // slot indices in this module's pool
+            std::vector<int> assigned; // voiceIdx currently assigned to each slot (index-aligned)
+        };
+
+        int acquireSlot(const std::string& manifestId, int voiceIdx);
+        void releaseModule(const std::string& manifestId);
+        void unloadAll();
+
         TerminalLogCallback m_terminalLogCallback;
         MidiPublishCallback m_midiPublishCallback;
+        VoiceTriggerCallback m_voiceTriggerCallback;
+
         // WAMR handles
-        wasm_module_t m_module = nullptr;
-        wasm_module_inst_t m_instances[64]; // 32 voices + 32 global slots
-        wasm_exec_env_t m_execEnvs[64];
+        std::unordered_map<std::string, ModuleRecord> m_modules;
+        std::string m_defaultManifestId; // last loaded module (legacy fallback)
+
+        wasm_module_inst_t m_instances[kMaxSlots];
+        wasm_exec_env_t m_execEnvs[kMaxSlots];
+        bool m_slotUsed[kMaxSlots];
+        int m_slotToVoice[kMaxSlots];      // voiceIdx owning this slot, -1 = none
         void* m_voiceStates[64];
+        std::unordered_map<std::string, int> m_voiceSlot[64]; // voiceIdx -> {manifestId -> slot}
 
         // Memory limits (VA 2.1.W Config)
         static constexpr uint32_t kStackSize = 128 * 1024; // 128KB as requested

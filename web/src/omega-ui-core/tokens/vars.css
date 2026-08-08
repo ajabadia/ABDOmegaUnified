@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /* ═══════════════════════════════════════════════
@@ -59,7 +59,7 @@
     --omega-comp-shadow-y: calc(var(--resolved-shadow-y) * var(--omega-height));
     --omega-comp-shadow-blur: calc(var(--resolved-shadow-blur) * var(--omega-height));
 
-    --primitive-shadow: drop-shadow(var(--omega-comp-shadow-x) var(--omega-comp-shadow-y) var(--omega-comp-shadow-blur) var(--resolved-shadow-color));
+    --primitive-shadow: var(--omega-comp-shadow-x, 0px) var(--omega-comp-shadow-y, 4px) var(--omega-comp-shadow-blur, 4px) var(--resolved-shadow-color, rgba(0, 0, 0, 0.5));
     
     /* MASTER PALETTE REDIRECTION */
     --omega-accent: var(--wb-primary);
@@ -217,7 +217,7 @@
     --primitive-bg-dark: #000;
     --primitive-border-color: #333;
     --primitive-border: 2px solid var(--primitive-border-color);
-    --primitive-shadow: drop-shadow(var(--omega-comp-shadow-x) var(--omega-comp-shadow-y) var(--omega-comp-shadow-blur) var(--omega-shadow-color));
+    --primitive-shadow: var(--omega-comp-shadow-x, 0px) var(--omega-comp-shadow-y, 4px) var(--omega-comp-shadow-blur, 4px) var(--omega-shadow-color, rgba(0, 0, 0, 0.5));
     --primitive-marker-glow: 0 0 8px rgba(0, 240, 255, 0.6);
     --primitive-accent: var(--wb-primary);
     --omega-surface: #1a1c1e;

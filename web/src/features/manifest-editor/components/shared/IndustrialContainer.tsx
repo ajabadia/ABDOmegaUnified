@@ -10,6 +10,7 @@
 
 import type { LayoutContainer, OMEGA_Manifest, ManifestEntity } from '@/omega-ui-core/types/manifest';
 import { CellRenderer } from '@/omega-ui-core/renderers/CellRenderer';
+import { buildCellOptions } from '@/omega-ui-core/renderers/cellOptions';
 import { adaptManifestEntityToNode } from '@/features/manifest-editor/hooks/entities/ucaInspectorAdapter';
  
 interface IndustrialContainerProps {
@@ -84,15 +85,14 @@ export default function IndustrialContainer({
         position: 'relative',
       }}
       dangerouslySetInnerHTML={{
-        __html: CellRenderer.renderCellHTML(adaptManifestEntityToNode(entity), {
+        __html: CellRenderer.renderCellHTML(adaptManifestEntityToNode(entity), buildCellOptions(manifest, {
           skin: 'industrial',
           zoom: 1.0,
           runtimeValue: 0,
           steps: 1,
           isSelected,
-          manifest,
           resolveAsset
-        })
+        }))
       }}
     />
   );

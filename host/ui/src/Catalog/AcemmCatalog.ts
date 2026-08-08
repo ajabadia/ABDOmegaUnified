@@ -1,44 +1,27 @@
 /**
  * OMEGA Era 7.2.3 - ACEMM Catalog & Manifest Resolver
- * Single Source of Truth for offline/fallback module manifests and catalog metadata.
+ * 
+ * FUENTE ÚNICA: los manifiestos canónicos viven en `modules/<id>/<id>.acemm`
+ * (estantería compartida editor + rack). `GENERATED_ACEMM_CATALOG` se deriva
+ * de ellos en build (`node scripts/generate_acemm_catalog.mjs`) — este archivo
+ * ya NO mantiene copias inline de los .acemm.
+ * 
+ * Las entradas LEGACY (oscillator_vA, filter_vA, envelope_adsr, vca, lfo) son
+ * placeholders planos SIN .acemm canónico aún — se conservan como fallback
+ * mientras no exista su manifiesto en modules/.
  */
 import { OmegaLog } from '../RPC/omega_log.js';
 import { resolveRackTarget } from '../Logic/RackRouter.js';
+import { DEFAULT_SKIN, MIN_CHASSIS_WIDTH_PX } from '../../omega-ui-core/uca/panelGeometry.js';
+import { CANONICAL_PALETTE_KEYS } from '../../omega-ui-core/utils/styleResolverDistill.js';
+import { GENERATED_ACEMM_CATALOG } from './acemmCatalog.generated.js';
 
-export const ACEMM_CATALOG: Record<string, any> = {
-  "midi_in": {
-    id: "midi_in",
-    name: "Global MIDI Input",
-    rack: { slot: "upper", hp: 6 },
-    controls: [{ id: "channel", name: "Ch Select", type: "knob" }, { id: "vel", name: "Vel Curve", type: "knob" }],
-    jacks: [{ id: "midi_out", name: "MIDI Out", dataType: "midi", direction: "output" }, { id: "gate_out", name: "Gate Out", dataType: "cv", direction: "output" }]
-  },
-  "midi_trigger": {
-    id: "midi_trigger",
-    name: "MIDI Trigger & Gate",
-    rack: { slot: "upper", hp: 6 },
-    controls: [{ id: "mode", name: "Trig Mode", type: "knob" }, { id: "len", name: "Pulse Len", type: "knob" }],
-    jacks: [
-      { id: "midi_in", name: "MIDI In", dataType: "midi", direction: "input" },
-      { id: "trig_out", name: "Trig Out", dataType: "cv", direction: "output" },
-      { id: "gate_out", name: "Gate Out", dataType: "cv", direction: "output" },
-      { id: "note_out", name: "Note V/Oct", dataType: "cv", direction: "output" }
-    ]
-  },
-  "omega_lab_monitor": {
-    id: "omega_lab_monitor",
-    name: "Omega Telemetry Monitor",
-    rack: { slot: "upper", hp: 8 },
-    controls: [{ id: "timebase", name: "Timebase", type: "knob" }, { id: "scale", name: "V/Div Scale", type: "knob" }],
-    jacks: [{ id: "sig_in", name: "Signal In", dataType: "audio", direction: "input" }, { id: "cv_in", name: "CV In", dataType: "cv", direction: "input" }]
-  },
-  "test_parity": {
-    id: "test_parity",
-    name: "Era 7 Parity Test",
-    rack: { slot: "lower", hp: 12 },
-    controls: [{ id: "freq", name: "Frequency", type: "knob" }, { id: "resonance", name: "Resonance", type: "knob" }, { id: "drive", name: "Drive", type: "knob" }],
-    jacks: [{ id: "audio_in", name: "Audio In", dataType: "audio", direction: "input" }, { id: "audio_out", name: "Audio Out", dataType: "audio", direction: "output" }]
-  },
+/**
+ * Entradas legacy planas sin .acemm canónico (pendientes de promoción a modules/).
+ * No drift: no tienen contrapartida de archivo; su forma plana alimenta el
+ * normalizador (controls/jacks → ui block).
+ */
+const LEGACY_ACEMM_ENTRIES: Record<string, any> = {
   "oscillator_vA": {
     id: "oscillator_vA",
     name: "Analog Oscillator (VCO)",
@@ -116,6 +99,138 @@ export const ACEMM_CATALOG: Record<string, any> = {
   }
 };
 
+/** Catálogo combinado: canónico (generado desde modules/) + legacy planos. */
+export const ACEMM_CATALOG: Record<string, any> = {
+  ...GENERATED_ACEMM_CATALOG,
+  ...LEGACY_ACEMM_ENTRIES,
+};
+
+/**
+ * Canonical render components understood by omega-ui-core CellRenderer.
+ * Used to upgrade legacy `type` strings from the flat catalog into
+ * presentation.component hints that flatToTree / CellRenderer accept.
+ */
+const CONTROL_COMPONENTS: Record<string, string> = {
+  knob: 'knob',
+  slider: 'slider-v',
+  'slider-v': 'slider-v',
+  'slider-h': 'slider-h',
+  button: 'button',
+  switch: 'switch',
+  toggle: 'toggle',
+  led: 'led',
+  display: 'display',
+  stepper: 'stepper',
+  fader: 'fader',
+};
+
+/**
+ * Spreads an item list into a deterministic grid within the panel bounds.
+ * Returns the items enriched with pos + presentation (component/size) so that
+ * flatToTree can place them on MAIN_FACE instead of stacking them at (0,0).
+ */
+function layoutItems(
+  items: any[],
+  width: number,
+  height: number,
+  opts: { cols?: number; startY: number; rowStep: number; size: number; component: string | ((item: any) => string); role?: string; type?: string }
+): any[] {
+  const n = items.length || 0;
+  if (n === 0) return [];
+  const cols = opts.cols ?? n;
+  const rows = Math.max(1, Math.ceil(n / cols));
+  const perRow = Math.ceil(n / rows);
+
+  return items.map((item, i) => {
+    const row = Math.floor(i / perRow);
+    const col = i % perRow;
+    const colsInRow = Math.min(perRow, n - row * perRow);
+    const xStep = width / (colsInRow + 1);
+    const size = opts.size;
+    const component = typeof opts.component === 'function' ? opts.component(item) : opts.component;
+    return {
+      ...item,
+      role: opts.role,
+      type: opts.type,
+      pos: { x: Math.round(xStep * (col + 1) - size / 2), y: Math.round(opts.startY + row * opts.rowStep) },
+      presentation: {
+        component,
+        size: { width: size, height: size },
+      },
+    };
+  });
+}
+
+/**
+ * Inyecta la paleta canónica (chassis/hardware/knob tokens) en `ui` IN-PLACE
+ * cuando el ACEMM no la define. Sin esto, ColorResolver.resolve('chassis')
+ * devuelve 'transparent' y el rack se ve sin fondo. In-place para que
+ * normalizeCatalogManifest siga siendo idempotente por referencia.
+ */
+function ensureCanonicalPalette(ui: any): void {
+  if (ui.palette && Object.keys(ui.palette).length > 0) return;
+  const existing = ui.colors || {};
+  ui.palette = { ...CANONICAL_PALETTE_KEYS, ...existing };
+}
+
+/**
+ * Wraps a flat catalog entry (top-level controls/jacks, no `ui` block) into a
+ * normalized manifest that flatToTree / ManifestRenderer can consume:
+ * - metadata.rack  → resolved by resolvePanelGeometry (units/hp → chassis size)
+ * - ui.dimensions  → bounds used by flatToTree for the tree
+ * - ui.controls/ui.jacks → enriched with pos + presentation.component/size
+ *
+ * Idempotent: manifests that already carry a usable ui block are returned as-is.
+ */
+export function normalizeCatalogManifest(entry: any): any {
+  if (!entry) return entry;
+
+  if (entry.ui && (entry.ui.tree || Array.isArray(entry.ui.controls) || Array.isArray(entry.ui.jacks) || Array.isArray(entry.ui.items))) {
+    ensureCanonicalPalette(entry.ui);
+    return entry;
+  }
+
+  const slot = entry.rack?.slot === 'upper' ? 'upper' : 'lower';
+  const hp = Number(entry.rack?.hp) || 8;
+  const units = slot === 'upper' ? '1U' : '3U';
+  const width = Math.max(hp * 15, MIN_CHASSIS_WIDTH_PX);
+  const height = slot === 'upper' ? 144 : 432;
+
+  const controls = layoutItems(entry.controls || [], width, height, {
+    cols: slot === 'upper' ? (entry.controls?.length || 1) : 3,
+    startY: slot === 'upper' ? height - 52 : height - 320,
+    rowStep: slot === 'upper' ? 40 : 56,
+    size: slot === 'upper' ? 24 : 28,
+    component: (c: any) => CONTROL_COMPONENTS[c.type] || 'knob',
+  });
+
+  const jacks = layoutItems(entry.jacks || [], width, height, {
+    cols: entry.jacks?.length || 1,
+    startY: slot === 'upper' ? height - 24 : height - 42,
+    rowStep: 0,
+    size: slot === 'upper' ? 18 : 20,
+    component: 'port',
+    role: 'io',
+    type: 'jack',
+  });
+
+  return {
+    ...entry,
+    metadata: {
+      ...(entry.metadata || {}),
+      rack: { hp, units, slot },
+    },
+    ui: {
+      skin: entry.ui?.skin || DEFAULT_SKIN,
+      palette: { ...CANONICAL_PALETTE_KEYS, ...(entry.ui?.palette || {}), ...(entry.ui?.colors || {}) },
+      dimensions: { width, height },
+      controls,
+      jacks,
+      layout: { width, height, gridSnap: 1, containers: [] },
+    },
+  };
+}
+
 /**
  * Fetches or resolves a module manifest by ID from schemaStore or ACEMM_CATALOG.
  */
@@ -123,13 +238,9 @@ export async function getOrFetchManifest(id: string): Promise<any> {
   if (!id) return null;
   const win = window as any;
   let manifest = win.schemaStore?.getSchema(id);
-  
+
   if (!manifest && ACEMM_CATALOG[id]) {
     manifest = ACEMM_CATALOG[id];
-    // Register into schemaStore if available so ModuleManager finds it
-    if (win.schemaStore && typeof win.schemaStore.registerSchema === 'function') {
-      win.schemaStore.registerSchema(id, manifest);
-    }
   }
 
   if (!manifest) {
@@ -141,6 +252,18 @@ export async function getOrFetchManifest(id: string): Promise<any> {
       jacks: [{ id: "in1", name: "In 1", dataType: "audio", direction: "input" }, { id: "out1", name: "Out 1", dataType: "audio", direction: "output" }]
     };
   }
+
+  // Always normalize (idempotent): upgrades bare schemas from schemaStore and
+  // catalog entries into ui-block manifests that flatToTree / ManifestRenderer
+  // / ModuleRenderer can consume. No-op for already-normalized manifests.
+  manifest = normalizeCatalogManifest(manifest);
+
+  // Re-register so ModuleManager / ModuleRegistry / future getSchema() consumers
+  // receive the normalized (enriched) manifest instead of the bare schema.
+  if (win.schemaStore && typeof win.schemaStore.registerSchema === 'function') {
+    win.schemaStore.registerSchema(id, manifest);
+  }
+
   return manifest;
 }
 

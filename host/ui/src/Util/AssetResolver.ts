@@ -4,7 +4,7 @@
  */
 export class AssetResolver {
     /**
-     * Resolves a local module path to a full virtual URL handled by the C++ host.
+     * Resolves a local module path to a full virtual URL handled by the C++ host or web standalone.
      * @param moduleId The canonical ID of the module.
      * @param path The relative path inside the module directory (e.g., 'illustration.svg').
      */
@@ -12,27 +12,37 @@ export class AssetResolver {
         if (!path || !moduleId) return undefined;
 
         // 1. Return if already a full URL or data URI
-        if (path.startsWith('http') || path.startsWith('blob:') || path.startsWith('data:')) {
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) {
             return path;
-        }
-
-        // 1.5. Handle asset:// protocol (VFS Era 7.2.3)
-        if (path.startsWith('asset://')) {
-            const assetPath = path.substring(8);
-            return `https://juce.localhost/modules/${moduleId}/${assetPath}`;
         }
 
         // 2. Clean up relative indicators (./logo.svg -> logo.svg)
         const cleanPath = path.startsWith('./') ? path.substring(2) : path;
+        const assetPath = path.startsWith('asset://') ? path.substring(8) : cleanPath;
 
-        // 3. Construct the virtual localhost URL (handled by OmegaWebViewComponent)
-        return `https://juce.localhost/modules/${moduleId}/${cleanPath}`;
+        // 3. Detect JUCE C++ Web View vs Web Standalone Browser
+        const isJuce = typeof window !== 'undefined' && 
+            (!!(window as any).__JUCE__ || window.location.hostname === 'juce.localhost');
+
+        if (isJuce) {
+            return `https://juce.localhost/modules/${moduleId}/${assetPath}`;
+        }
+
+        // Web Standalone Browser Fallback (Use absolute root-relative paths starting with /)
+        if (assetPath.startsWith('assets/modules/') || assetPath.startsWith('modules/')) {
+            return `/${assetPath.replace(/^\/+/, '')}`;
+        }
+        return `/modules/${moduleId}/${assetPath}`;
     }
 
     /**
      * Resolves a global UI asset path.
      */
     static resolveGlobal(path: string): string {
-        return path; // Standard relative paths from root for global UI assets
+        if (!path) return '';
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:') || path.startsWith('/')) {
+            return path;
+        }
+        return `/${path}`;
     }
 }

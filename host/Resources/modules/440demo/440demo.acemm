@@ -1,0 +1,92 @@
+schemaVersion: "7.2.3"
+id: 440demo
+metadata:
+  name: 440 DEMO
+  family: utility
+  version: 1.0.0
+  rack: { hp: 4, height_mode: "1U" }
+params:
+  enabled:
+    label: Enable Tone
+    min: 0
+    max: 1
+    default: 1
+    choices:
+      - { label: OFF, value: 0 }
+      - { label: ON, value: 1 }
+  amplitude:
+    label: Amplitude
+    min: 0.0
+    max: 1.0
+    default: 0.5
+    exponent: 2
+    units: ""
+  led_rate:
+    label: LED Rate
+    min: 1.0
+    max: 30.0
+    default: 8.0
+    exponent: 1
+    units: hz
+ui:
+  dimensions: { width: 60, height: 140 }
+  skin: industrial
+  layout:
+    containers:
+      - id: main
+        label: Tone
+        pos: { x: 5, y: 5 }
+        size: { w: 50, h: 130 }
+        variant: panel
+  controls:
+    - id: sw_enable
+      bind: enabled
+      pos: { x: 30, y: 15 }
+      presentation:
+        container: main
+        component: switch
+        variant: cyan
+        size: { w: 24, h: 40 }
+        attachments: [{ type: label, text: "ON" }]
+
+    - id: led_act
+      bind: led_activity
+      pos: { x: 30, y: 75 }
+      presentation:
+        container: main
+        component: led
+        variant: orange
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "ACT" }]
+
+    - id: port_out
+      bind: audio_out
+      pos: { x: 30, y: 110 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "OUT" }]
+
+    # Params de configuración del contrato (amplitud del tono y cadencia del
+    # LED). Componente hidden: son nodos lógicos del manifiesto — editables
+    # desde el frontal (inspector/RPC) sin ocupar el panel mínimo 4HP. Posición
+    # fuera del área visible del panel (no renderizan nada).
+    - id: k_amplitude
+      bind: amplitude
+      pos: { x: 30, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+
+    - id: k_led_rate
+      bind: led_rate
+      pos: { x: 30, y: 140 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+resources:
+  wasm: 440demo.wasm

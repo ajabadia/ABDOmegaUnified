@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -20,9 +20,9 @@
  * Logic for stacking and positioning orbitant attachments around a central component.
  */
  
-import type { Attachment, OMEGA_Manifest } from '../../types/manifest.js';
-import { AttachmentRenderer } from '../AttachmentRenderer.js';
-import { ColorResolver } from '../../utils/ColorResolver.js';
+import type { Attachment, OMEGA_Manifest } from '../../types/manifest';
+import { AttachmentRenderer } from '../AttachmentRenderer';
+import { ColorResolver } from '../../utils/ColorResolver';
  
 export interface StackOptions {
   runtimeValue: number;

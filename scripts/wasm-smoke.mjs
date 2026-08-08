@@ -1,11 +1,14 @@
 /**
- * Runtime smoke test for the 3 regenerated OMEGA WASM modules.
+ * Runtime smoke test for the 4 OMEGA WASM modules.
  *
  * Validates the exact path the user asked to check: that midi_in /
- * midi_trigger / omega_lab_monitor instantiate without
+ * midi_trigger / omega_lab_monitor / 440demo instantiate without
  * WebAssembly.instantiate errors, run their constructors, expose a valid
  * self-descriptive contract (omega_get_contract) and exercise the basic
  * host API (init / process / on_midi / on_param).
+ *
+ * NOTE: the 440demo's tone is verified in depth (440 Hz, switch ON default,
+ * LED ~8 Hz oscillating) by scripts/verify_440demo_runtime.mjs.
  *
  * Import object follows the Emscripten PIC convention used by the real
  * dynamic linker: __memory_base / __table_base are immutable, while
@@ -33,6 +36,7 @@ const MODULES = [
   { id: 'midi_in', file: 'web/public/wasm/midi_in.wasm' },
   { id: 'midi_trigger', file: 'web/public/wasm/midi_trigger.wasm' },
   { id: 'omega_lab_monitor', file: 'web/public/wasm/omega_lab_monitor.wasm' },
+  { id: '440demo', file: 'web/public/wasm/440demo.wasm' },
 ];
 
 function readCString(memory, ptr) {

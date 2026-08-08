@@ -220,20 +220,56 @@ export class OMEGA_PresetBrowser {
             li.innerHTML = `<span class="preset-name">${p.name}</span>`;
             if (p.favorite) li.innerHTML += `<span class="preset-fav active">★</span>`;
 
+            // [P2-4] Botón borrar SOLO para presets de usuario (los de fábrica
+            // son programáticos, no borrables). Dispara deletePreset y refresca.
+            const isFactory = (lib.name.toUpperCase() === 'FACTORY' || p.category === 'Factory');
+            if (!isFactory) {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'preset-delete';
+                delBtn.title = 'Delete preset';
+                delBtn.textContent = '🗑';
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // No seleccionar el preset al borrar
+                    this.deletePreset(p.name);
+                });
+                li.appendChild(delBtn);
+            }
+
             li.onclick = () => this.selectPreset(idx);
             list.appendChild(li);
         });
     }
 
+    /**
+     * [P2-4] Elimina un preset de usuario del disco (RPC deletePreset →
+     * PatchRepository::remove). Los patches de fábrica no tienen botón.
+     */
+    public async deletePreset(name: string) {
+        if (!confirm(`¿Eliminar el preset "${name}"?`)) return;
+
+        const dispatcher = (window as any).rpcCommandDispatcher;
+        if (dispatcher) {
+            await dispatcher.dispatch({ type: 'deletePreset', payload: { target: name } });
+        }
+        this.selectedPresetIdx = -1;
+        await this.refresh();
+    }
+
     private async selectPreset(idx: number) {
         this.selectedPresetIdx = idx;
-        
-        // [Era 6] Unified Dispatch
+
+        const lib = this.data.libraries[this.selectedLibIdx];
+        const patch = lib?.patches[idx];
+        if (!patch) return;
+
+        // [P0-3] Unified Dispatch: el host carga el preset por nombre desde el
+        // repositorio a disco (los patches de fábrica que no están a disco
+        // cargan el patch inicial).
         const dispatcher = (window as any).rpcCommandDispatcher;
         if (dispatcher) {
             await dispatcher.dispatch({ 
                 type: 'loadPreset', 
-                value: { libIdx: this.selectedLibIdx, prstIdx: idx } 
+                payload: { target: patch.name } 
             });
         }
         

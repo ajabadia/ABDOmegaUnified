@@ -12,6 +12,7 @@ import { useState, useMemo, useCallback } from 'react';
 import type { ManifestEntity, OMEGA_Manifest } from '@/omega-ui-core/types/manifest';
 import type { AssetBehavior, LayerRecipe } from '@/omega-ui-core/types/assetBehavior';
 import { CellRenderer } from '@/omega-ui-core/renderers/CellRenderer';
+import { buildCellOptions } from '@/omega-ui-core/renderers/cellOptions';
 import { entityToNode } from '@/omega-ui-core/utils/entityToNode';
 import { BehaviorResolver } from '@/omega-ui-core/utils/behaviorResolver';
 
@@ -106,7 +107,7 @@ export function useCellStudioPreview({
   // ── Preview HTML ────────────────────────────────────────────────────
   const previewHTML = useMemo<string>(() => {
     try {
-      return CellRenderer.renderCellHTML(entityToNode(cellData), {
+      return CellRenderer.renderCellHTML(entityToNode(cellData), buildCellOptions(mockManifest, {
         zoom: 2.5,
         runtimeValue: testValue,
         forceFrame: resolved.frame,
@@ -114,12 +115,11 @@ export function useCellStudioPreview({
         skin:
           ((mockManifest.ui as OMEGA_Manifest['ui'] & { skin?: string })?.skin) ||
           'standard',
-        manifest: mockManifest,
         resolveAsset: resolveAsset || ((id: string | undefined) => id),
         recipe: soloLayerId
           ? { ...recipe, layers: recipe.layers.filter((l) => l.id === soloLayerId) }
           : recipe,
-      });
+      }));
     } catch (e) {
       return `<div class="p-4 text-[8px] text-red-500 font-mono">RENDER_ERROR: ${e}</div>`;
     }

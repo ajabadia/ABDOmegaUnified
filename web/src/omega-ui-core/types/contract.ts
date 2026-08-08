@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -14,6 +14,22 @@
  * @fingerprint exports:1,imports:0,sig:new
  * @lastUpdated 2026-06-22
  */
+
+/**
+ * Spec declarativa de un parámetro del módulo (bloque `params:` del `.acemm`).
+ * Esquema WAM: complementa el contrato embebido con metadatos de interactividad
+ * (exponent/log-scale, unidades, choices) que el host usa para renderizar el
+ * control ligado (knob/slider/select).
+ */
+export interface OmegaParamSpec {
+  label?: string | undefined;
+  min: number;
+  max: number;
+  default: number;
+  exponent?: number | undefined;
+  units?: string | undefined;
+  choices?: Array<{ label: string; value: number }> | undefined;
+}
 
 export interface OmegaContract {
   omega_version: string;
@@ -34,4 +50,5 @@ export interface OmegaContract {
     direction: 'input' | 'output';
   }>;
   firmwareHash?: string;
+  params?: Record<string, OmegaParamSpec> | undefined;
 }

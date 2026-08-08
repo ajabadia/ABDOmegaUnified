@@ -16,6 +16,7 @@ import { Wand2, X, Save, RefreshCcw, ShieldCheck, Box, Layout } from 'lucide-rea
 import type { OMEGA_Manifest, ManifestEntity, StyleVariant, LayoutContainer, OmegaStyleNode } from '@/omega-ui-core/types/manifest';
 import IndustrialGovernanceConsole from './IndustrialGovernanceConsole';
 import { CellRenderer } from '@/omega-ui-core/renderers/CellRenderer';
+import { buildCellOptions } from '@/omega-ui-core/renderers/cellOptions';
 import { useDesignTokens } from '@/omega-ui-core/hooks/useDesignTokens';
 import { getElementDefinition } from '@/omega-ui-core/governance/ElementCatalog';
 import IndustrialContainer from '../../shared/IndustrialContainer';
@@ -84,14 +85,13 @@ function CanonicalStylePreview({
     <div className="relative scale-[2.0] flex items-center justify-center text-white forced-dark-context">
        <div 
           dangerouslySetInnerHTML={{ 
-            __html: CellRenderer.renderCellHTML(adaptManifestEntityToNode(phantomEntity), {
+            __html: CellRenderer.renderCellHTML(adaptManifestEntityToNode(phantomEntity), buildCellOptions(manifest, {
               skin: 'industrial',
               zoom: 1.0,
               runtimeValue: 0.5,
               steps: 100,
-              manifest,
               resolveAsset
-            }) 
+            })) 
           }}
        />
     </div>

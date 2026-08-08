@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import { OmegaRPC } from '../src/RPC/omega_rpc.js';
 import { FakeHostBridge } from './FakeHostBridge.js';
 
@@ -7,6 +7,10 @@ describe('OMEGA Era 7.2.3 - RPC Contract Validation', () => {
   let host: FakeHostBridge;
 
   beforeEach(() => {
+    // Limpiar el health-monitor (setInterval 2s) de la instancia anterior —
+    // cada new OmegaRPC() arranca uno nuevo y sin esto quedarían leaks.
+    if (rpc) clearInterval((rpc as any).healthTimer);
+
     // 1. Setup Fake Host
     host = new FakeHostBridge();
     
@@ -15,6 +19,11 @@ describe('OMEGA Era 7.2.3 - RPC Contract Validation', () => {
 
     // 3. Connect them
     host.setCallback((window as any).handleOmegaMessage);
+  });
+
+  afterAll(() => {
+    // Limpiar el health-monitor de la última instancia al terminar la suite.
+    if (rpc) clearInterval((rpc as any).healthTimer);
   });
 
   describe('Connection & Bootstrap', () => {

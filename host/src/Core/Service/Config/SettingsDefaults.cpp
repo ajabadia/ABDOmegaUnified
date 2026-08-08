@@ -15,11 +15,16 @@ namespace Omega::Core::Service {
         std::vector<SettingDef> defs;
 
         SettingDef voices;
-        voices.id = "polyphony";
+        // [P0-1] Unificado con el YAML (system_settings.yaml): el ID canónico es
+        // "numVoices" (el que lee SystemSettingsManager::getNumVoices y la UI web
+        // calibration-data.ts). El duplicado legacy "polyphony" (max 32) se
+        // elimina: el YAML prevalece con max 16 = tamaño del array de voces del
+        // engine (kMaxVoices), y este fallback solo actúa si el YAML no existe.
+        voices.id = "numVoices";
         voices.label = "Polyphony (Voices)";
-        voices.defaultValue = 8.0f;
+        voices.defaultValue = 16.0f;
         voices.minValue = 1.0f;
-        voices.maxValue = 32.0f;
+        voices.maxValue = 16.0f;
         voices.isInteger = true;
         voices.category = "ENGINE";
         defs.push_back(voices);
@@ -65,15 +70,34 @@ namespace Omega::Core::Service {
         return defs;
     }
 
+    juce::File SettingsDefaults::resolveSystemSettingsYaml(const juce::File& exeFile, const juce::File& cwd) {
+        // [P1-2] Resolución relativa al exe (patrón del catálogo en prepareToPlay):
+        // se sube por los ancestros del exe buscando Resources/system_settings.yaml
+        // (el exe vive en build/src/Plugin/omega_plugin_artefacts/Release/ y
+        // Resources/ está en host/ — 5-6 niveles por encima). La ruta absoluta
+        // legacy "d:/desarrollos/ABDOmega/..." se elimina: no existía en
+        // ABDOmegaUnified y el fallback silencioso devolvía defaults sin metadata.
+        juce::File dir = exeFile.getParentDirectory();
+        int levelsSearched = 0;
+        while (levelsSearched < 15 && !dir.isRoot()) {
+            juce::File candidate = dir.getChildFile("Resources").getChildFile("system_settings.yaml");
+            if (candidate.existsAsFile()) return candidate;
+            dir = dir.getParentDirectory();
+            ++levelsSearched;
+        }
+
+        // Último recurso: cwd (p. ej. builds donde se lanza el exe desde la raíz).
+        juce::File cwdCandidate = cwd.getChildFile("Resources").getChildFile("system_settings.yaml");
+        if (cwdCandidate.existsAsFile()) return cwdCandidate;
+
+        return juce::File();
+    }
+
     void SettingsDefaults::mergeYamlMetadata(std::vector<SettingDef>& defs) {
         // --- 2. Load Metadata from YAML (Externalized) ---
-        juce::File exeFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile);
-        juce::File yamlFile = exeFile.getSiblingFile("Resources").getChildFile("system_settings.yaml");
-
-        // Fallback for Debug builds (if Resources is in root)
-        if (!yamlFile.exists()) {
-            yamlFile = juce::File("d:/desarrollos/ABDOmega/Resources/system_settings.yaml");
-        }
+        const juce::File exeFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile);
+        const juce::File cwd = juce::File::getCurrentWorkingDirectory();
+        const juce::File yamlFile = resolveSystemSettingsYaml(exeFile, cwd);
 
         if (!yamlFile.existsAsFile()) return;
 

@@ -7,7 +7,8 @@
  *
  * Discriminador de aridad: en la ruta 2-arg el ModuleInstantiator hace
  * `new Factory(content, options.manifest)` donde `content` es el div
- * `.module-content`. Por tanto, el panel renderizado (`.module-panel`)
+ * `.module-content`. Por tanto, el panel renderizado por ModuleRenderer
+ * (que delega SIEMPRE en ManifestRenderer -> `.omega-module-chassis`)
  * debe quedar DENTRO de `.module-content`. Si la aridad estuviera rota
  * (ruta 3-arg `new Factory(el, content, options)`), el render caería en el
  * wrapper `#mod-*` y `.module-content` quedaría vacío o sería destruido.
@@ -88,7 +89,8 @@ describe('bundle.js arity smoke test (real artifact)', () => {
 
     afterAll(() => {
         // Limpieza: detener el health monitor (setInterval 2s) que OmegaRPC dejó vivo.
-        clearInterval((window as any).omegaRPC?.healthTimer);
+        const timer = (window as any).omegaRPC?.healthTimer;
+        if (timer) clearInterval(timer);
     });
 
     it('ModuleRenderer se registra con constructor de 2 args (content, options)', () => {
@@ -106,10 +108,10 @@ describe('bundle.js arity smoke test (real artifact)', () => {
 
     it('ARIDAD: el panel renderizado queda dentro de .module-content (ruta 2-arg)', () => {
         // Discriminador de aridad real:
-        //  - 2-arg: content = div .module-content -> render() lo puebla con .module-panel
+        //  - 2-arg: content = div .module-content -> render() lo puebla con .omega-module-chassis
         //  - 3-arg roto: content = wrapper #mod-* -> .module-content vacío o destruido
         expect(moduleContent).not.toBeNull();
-        expect(moduleContent!.innerHTML).toContain('module-panel');
+        expect(moduleContent!.innerHTML).toContain('omega-module-chassis');
     });
 
     it('el panel renderizado NO reemplazó el wrapper del módulo', () => {

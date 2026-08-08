@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -27,10 +27,11 @@ import type {
   CellTemplate,
   BlueprintPlaceholderValues,
   OmegaBlueprintNode
-} from '../types/manifest.js';
-import { manifestToTree as legacyMigrator } from './converters/manifestToTree.js';
-import { treeToManifest as legacySerializer } from './converters/treeToManifest.js';
-import { resolvePath, normalizeModulationTarget } from './utils/pathResolver.js';
+} from '../types/manifest';
+import { manifestToTree as legacyMigrator } from './converters/manifestToTree';
+import { treeToManifest as legacySerializer } from './converters/treeToManifest';
+import { flatToTree as flatToTreeConverter } from './converters/flatToTree';
+import { resolvePath, normalizeModulationTarget } from './utils/pathResolver';
 
 /**
  * formalizeUCA (Internal Gateway)
@@ -315,4 +316,6 @@ export function omegaTreeToManifest(tree: OmegaNode): Partial<OMEGA_Manifest> {
 
 export { legacyMigrator as _rawManifestToTree };
 export { legacySerializer as _rawTreeToManifest };
-export { congealSnapshot } from './treeUtils.js';
+export { flatToTreeConverter as flatToTree };
+export type { RuntimeFlatItem, RuntimeFlatContainer, RuntimeFlatManifest } from './converters/flatToTree';
+export { congealSnapshot } from './treeUtils';

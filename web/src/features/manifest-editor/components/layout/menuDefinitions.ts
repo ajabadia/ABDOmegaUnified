@@ -10,16 +10,42 @@
  * @lastUpdated 2026-06-20T09:40:12.974Z
  */
 
-import type { MenuCategory } from './menuTypes';
+import type { MenuCategory, MenuItemData } from './menuTypes';
 import type { MenuBarProps } from './MenuBar';
+import { SharedModuleCatalogService } from '@/services/sharedModuleCatalog';
 import {
   FileCode, Package, Layers, Camera, Zap, FolderOpen,
   Cpu, Database, Image as ImageIcon, LogOut, Undo2,
   Redo2, Terminal, HelpCircle, Shield, Settings, Layout, History,
   Sliders, Grid3X3, Ruler, Download, Map,
   Scale, Rotate3D, ClipboardCopy, ClipboardPaste, AlignStartVertical, AlignEndVertical,
-  Copy, Scissors,
+  Copy, Scissors, Braces,
 } from 'lucide-react';
+
+/**
+ * Submenu de estantería: se deriva del catálogo compartido (modules/), nunca de
+ * listas fijas. Cada módulo ofrece cargar su manifiesto y, si existe .cpp, ver el
+ * código fuente.
+ */
+function buildShelfSubmenu(): MenuItemData[] {
+  return SharedModuleCatalogService.getCatalog().map((entry) => ({
+    label: `${entry.name} (${entry.id})`,
+    icon: Cpu,
+    submenu: [
+      {
+        label: 'Load Manifest',
+        icon: FileCode,
+        onClick: () => (window as unknown as { __omegaLoadShelfModule?: (id: string) => void }).__omegaLoadShelfModule?.(entry.id),
+      },
+      {
+        label: entry.hasSource ? 'View Source Code (.cpp)' : 'No source (.cpp)',
+        icon: Braces,
+        disabled: !entry.hasSource,
+        onClick: () => (window as unknown as { __omegaViewModuleSource?: (id: string) => void }).__omegaViewModuleSource?.(entry.id),
+      },
+    ],
+  }));
+}
 
 /** Build the full menu structure from MenuBar props */
 export function buildMenuItems(props: MenuBarProps): MenuCategory[] {
@@ -43,12 +69,7 @@ export function buildMenuItems(props: MenuBarProps): MenuCategory[] {
           icon: FolderOpen,
           submenu: [
             { label: 'Open .omega Project', icon: Package, onClick: () => (window as unknown as { __omegaLoadProject?: () => void }).__omegaLoadProject?.(), shortcut: 'Ctrl+O' },
-            { label: 'Open Shelf Module (/modules)', icon: Cpu, submenu: [
-              { label: 'GLOBAL MIDI INPUT (midi_in)', icon: FileCode, onClick: () => (window as any).__omegaLoadShelfModule?.('midi_in') },
-              { label: 'MIDI TRIGGER (midi_trigger)', icon: FileCode, onClick: () => (window as any).__omegaLoadShelfModule?.('midi_trigger') },
-              { label: 'OMEGA LAB MONITOR (omega_lab_monitor)', icon: FileCode, onClick: () => (window as any).__omegaLoadShelfModule?.('omega_lab_monitor') },
-              { label: '00-TEST-PARITY (test_parity)', icon: FileCode, onClick: () => (window as any).__omegaLoadShelfModule?.('test_parity') },
-            ]},
+            { label: 'Open Shelf Module (/modules)', icon: Cpu, submenu: buildShelfSubmenu() },
             { label: 'Import Distilled .json', icon: FileCode, onClick: () => props.onImportDistilledJson?.() },
             { label: 'Ingest Module Folder', icon: FolderOpen, onClick: () => props.onTriggerUpload('folder-upload') },
             { label: 'WASM', icon: Cpu, onClick: () => props.onTriggerUpload('bulk-upload') },

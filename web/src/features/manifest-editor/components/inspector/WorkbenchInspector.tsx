@@ -118,6 +118,19 @@ export function WorkbenchInspector({
     return (props.manifest.entities as unknown as OmegaNode[])?.find(e => e.id === pinnedNodeId);
   }, [pinnedNodeId, props.manifest]);
 
+  // Spec declarativa de parámetros (bloque `params:` del .acemm). Escritura
+  // shallow-merge en manifest.params vía onUpdateManifest (como updateManifest).
+  const handleUpdateParams = React.useCallback((id: string, updates: Partial<import('@/omega-ui-core/types/contract').OmegaParamSpec>) => {
+    props.onUpdateManifest({
+      params: {
+        ...(props.manifest.params || {}),
+        [id]: { ...((props.manifest.params || {})[id] || {}), ...updates },
+      },
+    });
+  }, [props.onUpdateManifest, props.manifest.params]);
+
+  const paramSpecs = props.manifest?.params;
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[#0d0d0d]">
       <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -137,6 +150,8 @@ export function WorkbenchInspector({
                     onPin={() => onTogglePin(null)}
                     isPinned={true}
                     onUpdate={handleUpdate}
+                    paramSpecs={paramSpecs}
+                    onUpdateParams={handleUpdateParams}
                   />
                </div>
             )}
@@ -186,6 +201,8 @@ export function WorkbenchInspector({
                     onPin={() => onTogglePin(props.selectedItemId)}
                     isPinned={pinnedNodeId === props.selectedItemId}
                     onUpdate={handleUpdate}
+                    paramSpecs={paramSpecs}
+                    onUpdateParams={handleUpdateParams}
                   />
                 );
               })()}

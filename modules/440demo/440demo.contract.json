@@ -1,0 +1,46 @@
+{
+  "version": "7.0",
+  "id": "440demo",
+  "name": "440 Hz Test Tone",
+  "parameters": [
+    {
+      "id": "enabled",
+      "label": "Enable",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "unit": "bin"
+    },
+    {
+      "id": "amplitude",
+      "label": "Amplitude",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "unit": "amp"
+    },
+    {
+      "id": "led_rate",
+      "label": "LED Rate",
+      "min": 1,
+      "max": 30,
+      "default": 8,
+      "unit": "hz"
+    }
+  ],
+  "ports": [
+    {
+      "id": "audio_out",
+      "label": "Tone Out",
+      "direction": "output",
+      "type": "audio"
+    },
+    {
+      "id": "led_activity",
+      "label": "Activity",
+      "direction": "output",
+      "type": "led"
+    }
+  ],
+  "family": "utility"
+}

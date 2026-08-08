@@ -29,7 +29,7 @@
     border-bottom: 1px solid #111;
     box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     position: relative;
-    background-color: var(--wb-bg-deep);
+    background-color: var(--wb-bg);
 }
 
 .module-canvas {
@@ -99,4 +99,28 @@
 
 /* ERA 7.2.3 — UNIFIED RENDERER BRIDGE */
 /* All component styling is now delegated to omega-ui-core */
+
+@keyframes omega-spinner-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.module-loader-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 14, 23, 0.94);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.4s ease-out;
+}
+
+.module-loader-overlay.dismissed {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 

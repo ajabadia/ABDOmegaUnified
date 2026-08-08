@@ -6,12 +6,14 @@
 import { OmegaLog } from '../RPC/omega_log.js';
 import { type ModuleDescriptor } from '../Contracts/ModuleContract.js';
 import { ControlBinder } from '../Logic/ControlBinder.js';
-import { buildPanelHTML } from './templates.js';
+import { ManifestRenderer } from './ManifestRenderer.js';
 import { getRegistryEntity } from './ValueFormatters.js';
+import { normalizeCatalogManifest } from '../Catalog/AcemmCatalog.js';
 import { subscribeToTelemetry, updateTelemetryUI } from './TelemetrySync.js';
 import { updateControlUI } from './ControlUIUpdater.js';
 import { injectResources } from './FontInjector.js';
 import { VisualizerEngine } from './Visualizers.js';
+import { dismissLoaderOverlay } from '../Util/moduleLoader.js';
 
 export class ModuleRenderer {
     private content: HTMLElement;
@@ -21,11 +23,14 @@ export class ModuleRenderer {
     private activeTab: string = 'MAIN';
     private binder: ControlBinder;
     private visualizers: VisualizerEngine;
-    private readonly RENDER_SCALE: number = 1.5;
 
     constructor(content: HTMLElement, options: any) {
         this.content = content;
-        this.descriptor = options.manifest || options;
+        // Defensive: bare schemas coming straight from schemaStore (ModuleManager
+        // path) carry no `ui` block. Normalize (idempotent) so buildPanelHTML and
+        // ManifestRenderer receive controls/jacks + positions. No-op for
+        // already-normalized manifests (ui.tree / ui.controls / ui.jacks / ui.items).
+        this.descriptor = normalizeCatalogManifest(options.manifest || options);
         this.binder = new ControlBinder(this, this.values);
         this.visualizers = new VisualizerEngine();
 
@@ -41,7 +46,6 @@ export class ModuleRenderer {
     async init(): Promise<void> {
         injectResources(this.descriptor);
         this.render();
-        this.bind();
         this.visualizers.init(this.content);
         this.isInitialized = true;
         subscribeToTelemetry(this.descriptor);
@@ -50,10 +54,18 @@ export class ModuleRenderer {
     }
 
     render(): void {
-        this.content.innerHTML = buildPanelHTML(this.descriptor, this.activeTab, this.values, this.RENDER_SCALE);
+        this.content.innerHTML = ManifestRenderer.renderModulePanel(this.descriptor);
 
-        this.bind();
-        this.syncAllFromStore();
+        try {
+            this.bind();
+            this.syncAllFromStore();
+        } finally {
+            this.dismissLoader();
+        }
+    }
+
+    private dismissLoader(): void {
+        dismissLoaderOverlay(this.content);
     }
 
     public getRegistryEntity(id: string): any {

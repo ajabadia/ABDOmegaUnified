@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,8 +15,8 @@
  * @lastUpdated 2026-06-19T18:56:58.302Z
  */
 
-import type { OMEGA_Manifest, OmegaStyleNode, OMEGA_Asset } from '../types/manifest.js';
-import type { LayerRecipe } from '../types/assetBehavior.js';
+import type { OMEGA_Manifest, OmegaStyleNode, OMEGA_Asset } from '../types/manifest';
+import type { LayerRecipe } from '../types/assetBehavior';
 
 export interface CellOptions {
   skin: string;

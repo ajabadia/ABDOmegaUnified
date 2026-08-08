@@ -3,7 +3,9 @@
  * Pure HTML string builders for module rendering. No DOM access.
  */
 import { CellRenderer } from '../../omega-ui-core/renderers/CellRenderer.js';
+import { buildCellOptions } from '../../omega-ui-core/renderers/cellOptions.js';
 import { TYPOGRAPHY_CATEGORIES } from '../../omega-ui-core/typography/registry.js';
+import { DEFAULT_PANEL_HEIGHT, DEFAULT_PANEL_WIDTH, DEFAULT_SKIN } from '../../omega-ui-core/uca/panelGeometry.js';
 import { AssetResolver } from '../Util/AssetResolver.js';
 
 export function resolveContainerWidth(w: string | number, rackWidth: number): number {
@@ -32,16 +34,14 @@ export function renderItemHTML(item: any, descriptor: any, values: Record<string
     const x = (item.pos?.x || 0) * scale;
     const y = (item.pos?.y || 0) * scale;
 
-    const html = CellRenderer.renderCellHTML(item, {
-        skin: descriptor.ui?.skin || 'industrial',
+    const html = CellRenderer.renderCellHTML(item, buildCellOptions(descriptor as any, {
+        skin: descriptor.ui?.skin || DEFAULT_SKIN,
         zoom: scale,
         runtimeValue: val,
         steps: item.steps || 100,
-        isSelected: false,
         isLiveMode: true,
-        manifest: descriptor as any,
         resolveAsset: (ref: string | undefined) => AssetResolver.resolve(descriptor.id, ref)
-    });
+    }));
 
     const compHeight = item.presentation?.height ?? 1.0;
 
@@ -56,9 +56,9 @@ export function renderContainersHTML(descriptor: any, activeTab: string, scale: 
     const layout = descriptor.ui?.layout;
     if (!layout || !layout.containers) return '';
 
-    const rackWidth = (descriptor.ui?.dimensions?.width || 120);
+    const rackWidth = (descriptor.ui?.dimensions?.width || DEFAULT_PANEL_WIDTH);
     const currentTab = activeTab || 'MAIN';
-    const skin = descriptor.ui?.skin || 'industrial';
+    const skin = descriptor.ui?.skin || DEFAULT_SKIN;
 
     const activeContainers = layout.containers.filter((c: any) => !c.tab || c.tab === currentTab);
     const sorted = [...activeContainers].sort((a: any, b: any) => (a.zIndex || 0) - (b.zIndex || 0));
@@ -90,9 +90,9 @@ export function renderContainersHTML(descriptor: any, activeTab: string, scale: 
  * Builds the complete module panel HTML: screws, tabs, background containers and controls layer.
  */
 export function buildPanelHTML(descriptor: any, activeTab: string, values: Record<string, number>, scale: number): string {
-    const skin = descriptor.ui?.skin || 'industrial';
-    const w = (descriptor.ui?.dimensions?.width || 120) * scale;
-    const h = (descriptor.ui?.dimensions?.height || 420) * scale;
+    const skin = descriptor.ui?.skin || DEFAULT_SKIN;
+    const w = (descriptor.ui?.dimensions?.width || DEFAULT_PANEL_WIDTH) * scale;
+    const h = (descriptor.ui?.dimensions?.height || DEFAULT_PANEL_HEIGHT) * scale;
 
     // [Era 7.2.3] Atmospheric Shadow Physics
     const lighting = descriptor.ui?.lighting;

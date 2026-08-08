@@ -61,7 +61,7 @@ Cuando el usuario conecta un **source** (salida de un módulo) con un **target**
 
 **Ficheros clave de arquitectura:**
 - Source Code Canonical: `host/ui/src/` (Compilado a `bundle.js` mediante `esbuild`).
-- `host/ui/omega-ui-core/`: Es un espejo sincronizado en **Solo Lectura** (proveniente de `ABDOmegaEditor/src/omega-ui-core/`). **NO EDITAR DIRECTAMENTE**.
+- `host/ui/omega-ui-core/`: **Junction** a `web/src/omega-ui-core` (fuente única de verdad — actualizado 2026-08-04, el sync script legacy fue eliminado). Editar en `web/src/omega-ui-core/`.
 - DOM Rack & Módulos: `host/ui/src/Logic/ModuleManager.ts` & `ModuleInstantiator.ts`.
 - Renderizado de Jacks: `host/ui/omega-ui-core/renderers/PortRenderer.ts` (función `renderPortHTML`).
 

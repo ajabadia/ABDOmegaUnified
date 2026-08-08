@@ -18,8 +18,23 @@ namespace Omega::Core::Service {
          *  sobreescriben la definición pero no el valor ya registrado). */
         static std::vector<SettingDef> loadDefaults();
 
-    private:
+        /** Fallback hardcodeado (sin merge YAML). Público para tests herméticos:
+         *  verifica la invariante del ID canónico sin depender de la ruta YAML
+         *  del entorno (SettingsPolyphony.test.cpp). Función pura, sin E/S. */
         static std::vector<SettingDef> loadHardcodedDefaults();
+
+        /**
+         * [P1-2] Resuelve system_settings.yaml SIN rutas absolutas hardcodeadas:
+         *  busca hacia arriba desde el directorio del exe (Resources/ en cada
+         *  ancestro, patrón del catálogo en prepareToPlay — max 15 niveles) y,
+         *  si no lo encuentra, cae a cwd/Resources. Devuelve un File vacío si
+         *  no hay YAML en ningún sitio (el caller usa los defaults hardcoded).
+         *  Pública y con parámetros explícitos (exe + cwd) para tests herméticos
+         *  que simulan la estructura de directorios sin depender del entorno.
+         */
+        static juce::File resolveSystemSettingsYaml(const juce::File& exeFile, const juce::File& cwd);
+
+    private:
         static void mergeYamlMetadata(std::vector<SettingDef>& defs);
     };
 

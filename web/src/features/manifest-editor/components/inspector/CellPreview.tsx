@@ -16,6 +16,8 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { OmegaNode } from '@/types/manifest';
 
 import { CellRenderer } from '@/omega-ui-core/renderers/CellRenderer';
+import { buildCellOptions } from '@/omega-ui-core/renderers/cellOptions';
+import { DEFAULT_SKIN } from '@/omega-ui-core/uca/panelGeometry';
 
 interface CellPreviewProps {
   item: OmegaNode;
@@ -23,7 +25,7 @@ interface CellPreviewProps {
   resolveAsset?: (id: string | undefined) => string | undefined;
 }
 
-export default function CellPreview({ item, skin = 'industrial', resolveAsset }: CellPreviewProps) {
+export default function CellPreview({ item, skin = DEFAULT_SKIN, resolveAsset }: CellPreviewProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   return (
@@ -54,15 +56,14 @@ export default function CellPreview({ item, skin = 'industrial', resolveAsset }:
             <div className="relative scale-[1.2] flex items-center justify-center transition-transform duration-500 group-hover/canvas:scale-[1.3]">
                <div 
                   dangerouslySetInnerHTML={{ 
-                    __html: CellRenderer.renderCellHTML(item, {
+                    __html: CellRenderer.renderCellHTML(item, buildCellOptions(undefined, {
                       skin,
                       zoom: 0.8,
                       runtimeValue: 0.5,
                       steps: 100,
-                      isSelected: false,
                       isLiveMode: false,
                       resolveAsset
-                    }) 
+                    })) 
                   }}
                />
             </div>

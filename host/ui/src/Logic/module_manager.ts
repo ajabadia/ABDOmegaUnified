@@ -8,6 +8,8 @@ import {
     resolveRackTarget,
 } from './RackRouter.js';
 import { instantiateModule, stepParameter, cleanupModules } from './ModuleInstantiator.js';
+import { getOrFetchManifest } from '../Catalog/AcemmCatalog.js';
+import { DEFAULT_PANEL_HEIGHT, DEFAULT_SKIN, MIN_CHASSIS_WIDTH_PX } from '../../omega-ui-core/uca/panelGeometry.js';
 
 export class ModuleManager {
     private activeModules: Map<string, any> = new Map();
@@ -104,7 +106,7 @@ export class ModuleManager {
                 newActiveIds.add(instId);
 
                 if (!this.activeModules.has(instId)) {
-                    const manifest = (window as any).schemaStore?.getSchema(componentId);
+                    const manifest = await getOrFetchManifest(componentId);
 
                     // Era 7 Industrial Routing
                     const { isUpper, rackType } = resolveRackTarget(componentId, mod, manifest);
@@ -134,7 +136,7 @@ export class ModuleManager {
                         manifest: manifest || {
                             id: componentId,
                             name: componentId,
-                            ui: { dimensions: { width: 60, height: 420 }, controls: [], jacks: [], skin: 'industrial' },
+                            ui: { dimensions: { width: MIN_CHASSIS_WIDTH_PX, height: DEFAULT_PANEL_HEIGHT }, controls: [], jacks: [], skin: DEFAULT_SKIN },
                             registry: [],
                         },
                         layer: rackType,

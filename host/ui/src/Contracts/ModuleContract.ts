@@ -73,6 +73,7 @@ export interface Era7UI {
         height: number;
     };
     faceplate?: string; // Asset ID for background texture
+    tree?: any; // Runtime-precomputed OmegaNode tree (from flatToTree/manifestToTree)
     lighting?: {
         shadowAngle: number;
         shadowColor: string;

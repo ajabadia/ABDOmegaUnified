@@ -88,15 +88,15 @@ describe('DockIconStrip — click handler', () => {
   it('should call onToggleWindow with the correct window id', () => {
     const onToggleWindow = jest.fn();
     render(<DockIconStrip {...defaultProps} onToggleWindow={onToggleWindow} />);
-    const buttons = screen.getAllByRole('button');
 
-    fireEvent.click(buttons[0]); // Layers
+    // Seleccionar por title (no por índice) — robusto ante cambios de orden en ICONS.
+    fireEvent.click(screen.getByTitle('Layers'));
     expect(onToggleWindow).toHaveBeenCalledWith('window_layers');
 
-    fireEvent.click(buttons[3]); // Blueprint Library
+    fireEvent.click(screen.getByTitle('Blueprint Library'));
     expect(onToggleWindow).toHaveBeenCalledWith('window_blueprints');
 
-    fireEvent.click(buttons[7]); // Terminal Logs
+    fireEvent.click(screen.getByTitle('Terminal Logs'));
     expect(onToggleWindow).toHaveBeenCalledWith('window_logs');
   });
 });

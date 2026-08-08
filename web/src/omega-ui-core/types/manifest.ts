@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -505,7 +505,7 @@ export interface OmegaBlueprintNode {
   modulationTargets?: string[] | undefined;
 }
 
-export type { GridGuide } from './rack.js';
+export type { GridGuide } from './rack';
 
 export interface GridConfig {
   enabled: boolean;
@@ -599,6 +599,9 @@ export interface OMEGA_Manifest {
   links?: OMEGA_Modulation[] | undefined;
   modulations?: OMEGA_Modulation[] | undefined;
   moduleTemplates?: Record<string, ModuleTemplate> | undefined;
+  // Spec declarativa de parámetros del módulo (bloque `params:` del .acemm).
+  // Mapa por id de parámetro — indexado directamente por `bind` del control.
+  params?: Record<string, import('./contract').OmegaParamSpec> | undefined;
   // Extra keys found in Partial usage
   controls?: ManifestEntity[] | undefined;
   jacks?: ManifestEntity[] | undefined;

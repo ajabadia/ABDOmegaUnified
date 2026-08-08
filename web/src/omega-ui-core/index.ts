@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:41
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -21,17 +21,17 @@
  */
 
 /* ─── Color Resolution ─── */
-export { ColorResolver } from './utils/ColorResolver.js';
+export { ColorResolver } from './utils/ColorResolver';
 
 /* ─── Design Tokens ─── */
-export { DESIGN_TOKENS } from './constants/design-tokens.js';
-export type { DesignTokens } from './constants/design-tokens.js';
+export { DESIGN_TOKENS } from './constants/design-tokens';
+export type { DesignTokens } from './constants/design-tokens';
 
 /* ─── Hooks ─── */
-export { useDesignTokens } from './hooks/useDesignTokens.js';
+export { useDesignTokens } from './hooks/useDesignTokens';
 
 /* ─── Panel Contract (render + interacción + geometría) ─── */
-export { collectBindingsFromTree, PANEL_SELECTORS } from './types/panelRenderer.js';
+export { collectBindingsFromTree, PANEL_SELECTORS } from './types/panelRenderer';
 export type {
   PanelGeometry,
   PanelBinding,
@@ -39,25 +39,38 @@ export type {
   PanelBindingRange,
   RenderPanelOptions,
   ResolvedRenderOptions,
-  RenderPanelResult,
+  PanelRenderResult,
   SetParamPayload,
   PanelTransport,
   PanelEvent,
   PanelEventType,
   RackUnit,
-} from './types/panelRenderer.js';
+} from './types/panelRenderer';
 
 export {
   RACK_UNIT_HEIGHT_PX,
   RACK_HP_WIDTH_PX,
   MIN_CHASSIS_WIDTH_PX,
+  DEFAULT_SKIN,
+  DEFAULT_ZOOM,
+  DEFAULT_RUNTIME_VALUE,
+  DEFAULT_STEPS,
+  DEFAULT_PANEL_WIDTH,
+  DEFAULT_PANEL_HEIGHT,
+  DEFAULT_RACK_HP,
   rackHeightForUnits,
   resolvePanelGeometry,
   resolvePanelContentSize,
   resolveRenderOptions,
-} from './uca/panelGeometry.js';
+} from './uca/panelGeometry';
 
-export { InteractionManager, KNOB_SENSITIVITY_PX } from './interaction/InteractionManager.js';
+export { buildCellOptions } from './renderers/cellOptions';
+export type { CellOptionsInput } from './renderers/cellOptions';
+
+export { InteractionManager, KNOB_SENSITIVITY_PX } from './interaction/InteractionManager';
+
+export { flatToTree } from './uca/converters/flatToTree';
+export type { RuntimeFlatItem, RuntimeFlatContainer, RuntimeFlatManifest } from './uca/converters/flatToTree';
 
 /* ─── Types (re-export most used) ─── */
 export type {
@@ -87,4 +100,4 @@ export type {
   HybridEntityUpdate,
   UcaDebugConfig,
   GridConfig,
-} from './types/manifest.js';
+} from './types/manifest';

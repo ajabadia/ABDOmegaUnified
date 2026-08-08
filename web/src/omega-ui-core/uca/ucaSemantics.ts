@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,8 +15,8 @@
  * @lastUpdated 2026-06-15T16:54:38.615Z
  */
 
-import type { OmegaNode, CellTemplate, OmegaStyleNode, ModuleTemplate } from '../types/manifest.js';
-import { mergeWithOverrides, applySlotMappings } from './treeUtils.js';
+import type { OmegaNode, CellTemplate, OmegaStyleNode, ModuleTemplate } from '../types/manifest';
+import { mergeWithOverrides, applySlotMappings } from './treeUtils';
 
 /**
  * UCA SEMANTICS (Phase 1)

@@ -1,100 +1,39 @@
-schemaVersion: '7.2'
+schemaVersion: "7.2.3"
 id: midi_in
 metadata:
-  name: MIDI IN
+  name: GLOBAL MIDI INPUT
   family: io
-  author: ABD-SynthEngine
-  tags:
-    - era7
-    - industrial
-    - infrastructure
-  rack:
-    slot: top
-    hp: 4
-    height_mode: compact
-  description: |-
-    Industrial-grade MIDI bridge. Decodes incoming external MIDI streams into high-fidelity control signals for the OMEGA modular ecosystem.
-    Professional MIDI input interface for the OMEGA Era 7 engine. Provides high-precision note, CC, and clock synchronization for external controller integration.
-    Precision MIDI interface for real-time external control and DAW synchronization.
+  version: 1.0.0
+  rack: { hp: 4, height_mode: "1U" }
 ui:
-  dimensions:
-    width: 60
-    height: 140
-  controls:
-    - id: led_activity
-      type: knob
-      role: telemetry
-      bind: led_activity
-      label: MIDI ACT
-      pos:
-        x: 30
-        'y': 45
-      presentation:
-        tab: MAIN
-        variant: red_3mm
-        component: led
-        offsetX: 0
-        offsetY: 0
-        container: STATUS
-        attachments:
-          - type: label
-            position: bottom
-            offsetX: 0
-            offsetY: 4
-            variant: B_cyan
-            text: MIDI ACT
-        precision: 6
-        ui_precision: 2
-  jacks:
-    - id: port_midi_out
-      type: string
-      role: stream
-      bind: midi_out
-      label: MIDI OUT
-      pos:
-        x: 30
-        'y': 65
-      presentation:
-        tab: MAIN
-        variant: industrial
-        component: port
-        offsetX: 0
-        offsetY: 0
-        container: BUS
-        attachments:
-          - type: label
-            position: bottom
-            offsetX: 0
-            offsetY: 0
-            variant: B_cyan
-            text: Midi Data / Out
-        precision: 6
-        ui_precision: 2
-  skin: minimal
+  dimensions: { width: 60, height: 140 }
+  skin: industrial
   layout:
-    gridSnap: 5
-    activeTab: MAIN
     containers:
-      - id: STATUS
-        label: MIDI
-        pos:
-          x: 5
-          'y': 18
-        size:
-          w: 50
-          h: 99
-        variant: inset
-        tab: MAIN
-      - id: BUS
-        label: MIDI Data
-        pos:
-          x: 5
-          'y': 20
-        size:
-          w: 50
-          h: 100
-        variant: inset
-        tab: MIDI
+      - id: main
+        label: Bridge
+        pos: { x: 5, y: 5 }
+        size: { w: 50, h: 130 }
+        variant: panel
+  controls:
+    - id: port_out
+      bind: midi_out
+      pos: { x: 25, y: 20 }
+      presentation:
+        container: main
+        component: port
+        variant: industrial
+        size: { w: 30, h: 30 }
+        attachments: [{ type: label, text: "DATA" }]
+    
+    - id: led_act
+      bind: led_activity
+      pos: { x: 25, y: 75 }
+      presentation:
+        container: main
+        component: led
+        variant: orange
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "ACT" }]
 resources:
   wasm: midi_in.wasm
-modulations: []

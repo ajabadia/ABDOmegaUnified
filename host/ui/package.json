@@ -6,7 +6,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:smoke": "vitest run tests/canonicalDefaults.test.ts && vitest run tests/bundle-arity.smoke.test.ts && vitest run tests/renderers/visualParity.test.ts"
   },
   "dependencies": {
     "typescript": "^5.0.0",

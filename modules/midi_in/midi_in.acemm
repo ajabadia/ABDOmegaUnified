@@ -18,7 +18,7 @@ ui:
   controls:
     - id: port_out
       bind: midi_out
-      pos: { x: 10, y: 20 }
+      pos: { x: 25, y: 20 }
       presentation:
         container: main
         component: port
@@ -28,7 +28,7 @@ ui:
     
     - id: led_act
       bind: led_activity
-      pos: { x: 13, y: 75 }
+      pos: { x: 25, y: 75 }
       presentation:
         container: main
         component: led

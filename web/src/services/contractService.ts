@@ -13,6 +13,7 @@
  * Handles generation of technical contracts (enums, schema IDs) from manifests.
  */
 import type { OMEGA_Manifest, OmegaNode } from '../types/manifest';
+import { DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 
 export class ContractService {
   /**
@@ -120,7 +121,7 @@ export class ContractService {
 
     // Metadata Export
     content += `export const ${safeName}Metadata = {\n`;
-    content += `  HP: ${manifest.metadata?.rack?.hp || 12},\n`;
+    content += `  HP: ${manifest.metadata?.rack?.hp || DEFAULT_RACK_HP},\n`;
     content += `  VERSION: "${manifest.metadata?.version || '1.0.0'}",\n`;
     content += `  CANONICAL_ID: "${manifest.id}"\n`;
     content += `};\n`;
@@ -166,7 +167,7 @@ export class ContractService {
     });
     content += `  };\n\n`;
 
-    content += `  static constexpr int HP = ${manifest.metadata?.rack?.hp || 12};\n`;
+    content += `  static constexpr int HP = ${manifest.metadata?.rack?.hp || DEFAULT_RACK_HP};\n`;
     content += `  static const char* VERSION = "${manifest.metadata?.version || '1.0.0'}";\n`;
 
     content += `}\n`;

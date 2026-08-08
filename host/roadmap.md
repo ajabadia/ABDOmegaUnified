@@ -133,7 +133,7 @@ Establish a robust, strictly-typed, and centralized UI framework that aligns wit
 |---|---|
 | **Fuente de verdad visual** | **ABDSynthsWeb** (editor). Tiene hot-reload para iterar en segundos. Los cambios estéticos siempre empiezan ahí. |
 | **Formato del paquete compartido** | Directorio `omega-ui-core/` con CSS puro + tokens. Cero lógica JS/TS. |
-| **Mecanismo de sincronización** | Script `sync_omega_ui.bat` (robocopy). Integrado en `build_auto.bat`. |
+| **Mecanismo de sincronización** | **Junction** (`host/ui/omega-ui-core` → `web/src/omega-ui-core`). Fuente única: `web/src/omega-ui-core`. El script legacy `sync_omega_ui.bat` fue eliminado (2026-08-04). |
 | **Controles PNG legacy** | Se mantienen en OMEGA como fallback (botones, switches). No van a `omega-ui-core`. |
 | **Display variants (OLED/LCD/LED)** | Se portan al paquete compartido. Son profesionales y el editor debería usarlos. |
 | **¿Refactorizar `ModuleRenderer` a React?** | No. Es vanilla TS dentro de WebView JUCE. Pero debe usar clases CSS semánticas en vez de inline styles. |

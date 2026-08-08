@@ -13,6 +13,7 @@ namespace Omega::Core::Voice {
     struct CompiledUnit {
         uint32_t nodeId = 0;              // Original node ID from preset
         uint32_t implementationId = 0;    // Numeric ID for renderer (JunoOsc, MS20Filter, etc.)
+        std::string moduleId;             // WASM module manifestId (empty = native DSP)
         
         static constexpr int kMaxParams = 8;
         uint32_t stableParamIds[kMaxParams] = { 0 }; // IDs for real-time modulation
@@ -52,6 +53,7 @@ namespace Omega::Core::Voice {
         static constexpr int kMaxConnections = 24;
         static constexpr int kMaxModRoutes = 64;
         static constexpr int kMaxBuses = 16;
+        static constexpr int kMaxMidiTargets = 8;
 
         std::array<CompiledUnit, kMaxUnits> units;
         int unitCount = 0;
@@ -63,6 +65,15 @@ namespace Omega::Core::Voice {
         int modRouteCount = 0;
 
         std::array<uint8_t, kMaxUnits> executionOrder; // Indices into units array
+
+        /**
+         * [P0-2] Unidades del plan con puerto MIDI input (consumen eventos MIDI
+         * vía omega_on_midi). Rellenado por RuntimeCompiler a partir del catálogo
+         * (ports con ModPortType::MIDI && isInput). El bus MIDI modular de cada
+         * voz (VoiceState::modularMidi) se despacha a estos targets en el render.
+         */
+        std::array<uint8_t, kMaxMidiTargets> midiTargets;
+        int midiTargetCount = 0;
         
         uint32_t planId = 0; // Hash for validation
         bool isInitialised = false;

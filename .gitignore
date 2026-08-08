@@ -64,10 +64,14 @@ coverage/
 scratch/
 
 # Junctions / symlinks (Windows) — duplican contenido ya trackeado por su ruta
-# canónica (web/src/omega-ui-core y host/ui). Con core.symlinks=false git las
-# seguiría como directorios y triplicaría los 61MB de omega-ui-core en el repo.
+# canónica (web/src/omega-ui-core, modules/). Con core.symlinks=false git las
+# seguiría como directorios y triplicaría el contenido en el repo.
 host/ui/omega-ui-core/
 host/ui/fonts/
 web/public/omega-ui-core/
 web/public/fonts/
 web/public/host-ui/
+# Manifiestos: fuente única en modules/ (estantería canónica) — web/public y
+# host/Resources consumen vía junction NTFS, nunca como copia.
+web/public/modules/
+host/Resources/modules/

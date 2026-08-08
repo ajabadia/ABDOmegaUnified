@@ -9,6 +9,7 @@
 
 import { User } from 'lucide-react';
 import type { OMEGA_Manifest, ManifestMetadata } from '@/omega-ui-core/types/manifest';
+import { DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 import PropertyField from '../../PropertyField';
 import { IndustrialInput } from '@/features/manifest-editor/components/primitives/IndustrialInput';
 import { IndustrialTextArea } from '@/features/manifest-editor/components/primitives/IndustrialTextArea';
@@ -75,7 +76,7 @@ export default function ModuleIdentitySection({ manifest, onUpdate }: ModuleIden
           <PropertyField label="HP">
             <IndustrialInput
               type="number"
-              value={metadata.rack?.hp || 12}
+              value={metadata.rack?.hp || DEFAULT_RACK_HP}
               onChange={(v) => updateMetadata('rack', { ...(metadata.rack || {}), hp: Math.max(1, parseInt(v) || 1) })}
               mono
               align="center"

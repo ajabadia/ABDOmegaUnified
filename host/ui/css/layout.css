@@ -136,6 +136,17 @@
     height: 436px !important;
 }
 
+/* Era 7.2.3 — Module header overlays the chassis instead of stealing 20px from it.
+   Without this, the canonical face height (1U = 144px, 3U = 432px) is clipped at
+   the bottom by `.module { overflow: hidden }` (jack row cut off). */
+.rack-row .module-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 6;
+}
+
 /* POWER BUS CIRCUIT BOARD LAYER (100% Larger than original, On Top of Wood, Below Rails & Modules) */
 .power-bus-container {
     position: absolute;

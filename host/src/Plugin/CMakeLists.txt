@@ -28,6 +28,21 @@ juce_add_plugin(omega_plugin
 )
 
 # ======================================================================
+# CLAP (P2-1) — clap-juce-extensions (free-audio, MIT, forkless)
+# ----------------------------------------------------------------------
+# JUCE oficial 8.x no incluye el formato CLAP; este extension genera el target
+# omega_plugin_CLAP reutilizando el target de juce_add_plugin de arriba (mismos
+# sources, editor WebView2 y estado vía get/setStateInformation). El binario
+# queda en omega_plugin_artefacts/Release/CLAP/OMEGA Synth.clap.
+# CLAP_ID: UUID del plugin en el formato (debe ser estable). CLAP_FEATURES:
+# instrument + synthesizer (ver https://github.com/free-audio/clap/blob/main/include/clap/plugin-features.h).
+# ======================================================================
+clap_juce_extensions_plugin(TARGET omega_plugin
+    CLAP_ID "com.abd-ia.omega"
+    CLAP_FEATURES instrument synthesizer
+)
+
+# ======================================================================
 # EMBEDDED WEB UI (self-contained standalone)
 # ----------------------------------------------------------------------
 # The standalone previously served its interface from a hardcoded disk
@@ -58,6 +73,7 @@ file(GLOB CONFIGURE_DEPENDS OMEGA_UI_STAGE_FONTS   "${CMAKE_CURRENT_SOURCE_DIR}/
                                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../web/src/omega-ui-core/typography/fonts/Outfit/*"
                                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../web/src/omega-ui-core/typography/fonts/SevenSegment.ttf"
                                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../web/src/omega-ui-core/typography/fonts/microgrammanormal.ttf")
+file(GLOB CONFIGURE_DEPENDS OMEGA_UI_STAGE_FAVICON "${CMAKE_CURRENT_SOURCE_DIR}/../../../web/app/favicon.ico")
 
 # Single source of truth for the stage-script invocation: both the configure-time
 # execute_process and the build-time add_custom_command run ui_stage.cmake with
@@ -66,6 +82,7 @@ file(GLOB CONFIGURE_DEPENDS OMEGA_UI_STAGE_FONTS   "${CMAKE_CURRENT_SOURCE_DIR}/
 set(OMEGA_UI_STAGE_ARGS
     "-DUI_SRC=${CMAKE_CURRENT_SOURCE_DIR}/../../ui"
     "-DCORE_SRC=${CMAKE_CURRENT_SOURCE_DIR}/../../../web/src/omega-ui-core"
+    "-DFAVICON_SRC=${CMAKE_CURRENT_SOURCE_DIR}/../../../web/app/favicon.ico"
     "-DSTAGE_DIR=${OMEGA_UI_STAGE_DIR}"
     "-DZIP_OUT=${OMEGA_UI_EMBED_ZIP}"
     "-P" "${CMAKE_CURRENT_SOURCE_DIR}/ui_stage.cmake"
@@ -92,6 +109,7 @@ add_custom_command(
         ${OMEGA_UI_STAGE_ASSETS}
         ${OMEGA_UI_STAGE_CORE}
         ${OMEGA_UI_STAGE_FONTS}
+        ${OMEGA_UI_STAGE_FAVICON}
     COMMENT "Staging embedded Web UI -> omega_ui_embedded.zip"
     VERBATIM
 )
@@ -128,6 +146,7 @@ target_link_libraries(omega_plugin
 target_compile_definitions(omega_plugin
     PRIVATE
         JUCE_USE_WIN_WEBVIEW2=1
+        JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1
         JUCE_VST3_CAN_REPLACE_VST2=0
         JUCE_IGNORE_VST3_MISMATCHED_PARAMETER_ID_WARNING=1
 )

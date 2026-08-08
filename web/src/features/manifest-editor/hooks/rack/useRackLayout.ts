@@ -13,17 +13,18 @@
 import { useMemo } from 'react';
 import type { OMEGA_Manifest, ManifestEntity, OmegaNode } from '@/omega-ui-core/types/manifest';
 import { adaptNodeToManifestEntity, calculateWorldPosition } from '../entities/ucaInspectorAdapter';
+import { DEFAULT_PANEL_HEIGHT, DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 
 /**
  * OMEGA ERA 7.2.3 - RACK LAYOUT ENGINE
  * Derived exclusively from the Canonical UCA Tree.
  */
 export function useRackLayout(manifest: OMEGA_Manifest) {
-  const hp = manifest?.metadata?.rack?.hp || 12;
+  const hp = manifest?.metadata?.rack?.hp || DEFAULT_RACK_HP;
   const isCompact = manifest?.metadata?.rack?.height_mode === 'compact';
   
   const width = useMemo(() => hp * 15 * 1.5, [hp]);
-  const height = useMemo(() => (manifest.ui?.dimensions?.height || (isCompact ? 140 : 420)) * 1.5, [manifest.ui, isCompact]);
+  const height = useMemo(() => (manifest.ui?.dimensions?.height || (isCompact ? 140 : DEFAULT_PANEL_HEIGHT)) * 1.5, [manifest.ui, isCompact]);
  
   // 1. FLATTEN CANONICAL TREE (Sovereign Source)
   const allElements = useMemo(() => {

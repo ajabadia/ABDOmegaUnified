@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,15 +15,15 @@
  * @lastUpdated 2026-06-22
  */
 
-export { ServiceContainer, createToken } from './ServiceContainer.js';
-export type { IServiceContainer, ServiceToken } from './ServiceContainer.js';
-export { EventBus } from './EventBus.js';
-export type { IEventBus } from './EventBus.js';
-export type { OmegaEventMap, OmegaEventName, OmegaEventHandler } from './eventTypes.js';
+export { ServiceContainer, createToken } from './ServiceContainer';
+export type { IServiceContainer, ServiceToken } from './ServiceContainer';
+export { EventBus } from './EventBus';
+export type { IEventBus } from './EventBus';
+export type { OmegaEventMap, OmegaEventName, OmegaEventHandler } from './eventTypes';
 
 // ── Service Tokens ─────────────────────────────────────────────────────
-import { createToken } from './ServiceContainer.js';
-import type { IEventBus } from './EventBus.js';
+import { createToken } from './ServiceContainer';
+import type { IEventBus } from './EventBus';
 
 // Service singleton types — kept as inline typeof import() to avoid runtime coupling.
 // These are compile-time only; no runtime import is created.

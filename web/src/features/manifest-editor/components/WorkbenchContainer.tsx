@@ -20,6 +20,7 @@ import CommandPalette from './layout/CommandPalette';
 import EditorModals from './modals/EditorModals';
 import VisualModulationMatrix from './modulation/VisualModulationMatrix';
 import { HiddenFileHandlers } from './shared/HiddenFileHandlers';
+import { ModuleSourceViewer } from './shared/ModuleSourceViewer';
 import OnboardingWalkthrough from './shared/OnboardingWalkthrough';
 import TemplateGallery from './gallery/TemplateGallery';
 import RightDockContainer from './inspector/RightDockContainer';
@@ -524,6 +525,9 @@ export default function WorkbenchContainer({
         open={showPreferences}
         onClose={handlePreferencesClose}
       />
+
+      {/* ── Shelf Module Source Viewer ── */}
+      <ModuleSourceViewer />
 
       {/* ── Onboarding Walkthrough ── */}
       <OnboardingWalkthrough

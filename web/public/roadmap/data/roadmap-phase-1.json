@@ -318,10 +318,10 @@
       "status": "discarded",
       "phase": "Fase 1",
       "createdAt": "2026-07-30T09:14:00+02:00",
-      "updatedAt": "2026-07-30T10:00:00+02:00",
+      "updatedAt": "2026-08-04T12:00:00+02:00",
       "actor": "user",
       "description": "Se descarta la versión ___222 y los scripts sync_sdk.bat/sync_omega_ui.bat.",
-      "notes": "Motivo: Reemplazado por la arquitectura de 3 cajas aisladas en ABDOmegaUnified.",
+      "notes": "EJECUTADO 2026-08-04: eliminados host/sync_omega_ui.bat + host/sync_omega_ui.ps1; la llamada de build_auto.bat se quitó; los 135 headers 'Synced from ABDOmegaEditor' de omega-ui-core se reemplazaron por headers canónicos (fuente única web/src); .version/SPEC/map.md actualizados. Motivo: Reemplazado por la arquitectura de junctions (host/ui/omega-ui-core → web/src/omega-ui-core).",
       "tags": ["cleanup", "deprecated"]
     },
     {

@@ -21,15 +21,15 @@
       ]
     },
     "controls": [
-      { "id": "k1", "bind": "k_main", "pos": { "x": 40, "y": 60 }, "presentation": { "component": "knob", "variant": "A_cyan", "container": "c_prim" } },
-      { "id": "p1", "bind": "p_in", "pos": { "x": 100, "y": 60 }, "presentation": { "component": "port", "variant": "B_audio", "container": "c_prim" } },
+      { "id": "k1", "bind": "k_main", "pos": { "x": 40, "y": 40 }, "presentation": { "component": "knob", "variant": "A_cyan", "container": "c_prim" } },
+      { "id": "p1", "bind": "p_in", "pos": { "x": 100, "y": 40 }, "presentation": { "component": "port", "variant": "B_audio", "container": "c_prim" } },
       { 
-        "id": "k_att", "bind": "k_main", "pos": { "x": 180, "y": 200 }, 
+        "id": "k_att", "bind": "k_main", "pos": { "x": 40, "y": 40 }, 
         "presentation": { 
           "component": "knob", "variant": "B_white", "container": "c_att",
           "attachments": [
-            { "type": "label", "text": "TOP LBL", "position": "top" },
-            { "type": "label", "text": "BOTTOM LBL", "position": "bottom" }
+            { "type": "label", "text": "TOP", "position": "top" },
+            { "type": "label", "text": "BOTTOM", "position": "bottom" }
           ]
         } 
       }

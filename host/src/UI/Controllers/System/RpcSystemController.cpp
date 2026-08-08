@@ -55,8 +55,7 @@ namespace UI {
     juce::var RpcSystemController::handleSetSystemSetting(const juce::var& requestId, const juce::var& payload) {
         juce::String id = payload["id"].toString();
         float value = (float)payload["value"];
-        mSettings.setSettingValue(id.toStdString(), value);
-        mSettings.save();
+        mSettings.setSettingValue(id.toStdString(), value); // setSettingValue ya persiste vía SettingsRepository (save interno)
         return createResponse("SETTING_ACK", requestId, juce::var(), true);
     }
 

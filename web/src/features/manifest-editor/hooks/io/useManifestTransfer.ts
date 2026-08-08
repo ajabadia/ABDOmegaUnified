@@ -17,6 +17,7 @@ import type { ValidationIssue } from '@/types/validation';
 import { ContractService } from '@/services/contractService';
 import { CADExportService } from '@/services/cadExportService';
 import { distillManifest, getUnusedStylesAndAssets } from '@/omega-ui-core/utils/StyleResolver';
+import { DEFAULT_PANEL_HEIGHT, DEFAULT_PANEL_WIDTH, DEFAULT_SKIN } from '@/omega-ui-core/uca/panelGeometry';
 
 export const useManifestTransfer = (
   manifest: OMEGA_Manifest,
@@ -35,7 +36,7 @@ export const useManifestTransfer = (
       
       if (!parsed || typeof parsed !== 'object') throw new Error("Invalid manifest format.");
 
-      if (!parsed.ui) parsed.ui = { dimensions: { width: 120, height: 420 }, controls: [], jacks: [] };
+      if (!parsed.ui) parsed.ui = { dimensions: { width: DEFAULT_PANEL_WIDTH, height: DEFAULT_PANEL_HEIGHT }, controls: [], jacks: [] };
       if (!parsed.metadata) ((parsed as unknown) as OMEGA_Manifest).metadata = { name: ((parsed as unknown) as { name?: string }).name || "Unnamed Module", version: "0.1.0", family: "utility" };
       if (parsed.metadata && !parsed.metadata.version) parsed.metadata.version = "0.1.0";
       
@@ -123,12 +124,12 @@ export const useManifestTransfer = (
         },
         ui: {
           dimensions: { 
-            width: getNum(parsed.ui.dimensions?.width) || 120, 
-            height: getNum(parsed.ui.dimensions?.height) || 420 
+            width: getNum(parsed.ui.dimensions?.width) || DEFAULT_PANEL_WIDTH, 
+            height: getNum(parsed.ui.dimensions?.height) || DEFAULT_PANEL_HEIGHT 
           },
           controls: normalize(parsed.ui.controls || [], 'MAIN'),
           jacks: normalize(parsed.ui.jacks || [], 'MAIN'),
-          skin: parsed.ui.skin || 'industrial',
+          skin: parsed.ui.skin || DEFAULT_SKIN,
           layout: {
             width: 800,
             height: 600,
@@ -145,7 +146,9 @@ export const useManifestTransfer = (
         } as OMEGA_Manifest['resources'],
         entities: normalize(parsed.ui?.controls || parsed.controls || [], 'MAIN'),
         links: parsed.links || [],
-        modulations: parsed.modulations || []
+        modulations: parsed.modulations || [],
+        // Spec declarativa de parámetros (bloque `params:` del .acemm) — round-trip.
+        params: parsed.params
       };
 
       setManifest(finalManifest, `Import Manifest: ${file.name}`);
@@ -297,7 +300,7 @@ export const useManifestTransfer = (
 
   const exportCADBlueprint = useCallback(async () => {
     const svg = CADExportService.generateSVGBlueprint(manifest, {
-      skin: manifest.ui?.skin || 'industrial',
+      skin: manifest.ui?.skin || DEFAULT_SKIN,
       drillLayer: false,
       silkscreenLayer: true,
       dimensions: true

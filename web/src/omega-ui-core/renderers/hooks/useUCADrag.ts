@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 'use client';
@@ -19,11 +19,11 @@
 
 import React from 'react';
 import type { PanInfo } from 'framer-motion';
-import type { OmegaNode, OMEGA_Manifest, Position, GridConfig } from '../../types/manifest.js';
-import type { UCADebugContext } from '../ucaTypes.js';
-import { clampChildToParent, getParentRect, getNodeSize, snapToGrid } from '../../uca/spatialConstraints.js';
+import type { OmegaNode, OMEGA_Manifest, Position, GridConfig } from '../../types/manifest';
+import type { UCADebugContext } from '../ucaTypes';
+import { clampChildToParent, getParentRect, getNodeSize, snapToGrid } from '../../uca/spatialConstraints';
 
-import { calculateTargetIndex, findParentInTree, findNodeInTree } from '../../uca/treeUtils.js';
+import { calculateTargetIndex, findParentInTree, findNodeInTree } from '../../uca/treeUtils';
 
 interface UseUCADragProps {
   node: OmegaNode;

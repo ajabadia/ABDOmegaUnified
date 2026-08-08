@@ -209,11 +209,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (win.presetBrowser) {
                             win.presetBrowser.saveUserPreset(nameClean);
                         }
+                        // [P0-3] Persistencia a disco: el host guarda el patch bajo
+                        // el nombre elegido en %AppData%/ABDOmega/patches.
+                        const rpcCmd = action === "new_preset" ? "newPreset" : "savePreset";
+                        try { rpcCommandDispatcher.dispatch({ type: rpcCmd, payload: { name: nameClean } } as any); } catch (e) {}
                         OmegaLog.info("PRESET", `Preset '${nameClean}' guardado y activado.`);
                         alert(`¡Preset '${nameClean}' listo!\n\nAhora puedes usar 'Add Module...' en el menú EDIT para agregar módulos al rack.`);
                     }
-                    const rpcCmd = action === "new_preset" ? "newPreset" : action === "save_preset" ? "savePreset" : action;
-                    try { rpcCommandDispatcher.dispatch({ type: rpcCmd } as any); } catch (e) {}
                     break;
                 case 'undo':
                 case 'redo':

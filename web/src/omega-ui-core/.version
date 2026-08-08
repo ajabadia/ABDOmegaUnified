@@ -1,6 +1,7 @@
 {
-    "SourceRepo":  "ABDOmegaEditor",
-    "SyncTimestamp":  "2026-08-02 11:27:41",
-    "Phase":  "Phase 18 (Canonical Contract)",
-    "ContractVersion":  "1.0.0"
+    "SourceRepo":  "ABDOmegaUnified/web/src/omega-ui-core (canonical)",
+    "SyncTimestamp":  "2026-08-04 (junction-based, no sync scripts)",
+    "Phase":  "Canonical Source - single source of truth",
+    "ContractVersion":  "1.1.0",
+    "LastChange":  "2026-08-05 — DRY defaults canónicos: DEFAULT_SKIN/ZOOM/RUNTIME_VALUE/STEPS/PANEL_WIDTH/PANEL_HEIGHT/RACK_HP exportadas desde uca/panelGeometry (barrel index.ts) y consumidas por web + host/ui; guard de literales compartido canonicalDefaultsGuard.ts ejecutado en jest (web) y vitest (host/ui)"
 }

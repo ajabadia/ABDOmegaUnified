@@ -51,6 +51,7 @@ namespace Voice {
         int noteId = -1;
         float frequencyHz = 440.0f;
         float velocity = 0.0f;
+        float gate = 0.0f;          
         float ampEnvelope = 0.0f;  
         bool triggerRequested = false; 
         
@@ -97,6 +98,7 @@ namespace Voice {
             releasing = false;
             noteId = -1;
             ampEnvelope = 0.0f;
+            gate = 0.0f;
             for (auto& u : units) { u.active = false; }
             for (auto& b : buses) { b = 0.0f; }
             for (auto& m : modSignals) { m = 0.0f; }

@@ -77,6 +77,10 @@ beforeAll(async () => {
 });
 
 afterAll(() => {
+    // Limpia el intervalo del health-monitor del bundle (setInterval 2s en
+    // OmegaRPC.startHealthMonitor) para evitar open handles en vitest.
+    const timer = (window as any).omegaRPC?.healthTimer;
+    if (timer) clearInterval(timer);
     const container = document.getElementById('global-fx-strip');
     if (container) container.remove();
 });

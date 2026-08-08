@@ -1,0 +1,74 @@
+{
+  "version": "7.0",
+  "id": "midi_2_cv",
+  "name": "Pro MIDI-CV (Industrial)",
+  "parameters": [
+    {
+      "id": "midi_channel",
+      "label": "MIDI Channel",
+      "min": 0,
+      "max": 16,
+      "default": 0,
+      "unit": "Ch"
+    },
+    {
+      "id": "glide_mode",
+      "label": "Glide Mode",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": "bin"
+    },
+    {
+      "id": "glide_time",
+      "label": "Glide Time",
+      "min": 0,
+      "max": 2000,
+      "default": 0,
+      "unit": "ms"
+    },
+    {
+      "id": "bend_range",
+      "label": "Pitch Bend",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "unit": "st"
+    },
+    {
+      "id": "at_mode",
+      "label": "AT Mode",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": "bin"
+    }
+  ],
+  "ports": [
+    {
+      "id": "cv_out",
+      "label": "CV Out",
+      "direction": "output",
+      "type": "cv"
+    },
+    {
+      "id": "gate_out",
+      "label": "Gate Out",
+      "direction": "output",
+      "type": "gate"
+    },
+    {
+      "id": "vel_out",
+      "label": "Velocity",
+      "direction": "output",
+      "type": "cv"
+    },
+    {
+      "id": "at_out",
+      "label": "Aftertouch",
+      "direction": "output",
+      "type": "cv"
+    }
+  ],
+  "family": "control"
+}

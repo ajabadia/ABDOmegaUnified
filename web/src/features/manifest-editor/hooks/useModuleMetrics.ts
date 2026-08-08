@@ -12,6 +12,7 @@
 
 import { useMemo } from 'react';
 import type { OMEGA_Manifest, ManifestEntity } from '@/omega-ui-core/types/manifest';
+import { DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 
 export const useModuleMetrics = (manifest: OMEGA_Manifest) => {
   return useMemo(() => {
@@ -29,7 +30,7 @@ export const useModuleMetrics = (manifest: OMEGA_Manifest) => {
     const metaScore = (metaFields.filter(f => !!f).length / metaFields.length) * 100;
 
     // 3. UI Density (Optimal 60-80%)
-    const hp = meta.rack?.hp || 12;
+    const hp = meta.rack?.hp || DEFAULT_RACK_HP;
     const density = Math.min(100, (allItems.length / (hp * 0.8)) * 100);
 
     // 4. Attachment Depth

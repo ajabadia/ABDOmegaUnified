@@ -60,6 +60,24 @@ target_include_directories(vmlib PUBLIC
 
 add_subdirectory(JUCE _juce)
 include_directories(JUCE/modules)
+
+# ----------------------------------------------------------------------------
+# CLAP (P2-1) — free-audio/clap-juce-extensions (MIT, forkless)
+# JUCE oficial 8.x NO incluye el formato CLAP (ni 8.0.12 ni 8.0.15 ni master —
+# verificado 2026-08-06). La vía estándar del ecosistema (Surge XT, ChowDSP,
+# Dexed) es este extension: se engancha al target de juce_add_plugin y genera
+# omega_plugin_CLAP junto a VST3/Standalone SIN tocar el árbol de JUCE.
+# NOTA (2026-08-06): el TAG 0.26.0 NO compila con JUCE 8.0.12 (incluye
+# juce_audio_processors/format_types/juce_LegacyAudioParameter.cpp, eliminado
+# en JUCE 8.0.11). Se usa el commit 645ed2f "Compatibility with JUCE 8.0.11"
+# (guards #if JUCE_VERSION >= 0x08000B + API CLAP 0.26). Los submodulos
+# clap-libs/* deben actualizarse con el checkout (git submodule update
+# --recursive) o faltará CLAP_REMOTE_CONTROLS_COUNT.
+# Carga OBLIGATORIA tras add_subdirectory(JUCE). Convención del repo: la
+# dependencia vive en host/third_party (gitignored, igual que JUCE), clonada
+# con --recursive (submodulos clap-libs/clap + clap-helpers). Si JUCE 9 trae
+# CLAP nativo (APv2), migrar y eliminar este bloque.
+add_subdirectory(third_party/clap-juce-extensions EXCLUDE_FROM_ALL)
 include_directories(src/Core)
 include_directories(src/Core/Ace)
 include_directories(src/Core/Ace/Model)
@@ -104,6 +122,7 @@ include_directories(src/UI/Controllers/Base)
 include_directories(src/UI/Controllers/Runtime)
 include_directories(src/UI/Controllers/System)
 include_directories(src/UI/Controllers/Library)
+include_directories(src/UI/Persistence)
 include_directories(src)
 
 # Módulos OMEGA

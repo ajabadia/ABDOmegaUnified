@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -30,7 +30,7 @@
  */
 
 import type { OMEGA_Manifest, OmegaNode } from '@/omega-ui-core/types/manifest';
-import type { DistilledManifest, DistilledNode } from './upgradeDistilled.js';
+import type { DistilledManifest, DistilledNode } from './upgradeDistilled';
 
 // ─── Helpers internos ──────────────────────────────────────────────
 
@@ -303,7 +303,7 @@ export function distillForJUCE(manifest: OMEGA_Manifest): DistilledManifest {
  * @param manifest - Manifiesto de trabajo original
  * @returns DistilledManifest listo para producción
  */
-import { distillManifest } from './StyleResolver.js';
+import { distillManifest } from './StyleResolver';
 export { distillManifest };
 export function distillForProduction(manifest: OMEGA_Manifest): DistilledManifest {
   const distilled = distillManifest(manifest);

@@ -45,6 +45,14 @@ namespace Omega::Engine::Modular {
             mPendingPlanUpdate.store(true);
         }
 
+        /**
+         * [P0-2] Convierte un NoteOn/NoteOff publicado por un módulo (vía
+         * omega_publish_midi) en una activación de voz del engine. Se registra
+         * en WasmModuleService::setVoiceTriggerCallback durante prepare().
+         * Frecuencia derivada del número de nota MIDI (A4 = 69 = 440 Hz).
+         */
+        void onModuleMidi(int voiceIdx, uint8_t status, uint8_t d1, uint8_t d2) noexcept;
+
         void setConfigProvider(std::atomic<::Omega::Core::Model::RuntimeSnapshot*>* provider) noexcept { 
             mConfigProvider = provider; 
         }
@@ -56,17 +64,27 @@ namespace Omega::Engine::Modular {
         int mBlockSize = 256;
         ::Omega::Engine::Modulation::ModulationRuntime mModRuntime;
         
-        std::array<int, 16> mVoiceNoteIds { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1 };
+        // [P0-1] Techo de voces ligado a la constante canónica del settings
+        // (kMaxVoices). Antes: literales 16 sueltos inconsistentes con el
+        // setting "numVoices" (YAML max 16, fallback legacy max 32).
+        // NOTA: es un alias estricto de SystemSettingsManager::kMaxVoices — si
+        // alguna vez el engine necesitara otro techo, cambiarlo AQUÍ y en el
+        // clamp de getNumVoices() para que sigan en sync (un solo valor canónico).
+        static constexpr int kVoiceCount = ::Omega::Core::Service::SystemSettingsManager::kMaxVoices;
+
+        /** [P0-2] Longitud del buffer MIDI por voz (mismo límite que VoiceState::modularMidi). */
+        static constexpr int kModularMidiBufferSize = 16;
+        std::array<int, kVoiceCount> mVoiceNoteIds { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1 };
         std::array<float, 64> mChannelModStates;
-        std::array<Omega::Engine::Modular::OmegaAsepticVoice, 16> mVoices;
+        std::array<Omega::Engine::Modular::OmegaAsepticVoice, kVoiceCount> mVoices;
         
         ::Omega::Core::Voice::CompiledVoicePlan mVoicePlan;
         ::Omega::Core::Voice::CompiledVoicePlan mNextVoicePlan;
-        std::array<::Omega::Core::Voice::VoiceState, 16> mVoiceStates;
+        std::array<::Omega::Core::Voice::VoiceState, kVoiceCount> mVoiceStates;
         std::atomic<bool> mPendingPlanUpdate { false };
         
         ::Omega::Core::Service::SystemSettingsManager& mSettings;
-        int mNumVoices = 16;
+        int mNumVoices = kVoiceCount;
         std::atomic<bool> mPendingConfigUpdate { false };
         std::atomic<::Omega::Core::Model::RuntimeSnapshot*>* mConfigProvider = nullptr;
         ::Omega::Core::Model::RuntimeSnapshot mCurrentSnapshot;

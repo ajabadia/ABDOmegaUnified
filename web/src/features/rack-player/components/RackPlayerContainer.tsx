@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { SharedModuleCatalogService } from '@/services/sharedModuleCatalog';
 import { UniversalRenderer } from '@/omega-ui-core/renderers/UniversalRenderer';
 import { manifestToTree } from '@/omega-ui-core/uca/ucaBridge';
+import { DEFAULT_PANEL_HEIGHT, DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 import { Plus, Trash2, FolderPlus, X } from 'lucide-react';
 
 export default function RackPlayerContainer() {
@@ -23,6 +24,12 @@ export default function RackPlayerContainer() {
   const [isAddModuleModalOpen, setIsAddModuleModalOpen] = useState(false);
   const [isNewPatchModalOpen, setIsNewPatchModalOpen] = useState(false);
   const [newPatchName, setNewPatchName] = useState('');
+
+  // Audio: worklet del 440demo (wasm real vía AudioWorklet)
+  const [audioStatus, setAudioStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [audioError, setAudioError] = useState('');
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const workletNodeRef = useRef<AudioWorkletNode | null>(null);
 
   // Initial load
   useEffect(() => {
@@ -66,6 +73,70 @@ export default function RackPlayerContainer() {
     setIsNewPatchModalOpen(false);
   };
 
+  // Cierra el grafo de audio al desmontar (SSR-off / navegación)
+  useEffect(() => {
+    return () => {
+      try { workletNodeRef.current?.disconnect(); } catch { /* noop */ }
+      try { audioCtxRef.current?.close(); } catch { /* noop */ }
+    };
+  }, []);
+
+  const toggleAudioWorklet = async () => {
+    if (isPlaying) {
+      // STOP
+      try { workletNodeRef.current?.disconnect(); } catch { /* noop */ }
+      try { await audioCtxRef.current?.close(); } catch { /* noop */ }
+      workletNodeRef.current = null;
+      audioCtxRef.current = null;
+      setAudioStatus('idle');
+      setIsPlaying(false);
+      return;
+    }
+
+    // START: AudioContext + worklet del 440demo (wasm real)
+    try {
+      setAudioStatus('loading');
+      setAudioError('');
+      const AudioCtor: typeof AudioContext =
+        window.AudioContext ?? (window as any).webkitAudioContext;
+      if (!AudioCtor) throw new Error('AudioContext no soportado');
+      const ctx = new AudioCtor();
+      audioCtxRef.current = ctx;
+
+      await ctx.audioWorklet.addModule('/worklets/tone440.worklet.js');
+      const node = new AudioWorkletNode(ctx, 'tone440-processor', {
+        numberOfInputs: 0,
+        numberOfOutputs: 1,
+        outputChannelCount: [2],
+      });
+      workletNodeRef.current = node;
+
+      node.port.onmessage = (e: MessageEvent) => {
+        if (e.data?.type === 'ready') {
+          setAudioStatus('ready');
+        } else if (e.data?.type === 'error') {
+          setAudioStatus('error');
+          setAudioError(String(e.data.message ?? 'error en el worklet'));
+        }
+      };
+
+      // El worklet NO tiene fetch en su scope: el binario se carga aquí y se
+      // transfiere al worklet por postMessage (AudioWorkletGlobalScope).
+      const wasmRes = await fetch('/wasm/440demo.wasm');
+      if (!wasmRes.ok) throw new Error(`fetch /wasm/440demo.wasm -> HTTP ${wasmRes.status}`);
+      const wasmBytes = await wasmRes.arrayBuffer();
+      node.port.postMessage({ type: 'loadWasm', bytes: wasmBytes }, [wasmBytes]);
+
+      node.connect(ctx.destination);
+      await ctx.resume();
+      setIsPlaying(true);
+    } catch (e) {
+      setAudioStatus('error');
+      setAudioError(String((e as Error)?.message || e));
+      setIsPlaying(false);
+    }
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col bg-[#0b0f19] text-white font-sans overflow-hidden">
       {/* Navigation Header */}
@@ -83,8 +154,9 @@ export default function RackPlayerContainer() {
         {/* Global Toolbar / Transport */}
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => setIsPlaying(!isPlaying)}
-            className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            onClick={() => toggleAudioWorklet()}
+            disabled={audioStatus === 'loading'}
+            className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50 ${
               isPlaying 
                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-lg shadow-emerald-500/10' 
                 : 'bg-blue-600 text-white hover:bg-blue-500'
@@ -92,6 +164,25 @@ export default function RackPlayerContainer() {
           >
             {isPlaying ? '⏸️ PAUSE AUDIO' : '▶️ START AUDIO WORKLET'}
           </button>
+
+          {/* Estado del motor de audio (wasm 440 Hz) */}
+          {audioStatus !== 'idle' && (
+            <span
+              className={`px-2 py-1 rounded text-[10px] font-mono border ${
+                audioStatus === 'ready'
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                  : audioStatus === 'error'
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse'
+              }`}
+            >
+              {audioStatus === 'ready'
+                ? '🔊 440 Hz WASM LIVE'
+                : audioStatus === 'loading'
+                  ? '⏳ CARGANDO WASM…'
+                  : `⚠️ ${audioError}`}
+            </span>
+          )}
 
           {/* Preset / Patch selector badge */}
           <div className="flex items-center gap-2 bg-slate-900/60 px-3 py-1 rounded border border-slate-800 text-xs font-mono">
@@ -173,7 +264,7 @@ export default function RackPlayerContainer() {
                 const manifest = manifests[modId];
                 if (!manifest || !manifest.ui?.tree) return null;
 
-                const hp = (manifest.metadata as any)?.rack?.hp || (manifest.metadata as any)?.hp || modEntry?.hpWidth || 8;
+                const hp = (manifest.metadata as any)?.rack?.hp || (manifest.metadata as any)?.hp || modEntry?.hpWidth || DEFAULT_RACK_HP;
                 const widthPx = Math.max(hp * 15, 60);
 
                 return (
@@ -204,7 +295,7 @@ export default function RackPlayerContainer() {
                     {/* Unified graphical representation */}
                     <div 
                       className="relative border border-slate-700/50 bg-[#0a0e17] rounded-lg overflow-hidden select-none mx-auto flex items-start justify-start"
-                      style={{ width: `${widthPx}px`, height: `${manifest.ui?.dimensions?.height || 420}px` }}
+                      style={{ width: `${widthPx}px`, height: `${manifest.ui?.dimensions?.height || DEFAULT_PANEL_HEIGHT}px` }}
                     >
                       <UniversalRenderer 
                         node={manifest.ui.tree}

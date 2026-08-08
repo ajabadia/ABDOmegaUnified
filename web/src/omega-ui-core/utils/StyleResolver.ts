@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -19,13 +19,13 @@ export type {
   ResolvedNodeStyle,
   UnusedResources,
   SubtreeResources,
-} from './styleResolverTypes.js';
+} from './styleResolverTypes';
 
 export {
   resolveNodeStyle,
   resolveSize,
   resolveColor,
-} from './styleResolverCore.js';
+} from './styleResolverCore';
 
 export {
   expandNodeStyle,
@@ -34,10 +34,10 @@ export {
   pruneUnusedStyles,
   fossilizeLegacyStyles,
   distillManifest,
-} from './styleResolverDistill.js';
+} from './styleResolverDistill';
 
 export {
   getUnusedStylesAndAssets,
   extractSubtreeResources,
   pruneUnusedAssets,
-} from './styleResolverAssets.js';
+} from './styleResolverAssets';

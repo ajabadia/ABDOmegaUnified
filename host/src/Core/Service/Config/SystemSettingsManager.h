@@ -30,6 +30,14 @@ namespace Omega::Core::Service {
      */
     class SystemSettingsManager {
     public:
+        /**
+         * [P0-1] Techo de polifonía del engine: tamaño del array de voces
+         * (VirtualAnalogEngine::mVoices). Fuente única del límite: el setting
+         * "numVoices" (YAML + fallback hardcodeado) y getNumVoices() clampean
+         * contra esta constante, nunca contra literales sueltos.
+         */
+        static constexpr int kMaxVoices = 16;
+
         SystemSettingsManager();
         ~SystemSettingsManager() = default;
 
@@ -46,7 +54,23 @@ namespace Omega::Core::Service {
         void resetToDefaults();
 
         // --- Helpers de Acceso Rápido ---
-        int getNumVoices() const { return (int)getSettingValue("numVoices"); }
+        /**
+         * [P0-1] Clamp puro de la polifonía al techo del engine (kMaxVoices).
+         * Expuesto estático para poder testearlo sin instanciar el manager
+         * (sin tocar disco/settings.xml) — ver SettingsPolyphony.test.cpp.
+         */
+        static int clampNumVoices(int requested) noexcept {
+            return juce::jlimit(1, kMaxVoices, requested);
+        }
+
+        /**
+         * [P0-1] Polifonía activa, clampeada al array de voces del engine
+         * (kMaxVoices). Un valor persistido inválido (fuera de rango o ausente)
+         * nunca puede pedir más voces de las que existen en el array.
+         */
+        int getNumVoices() const {
+            return clampNumVoices((int)getSettingValue("numVoices"));
+        }
 
     private:
         std::map<std::string, SettingDef> mDefs;

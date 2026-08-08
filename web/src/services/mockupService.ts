@@ -13,11 +13,12 @@
  * Prepares high-fidelity visual descriptions for photorealistic renders.
  */
 import type { OMEGA_Manifest } from '@/omega-ui-core/types/manifest';
+import { DEFAULT_RACK_HP, DEFAULT_SKIN } from '@/omega-ui-core/uca/panelGeometry';
 
 export class MockupService {
   static generateRenderPrompt(manifest: OMEGA_Manifest): string {
-    const skin = manifest.ui?.skin || 'industrial';
-    const hp = manifest.metadata?.rack?.hp || 12;
+    const skin = manifest.ui?.skin || DEFAULT_SKIN;
+    const hp = manifest.metadata?.rack?.hp || DEFAULT_RACK_HP;
     const name = manifest.metadata?.name || 'Unnamed Module';
 
     const controls = manifest.ui?.controls || [];

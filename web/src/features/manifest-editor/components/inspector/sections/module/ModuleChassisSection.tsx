@@ -9,6 +9,7 @@
  */
 
 import type { OMEGA_Manifest } from '@/omega-ui-core/types/manifest';
+import { DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 import { FieldRenderer } from '../../fields';
 import type { FieldDef } from '../../fields';
 
@@ -38,7 +39,7 @@ const POWER_FIELDS: FieldDef<OMEGA_Manifest>[] = [
 ];
 
 export default function ModuleChassisSection({ manifest, onUpdate }: ModuleChassisSectionProps) {
-  const hp = (manifest.metadata?.rack?.hp || 12);
+  const hp = (manifest.metadata?.rack?.hp || DEFAULT_RACK_HP);
   const widthMm = (hp * HP_TO_MM).toFixed(1);
 
   return (

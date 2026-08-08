@@ -1,0 +1,101 @@
+schemaVersion: "7.2.3"
+id: midi_2_cv
+metadata:
+  name: MIDI 2 CV
+  family: control
+  version: 1.0.0
+  rack: { hp: 8, height_mode: "1U" }
+ui:
+  dimensions: { width: 120, height: 140 }
+  skin: industrial
+  layout:
+    containers:
+      - id: main
+        label: CV/GATE
+        pos: { x: 5, y: 5 }
+        size: { w: 110, h: 130 }
+        variant: panel
+  controls:
+    - id: port_cv_out
+      bind: cv_out
+      pos: { x: 10, y: 65 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 22, h: 22 }
+        attachments: [{ type: label, text: "CV" }]
+
+    - id: port_gate_out
+      bind: gate_out
+      pos: { x: 40, y: 65 }
+      presentation:
+        container: main
+        component: port
+        variant: silver
+        size: { w: 22, h: 22 }
+        attachments: [{ type: label, text: "GATE" }]
+
+    - id: port_vel_out
+      bind: vel_out
+      pos: { x: 70, y: 65 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 22, h: 22 }
+        attachments: [{ type: label, text: "VEL" }]
+
+    - id: port_at_out
+      bind: at_out
+      pos: { x: 100, y: 65 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 22, h: 22 }
+        attachments: [{ type: label, text: "AT" }]
+
+    # Params de configuración del contrato — componentes hidden (editables
+    # desde el frontal vía inspector/RPC sin ocupar el panel).
+    - id: k_midi_channel
+      bind: midi_channel
+      pos: { x: 10, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+
+    - id: k_glide_mode
+      bind: glide_mode
+      pos: { x: 20, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+
+    - id: k_glide_time
+      bind: glide_time
+      pos: { x: 30, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+
+    - id: k_bend_range
+      bind: bend_range
+      pos: { x: 40, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+
+    - id: k_at_mode
+      bind: at_mode
+      pos: { x: 50, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+resources:
+  wasm: midi_2_cv.wasm

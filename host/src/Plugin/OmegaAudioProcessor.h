@@ -13,6 +13,8 @@
 #include "SystemSettingsManager.h"
 #include "EngineConfigManager.h"
 #include "OmegaUiBridge.h"
+#include "PatchRepository.h"
+#include "TailLength.h"
 
 
 
@@ -64,6 +66,22 @@ namespace Omega::Plugin {
         void triggerNote(int midiNote, int velocity, bool isOn);
 
     private:
+        /**
+         * [P0-2] Enruta un mensaje MIDI del sistema hacia el módulo midi_in del
+         * rack (modelo modular puro: el MIDI solo entra por midi_in y viaja por
+         * cables; si el rack no tiene midi_in, el mensaje se ignora). Los eventos
+         * de nota asignan voz (LRU) igual que triggerNote, pero NO disparan el
+         * engine directamente — la voz se activa cuando midi_in reenvía el
+         * mensaje y omega_publish_midi dispara VirtualAnalogEngine::onModuleMidi.
+         */
+        void dispatchSystemMidi(uint8_t status, uint8_t d1, uint8_t d2);
+
+        /**
+         * [P0-2] true si el snapshot actual contiene una unidad con moduleId
+         * "midi_in" (el puente de entrada del rack).
+         */
+        bool planHasMidiIn() const noexcept;
+
         void timerCallback() override;
         void updateParameters() noexcept;
 
@@ -81,8 +99,10 @@ namespace Omega::Plugin {
         juce::AudioProcessorValueTreeState mApvts;
 
         // Voice Allocator
+        // [P0-1] mVoiceLastUsed ligado al techo canónico del settings (kMaxVoices).
+        // Antes: literal 16 suelto, inconsistente con el setting "numVoices".
         int mNoteToVoice[128];
-        int mVoiceLastUsed[16];
+        int mVoiceLastUsed[Core::Service::SystemSettingsManager::kMaxVoices];
         int mAllocTime = 0;
 
         // Async catalog guard
@@ -90,10 +110,25 @@ namespace Omega::Plugin {
         
         // High-Level Facades
         Core::Service::EngineConfigManager mEngineConfig;
+
+        // [P0-3] Persistencia de patches a disco (%AppData%/ABDOmega/patches).
+        // saveCurrentPatch() escribe current.patch.json (autosave de sesión) y
+        // prepareToPlay lo restaura en el arranque si existe.
+        UI::Persistence::PatchRepository mPatchRepository;
+
         UI::OmegaUiBridge mUiBridge;
 
         // Dynamic Parameter Registry (Lock-free mapping)
         std::vector<std::atomic<float>*> mParamPointers;
+
+        // [P1-4] Cola de release declarada al host (getTailLengthSeconds).
+        // Cache atómica: la actualiza el timer de 30 ms (mismo hilo que el resto
+        // del polling de parámetros) leyendo el release REAL del APVTS; el host
+        // la lee desde el hilo de audio → nunca clics por offlining prematuro.
+        std::atomic<double> mTailLengthSeconds { 0.1 };
+
+        /** [P1-4] Puntero al valor normalizado (0-1) de layer.a.env.release. */
+        std::atomic<float>* mReleaseParam = nullptr;
 
         juce::MidiBuffer mUiMidiQueue;
         juce::CriticalSection mUiMidiLock;

@@ -12,6 +12,7 @@
 
 import React, { useMemo } from 'react';
 import { findNodeInTree } from '@/omega-ui-core/uca/treeUtils';
+import { DEFAULT_SKIN } from '@/omega-ui-core/uca/panelGeometry';
 import type { OMEGA_Manifest, OMEGA_Contract, OMEGA_Modulation, HybridEntityUpdate, OmegaNode, ManifestEntity } from '@/omega-ui-core/types/manifest';
 import type { OmegaContract } from '@/omega-ui-core/types/contract';
 import type { AuditResult } from '@/omega-ui-core/types/audit';
@@ -28,6 +29,7 @@ import { useRackStartupAssistant } from '@/features/manifest-editor/hooks/rack/u
 import { useRackGhostPreview } from '@/features/manifest-editor/hooks/rack/useRackGhostPreview';
 import { useDesignTokens } from '@/omega-ui-core/hooks/useDesignTokens';
 import { CellRenderer } from '@/omega-ui-core/renderers/CellRenderer';
+import { buildCellOptions } from '@/omega-ui-core/renderers/cellOptions';
 import { InjectionPreviewOverlay } from './InjectionPreviewOverlay';
 import { GhostPreviewOverlay } from './GhostPreviewOverlay';
 import BindingOverlay from '../rack/BindingOverlay';
@@ -212,7 +214,7 @@ export default function VirtualRack({
   onSelectAll,
 }: VirtualRackProps) {
   const inputSignalService = getService(SERVICE_TOKENS.INPUT_SIGNAL_SERVICE);
-  const skin = manifest.ui?.skin || 'industrial';
+  const skin = manifest.ui?.skin || DEFAULT_SKIN;
   const { allVars } = useDesignTokens(manifest);
   const { rackRef, handleRackMouseMove, handleRackGhostClick } = useRackGhostPreview({
     isGhostVisible,
@@ -284,15 +286,14 @@ export default function VirtualRack({
     },
   }), [manifest.ui]);
 
-  const rackHTML = useMemo(() => CellRenderer.renderCellHTML(rackNode, {
+  const rackHTML = useMemo(() => CellRenderer.renderCellHTML(rackNode, buildCellOptions(manifest, {
     skin,
     zoom: 1.0,
     runtimeValue: 0,
     steps: 100,
-    manifest,
     resolveAsset,
     isLiveMode,
-  }), [rackNode, skin, manifest, resolveAsset, isLiveMode]);
+  })), [rackNode, skin, manifest, resolveAsset, isLiveMode]);
 
   return (
     <div 

@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,10 +15,10 @@
  * @lastUpdated 2026-08-02T00:00:00.000Z
  */
 
-import type { OMEGA_Manifest, OmegaNode } from '../types/manifest.js';
-import type { PanelGeometry, RackUnit, RenderPanelOptions, ResolvedRenderOptions } from '../types/panelRenderer.js';
-import { getNodeSize } from './spatialConstraints.js';
-import { resolveLayout } from './layoutResolver.js';
+import type { OMEGA_Manifest, OmegaNode } from '../types/manifest';
+import type { PanelGeometry, RackUnit, RenderPanelOptions, ResolvedRenderOptions } from '../types/panelRenderer';
+import { getNodeSize } from './spatialConstraints';
+import { resolveLayout } from './layoutResolver';
 
 /* ─── Constantes canónicas de hardware (única fuente) ─── */
 
@@ -28,8 +28,31 @@ export const RACK_UNIT_HEIGHT_PX = 48;
 /** Ancho de un HP en px a escala de edición (1 HP = 5.08mm ≈ 15px). */
 export const RACK_HP_WIDTH_PX = 15;
 
-/** Altura mínima de cara para no romper el layout del chassis. */
-export const MIN_CHASSIS_WIDTH_PX = 120;
+/** Ancho mínimo de cara para no romper el layout del chassis (mín. 4HP = 60px, los ACEMM 1U de 4HP deben respetar su diseño). */
+export const MIN_CHASSIS_WIDTH_PX = 60;
+
+/* ─── Defaults canónicos de render (única fuente — resolveRenderOptions y los fallbacks de buildCellOptions consumen ESTOS) ─── */
+
+/** Skin de render por defecto cuando el manifiesto no declara `ui.skin`. */
+export const DEFAULT_SKIN = 'industrial';
+
+/** Zoom de render por defecto cuando el manifiesto no declara `ui.layout.zoom`. */
+export const DEFAULT_ZOOM = 1;
+
+/** Valor runtime inicial por defecto para las celdas de control. */
+export const DEFAULT_RUNTIME_VALUE = 0.5;
+
+/** Pasos de cuantización por defecto de los controles. */
+export const DEFAULT_STEPS = 100;
+
+/** Ancho de cara por defecto (px) cuando el manifiesto no declara `ui.dimensions.width` (estándar 8HP = 120px). */
+export const DEFAULT_PANEL_WIDTH = 120;
+
+/** Alto de cara por defecto (px) cuando el manifiesto no declara `ui.dimensions.height` (estándar 3U full). */
+export const DEFAULT_PANEL_HEIGHT = 420;
+
+/** HP por defecto cuando el manifiesto no declara `metadata.rack.hp`. */
+export const DEFAULT_RACK_HP = 12;
 
 /**
  * rackHeightForUnits — Altura real de una cara según sus unidades.
@@ -56,7 +79,7 @@ export function rackHeightForUnits(units: RackUnit | undefined): number {
  */
 export function resolvePanelGeometry(manifest: OMEGA_Manifest | undefined, options: RenderPanelOptions = {}): PanelGeometry {
   const rack = manifest?.metadata?.rack;
-  const hp = Number(rack?.hp ?? 8);
+  const hp = Number(rack?.hp ?? DEFAULT_RACK_HP);
   const units: RackUnit = rack?.units ?? '3U';
   const declaredUpper = units.startsWith('1U');
   const isUpper = options.forceUpper === true || declaredUpper;
@@ -92,10 +115,10 @@ export function resolvePanelContentSize(tree: OmegaNode | undefined): { width: n
  */
 export function resolveRenderOptions(manifest: OMEGA_Manifest | undefined, options: RenderPanelOptions = {}): ResolvedRenderOptions {
   return {
-    skin: options.skin ?? manifest?.ui?.skin ?? 'industrial',
-    zoom: options.zoom ?? manifest?.ui?.layout?.zoom ?? 1,
-    runtimeValue: options.runtimeValue ?? 0.5,
-    steps: options.steps ?? 100,
+    skin: options.skin ?? manifest?.ui?.skin ?? DEFAULT_SKIN,
+    zoom: options.zoom ?? manifest?.ui?.layout?.zoom ?? DEFAULT_ZOOM,
+    runtimeValue: options.runtimeValue ?? DEFAULT_RUNTIME_VALUE,
+    steps: options.steps ?? DEFAULT_STEPS,
     activeTab: options.activeTab ?? resolveActiveTab(manifest),
     resolveAsset: options.resolveAsset,
     forceUpper: options.forceUpper,

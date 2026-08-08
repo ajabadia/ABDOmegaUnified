@@ -17,6 +17,7 @@ import type {
   LayoutContainer,
 } from "@/omega-ui-core/types/manifest";
 import { CellRenderer } from "@/omega-ui-core/renderers/CellRenderer";
+import { buildCellOptions } from "@/omega-ui-core/renderers/cellOptions";
 import { useDesignTokens } from "@/omega-ui-core/hooks/useDesignTokens";
 import { getElementDefinition } from "@/omega-ui-core/governance/ElementCatalog";
 import IndustrialContainer from "../../shared/IndustrialContainer";
@@ -76,14 +77,13 @@ interface CanonicalStylePreviewProps {
         dangerouslySetInnerHTML={{
           __html: CellRenderer.renderCellHTML(
             adaptManifestEntityToNode(phantomEntity),
-            {
+            buildCellOptions(manifest, {
               skin: "industrial",
               zoom: 1.0,
               runtimeValue: 0.5,
               steps: 100,
-              manifest,
               resolveAsset,
-            },
+            }),
           ),
         }}
       />{" "}

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import type { AuditResult } from '@/omega-ui-core/types/audit';
 import type { OMEGA_Manifest } from '@/omega-ui-core/types/manifest';
+import { DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 
 interface AuditStatusConfig {
   color: string;
@@ -88,7 +89,7 @@ export default function AuditSummary({ audit, manifest, statusConfig }: AuditSum
               <span className="text-[7px] font-black text-white/20 uppercase tracking-widest">Metadata Density</span>
               <div className="flex justify-between text-[10px] font-mono font-black wb-text">
                 <span>{manifest.metadata?.name || 'NOT_SET'}</span>
-                <span className="text-primary">{manifest.metadata?.rack?.width || 12}HP</span>
+                <span className="text-primary">{manifest.metadata?.rack?.width || DEFAULT_RACK_HP}HP</span>
               </div>
            </div>
            

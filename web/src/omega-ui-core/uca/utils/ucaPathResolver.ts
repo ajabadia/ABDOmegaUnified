@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -21,7 +21,7 @@
  * Ensures deterministic and stable mapping between OmegaNodes and DSP parameters.
  */
 
-import type { OmegaNode, UCA_Port } from '../../types/manifest.js';
+import type { OmegaNode, UCA_Port } from '../../types/manifest';
 
 export interface PathResolutionResult {
   path: string;

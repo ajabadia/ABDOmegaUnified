@@ -93,24 +93,46 @@ namespace UI {
 
         auto& slot = slots[slotIdx];
 
+        // [P2-x] Guard de valor idéntico (patrón P1-1 del timer): el drag-to-patch
+        // y el modal reescriben valores repetidos; la matrix es la SOT del grafo de
+        // audio (RuntimeCompiler deriva las conexiones desde ella), así que se
+        // recompila SOLO si hubo un cambio real — un cable editado deja de ser
+        // decorativo y enruta audio en el snapshot siguiente.
+        bool changed = false;
+
         if (key == "active") {
-            slot.active = (bool)value;
+            const bool b = (bool)value;
+            changed = (slot.active != b);
+            slot.active = b;
         } else if (key == "source") {
-            slot.source = value.toString().toStdString();
+            const std::string s = value.toString().toStdString();
+            changed = (slot.source != s);
+            slot.source = s;
         } else if (key == "target") {
-            slot.target = value.toString().toStdString();
+            const std::string s = value.toString().toStdString();
+            changed = (slot.target != s);
+            slot.target = s;
         } else if (key == "amount") {
-            slot.amount = (float)value;
+            const float f = (float)value;
+            changed = (slot.amount != f);
+            slot.amount = f;
         } else if (key == "via") {
-            slot.via = value.toString().toStdString();
+            const std::string s = value.toString().toStdString();
+            changed = (slot.via != s);
+            slot.via = s;
         } else if (key == "viaAmount") {
-            slot.viaAmount = (float)value;
+            const float f = (float)value;
+            changed = (slot.viaAmount != f);
+            slot.viaAmount = f;
         } else if (key == "color") {
-            slot.color = value.toString().toStdString();
+            const std::string s = value.toString().toStdString();
+            changed = (slot.color != s);
+            slot.color = s;
         } else {
             return createError("PATCHBAY_UPDATE_ERR", requestId, "Unknown key: " + key);
         }
 
+        if (changed) mEngineConfig.recompile();
         if (mOnMatrixChanged) mOnMatrixChanged();
 
         return createResponse("PATCHBAY_UPDATE_ACK", requestId, juce::var(), true);

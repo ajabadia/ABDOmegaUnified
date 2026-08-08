@@ -1,0 +1,81 @@
+{
+  "coreFiles": [
+    { "name": "panelGeometry.ts", "path": "web/src/omega-ui-core/uca/panelGeometry.ts" },
+    { "name": "cellOptions.ts", "path": "web/src/omega-ui-core/renderers/cellOptions.ts" }
+  ],
+  "coreRules": [
+    {
+      "literal": "['\"]industrial['\"]",
+      "constantDecl": "const\\s+DEFAULT_SKIN\\s*(?::[^=]*)?\\s*=",
+      "label": "'industrial' (skin)"
+    },
+    {
+      "literal": "\\b0\\.5\\b",
+      "constantDecl": "const\\s+DEFAULT_RUNTIME_VALUE\\s*(?::[^=]*)?\\s*=",
+      "label": "0.5 (runtimeValue)"
+    },
+    {
+      "literal": "\\b100\\b",
+      "constantDecl": "const\\s+DEFAULT_STEPS\\s*(?::[^=]*)?\\s*=",
+      "label": "100 (steps)"
+    },
+    {
+      "literal": "\\?\\?\\s*1\\b|\\|\\|\\s*1\\b",
+      "constantDecl": "const\\s+DEFAULT_ZOOM\\s*(?::[^=]*)?\\s*=",
+      "label": "1 (zoom, en posición de fallback ?? / ||)"
+    },
+    {
+      "literal": "\\?\\?\\s*120\\b|\\|\\|\\s*120\\b",
+      "constantDecl": "const\\s+DEFAULT_PANEL_WIDTH\\s*(?::[^=]*)?\\s*=",
+      "label": "120 (panel width, fallback ?? / ||)"
+    },
+    {
+      "literal": "\\?\\?\\s*420\\b|\\|\\|\\s*420\\b",
+      "constantDecl": "const\\s+DEFAULT_PANEL_HEIGHT\\s*(?::[^=]*)?\\s*=",
+      "label": "420 (panel height, fallback ?? / ||)"
+    },
+    {
+      "literal": "\\?\\?\\s*12\\b|\\|\\|\\s*12\\b",
+      "constantDecl": "const\\s+DEFAULT_RACK_HP\\s*(?::[^=]*)?\\s*=",
+      "label": "12 (rack hp, fallback ?? / ||)"
+    }
+  ],
+  "consumerFiles": {
+    "web": [
+      { "name": "flatToTree.ts (omega-ui-core)", "path": "web/src/omega-ui-core/uca/converters/flatToTree.ts" },
+      { "name": "mockupService.ts", "path": "web/src/services/mockupService.ts" },
+      { "name": "industrialRules.ts", "path": "web/src/services/validation/industrialRules.ts" },
+      { "name": "contractService.ts", "path": "web/src/services/contractService.ts" },
+      { "name": "cadExportService.ts", "path": "web/src/services/cadExportService.ts" },
+      { "name": "useManifestTransfer.ts", "path": "web/src/features/manifest-editor/hooks/io/useManifestTransfer.ts" },
+      { "name": "RackPlayerContainer.tsx", "path": "web/src/features/rack-player/components/RackPlayerContainer.tsx" },
+      { "name": "useRackLayout.ts", "path": "web/src/features/manifest-editor/hooks/rack/useRackLayout.ts" },
+      { "name": "useModuleMetrics.ts", "path": "web/src/features/manifest-editor/hooks/useModuleMetrics.ts" },
+      { "name": "AuditSummary.tsx", "path": "web/src/features/manifest-editor/components/audit/AuditSummary.tsx" },
+      { "name": "CompliancePanel.tsx", "path": "web/src/features/manifest-editor/components/inspector/CompliancePanel.tsx" },
+      { "name": "MockupModal.tsx", "path": "web/src/features/manifest-editor/components/modals/MockupModal.tsx" },
+      { "name": "ModuleIdentitySection.tsx", "path": "web/src/features/manifest-editor/components/inspector/sections/module/ModuleIdentitySection.tsx" },
+      { "name": "ModuleChassisSection.tsx", "path": "web/src/features/manifest-editor/components/inspector/sections/module/ModuleChassisSection.tsx" }
+    ],
+    "host": [
+      { "name": "templates.ts", "path": "host/ui/src/Renderers/templates.ts" },
+      { "name": "AcemmCatalog.ts", "path": "host/ui/src/Catalog/AcemmCatalog.ts" },
+      { "name": "ManifestRenderer.ts", "path": "host/ui/src/Renderers/ManifestRenderer.ts" },
+      { "name": "module_manager.ts", "path": "host/ui/src/Logic/module_manager.ts" }
+    ]
+  },
+  "consumerRules": [
+    {
+      "literal": "\\?\\?\\s*120\\b|\\|\\|\\s*120\\b|:\\s*120\\b",
+      "label": "120 (panel width, fallback ?? / || / :)"
+    },
+    {
+      "literal": "\\?\\?\\s*420\\b|\\|\\|\\s*420\\b|:\\s*420\\b",
+      "label": "420 (panel height, fallback ?? / || / :)"
+    },
+    {
+      "literal": "\\?\\?\\s*12\\b|\\|\\|\\s*12\\b",
+      "label": "12 (rack hp, fallback ?? / ||)"
+    }
+  ]
+}

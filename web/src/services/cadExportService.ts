@@ -13,6 +13,7 @@
  * Generates technical industrial blueprints (SVG) from manifests.
  */
 import type { OMEGA_Manifest } from '../types/manifest';
+import { DEFAULT_PANEL_HEIGHT, DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 
 export interface CADOptions {
   skin: string;
@@ -27,9 +28,9 @@ const PIXELS_TO_MM = 0.33866; // 1 HP = 5.08mm = 15px
 export class CADExportService {
   static generateSVGBlueprint(manifest: OMEGA_Manifest, options: CADOptions): string {
     const { skin, drillLayer, silkscreenLayer, dimensions, resolveAsset } = options;
-    const hp = manifest.metadata?.rack?.hp || 12;
+    const hp = manifest.metadata?.rack?.hp || DEFAULT_RACK_HP;
     const rackWidthPx = hp * 15 * 1.5;
-    const rackHeightPx = (manifest.ui?.dimensions?.height || (manifest.metadata?.rack?.height_mode === 'compact' ? 140 : 420)) * 1.5;
+    const rackHeightPx = (manifest.ui?.dimensions?.height || (manifest.metadata?.rack?.height_mode === 'compact' ? 140 : DEFAULT_PANEL_HEIGHT)) * 1.5;
     const margin = 100; // Larger margin for annotations
 
     const containers = manifest.ui?.layout?.containers || [];

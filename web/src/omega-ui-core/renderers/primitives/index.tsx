@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -16,24 +16,24 @@
  */
 
 import React from 'react';
-import type { ComponentNode } from '../../types/rack.js';
-import { Knob } from './Knob.js';
-import { Slider } from './Slider.js';
-import { Led } from './Led.js';
-import { Port } from './Port.js';
-import { Switch } from './Switch.js';
-import { Button } from './Button.js';
-import { Display } from './Display.js';
-import { Label } from './Label.js';
+import type { ComponentNode } from '../../types/rack';
+import { Knob } from './Knob';
+import { Slider } from './Slider';
+import { Led } from './Led';
+import { Port } from './Port';
+import { Switch } from './Switch';
+import { Button } from './Button';
+import { Display } from './Display';
+import { Label } from './Label';
 
-export { Knob } from './Knob.js';
-export { Slider } from './Slider.js';
-export { Led } from './Led.js';
-export { Port } from './Port.js';
-export { Switch } from './Switch.js';
-export { Button } from './Button.js';
-export { Display } from './Display.js';
-export { Label } from './Label.js';
+export { Knob } from './Knob';
+export { Slider } from './Slider';
+export { Led } from './Led';
+export { Port } from './Port';
+export { Switch } from './Switch';
+export { Button } from './Button';
+export { Display } from './Display';
+export { Label } from './Label';
 
 export interface RenderComponentOptions {
   value?: number | undefined;

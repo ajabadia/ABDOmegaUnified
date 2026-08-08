@@ -10,6 +10,7 @@
 #  Required -D vars:
 #    UI_SRC     : host/ui                          (source of the web UI)
 #    CORE_SRC   : web/src/omega-ui-core            (resolved omega-ui-core CSS/fonts)
+#    FAVICON_SRC: web/app/favicon.ico              (site favicon, optional)
 #    STAGE_DIR  : build staging directory (ephemeral)
 #    ZIP_OUT    : output .zip path (embedded)
 #
@@ -21,9 +22,7 @@
 
 if (NOT DEFINED UI_SRC OR NOT DEFINED CORE_SRC OR NOT DEFINED STAGE_DIR OR NOT DEFINED ZIP_OUT)
     message (FATAL_ERROR "ui_stage.cmake requires UI_SRC, CORE_SRC, STAGE_DIR and ZIP_OUT")
-endif()
-
-# Resolve canonical absolute paths. The build invokes this script with paths
+endif()# Resolve canonical absolute paths. The build invokes this script with paths
 # that still contain ".." components (src/Plugin/../ui); file(COPY) on Windows
 # fails on those chains (classic "cannot find ... File exists"), and the
 # omega-ui-core/fonts dirs are junctions. REALPATH resolves all of it.
@@ -38,6 +37,13 @@ file (MAKE_DIRECTORY "${STAGE_DIR}")
 # --- entry documents -----------------------------------------------------------
 file (COPY "${UI_SRC}/index.html" DESTINATION "${STAGE_DIR}")
 file (COPY "${UI_SRC}/bundle.js"  DESTINATION "${STAGE_DIR}")
+
+# --- favicon (browser requests /favicon.ico even without an explicit <link>) ---
+if (DEFINED FAVICON_SRC AND EXISTS "${FAVICON_SRC}")
+    file (COPY "${FAVICON_SRC}" DESTINATION "${STAGE_DIR}")
+else()
+    message (STATUS "ui_stage: no favicon staged (FAVICON_SRC unset or missing)")
+endif()
 
 # --- css tree (styles + inline images) -----------------------------------------
 file (COPY "${UI_SRC}/css" DESTINATION "${STAGE_DIR}")
@@ -58,7 +64,15 @@ file (COPY "${CORE_SRC}/primitives"         DESTINATION "${STAGE_DIR}/omega-ui-c
 file (COPY "${CORE_SRC}/typography/fonts.css" DESTINATION "${STAGE_DIR}/omega-ui-core/typography")
 
 # --- fonts referenced by fonts.css / css/*.css (only the 9 used files) ----------
-file (MAKE_DIRECTORY "${STAGE_DIR}/fonts/Inter" "${STAGE_DIR}/fonts/Outfit")
+# index.html loads omega-ui-core/typography/fonts.css, which references its fonts
+# with './fonts/...' — i.e. relative to omega-ui-core/typography/. The source tree
+# lays them out that way, so the SAME files must also live under
+# omega-ui-core/typography/fonts/ in the zip. The root fonts/ copy is kept only
+# for host/ui css/fonts.css ('../fonts/...'); it is not referenced by index.html.
+set (OMEGA_UI_FONT_DIRS "${STAGE_DIR}/fonts/Inter" "${STAGE_DIR}/fonts/Outfit"
+                        "${STAGE_DIR}/omega-ui-core/typography/fonts/Inter"
+                        "${STAGE_DIR}/omega-ui-core/typography/fonts/Outfit")
+file (MAKE_DIRECTORY ${OMEGA_UI_FONT_DIRS})
 file (COPY
       "${CORE_SRC}/typography/fonts/Inter/Inter-Regular.woff2"
       "${CORE_SRC}/typography/fonts/Inter/Inter-Medium.woff2"
@@ -66,19 +80,38 @@ file (COPY
       "${CORE_SRC}/typography/fonts/Inter/Inter-Black.woff2"
       DESTINATION "${STAGE_DIR}/fonts/Inter")
 file (COPY
+      "${CORE_SRC}/typography/fonts/Inter/Inter-Regular.woff2"
+      "${CORE_SRC}/typography/fonts/Inter/Inter-Medium.woff2"
+      "${CORE_SRC}/typography/fonts/Inter/Inter-Bold.woff2"
+      "${CORE_SRC}/typography/fonts/Inter/Inter-Black.woff2"
+      DESTINATION "${STAGE_DIR}/omega-ui-core/typography/fonts/Inter")
+file (COPY
       "${CORE_SRC}/typography/fonts/Outfit/Outfit-Regular.ttf"
       "${CORE_SRC}/typography/fonts/Outfit/Outfit-Bold.ttf"
       "${CORE_SRC}/typography/fonts/Outfit/Outfit-Black.ttf"
       DESTINATION "${STAGE_DIR}/fonts/Outfit")
 file (COPY
+      "${CORE_SRC}/typography/fonts/Outfit/Outfit-Regular.ttf"
+      "${CORE_SRC}/typography/fonts/Outfit/Outfit-Bold.ttf"
+      "${CORE_SRC}/typography/fonts/Outfit/Outfit-Black.ttf"
+      DESTINATION "${STAGE_DIR}/omega-ui-core/typography/fonts/Outfit")
+file (COPY
       "${CORE_SRC}/typography/fonts/SevenSegment.ttf"
       "${CORE_SRC}/typography/fonts/microgrammanormal.ttf"
       DESTINATION "${STAGE_DIR}/fonts")
+file (COPY
+      "${CORE_SRC}/typography/fonts/SevenSegment.ttf"
+      "${CORE_SRC}/typography/fonts/microgrammanormal.ttf"
+      DESTINATION "${STAGE_DIR}/omega-ui-core/typography/fonts")
 
 # --- pack the ZIP (entries relative to STAGE_DIR) ------------------------------
+set (_TAR_ENTRIES index.html bundle.js css assets omega-ui-core fonts)
+if (EXISTS "${STAGE_DIR}/favicon.ico")
+    list (APPEND _TAR_ENTRIES favicon.ico)
+endif()
 execute_process (
     COMMAND "${CMAKE_COMMAND}" -E tar "cf" "${ZIP_OUT}" --format=zip --
-            index.html bundle.js css assets omega-ui-core fonts
+            ${_TAR_ENTRIES}
     WORKING_DIRECTORY "${STAGE_DIR}"
     RESULT_VARIABLE _tar_result)
 if (NOT _tar_result EQUAL 0)

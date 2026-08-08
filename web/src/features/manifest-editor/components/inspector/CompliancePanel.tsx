@@ -15,6 +15,7 @@ import { ShieldCheck, ShieldAlert, ShieldX, Download, ChevronDown, ChevronRight,
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuditService } from '@/services/auditService';
 import type { AuditResult, AuditIssue } from '@/omega-ui-core/types/audit';
+import { DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 import type { OMEGA_Manifest } from '@/omega-ui-core/types/manifest';
 
 interface CompliancePanelProps {
@@ -161,7 +162,7 @@ function ComplianceHeader({ audit, manifest, statusConfig }: {
       <div className="mt-1.5 border-t wb-outline pt-1.5 space-y-1 text-[8px] font-mono wb-text-muted">
         <div className="flex justify-between">
           <span className="uppercase">Metadata Density</span>
-          <span className="text-primary font-bold">{manifest.metadata?.rack?.width || 12}HP</span>
+          <span className="text-primary font-bold">{manifest.metadata?.rack?.width || DEFAULT_RACK_HP}HP</span>
         </div>
         <div className="flex justify-between">
           <span className="uppercase">WASM Runtime Sync</span>

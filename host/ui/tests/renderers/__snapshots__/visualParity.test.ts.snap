@@ -1,0 +1,142 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`visual parity — golden snapshot (drift guard) > el HTML de celda del manifiesto canónico queda congelado > canonical-manifest-panel 1`] = `
+"
+        <div class="module-panel skin-industrial" style="width: 120px; height: 420px; --omega-shadow-angle: 135deg;
+        --omega-shadow-x: -2.83px;
+        --omega-shadow-y: 2.83px;
+        --omega-shadow-blur: 4px;
+        --omega-shadow-color: rgba(0,0,0,0.5);  ">
+            <!-- Industrial Screws -->
+            <div class="module-screw top-left"></div>
+            <div class="module-screw top-right"></div>
+            <div class="module-screw bottom-left"></div>
+            <div class="module-screw bottom-right"></div>
+
+            
+
+            <div class="module-canvas">
+                <div class="layer layer-background"></div>
+                <div class="layer layer-controls">
+                    
+        <div class="cell-anchor" style="position: absolute; left: 10px; top: 20px; --omega-height: 1">
+            <div class="control-cell variant-B_cyan" data-node-id="cutoff" style="--comp-radius: 18px;">
+        
+        
+        
+        
+        
+        <div class="cell-main" style="width: 54px; height: 54px; transform: translate(calc(-50% + 0px), calc(-50% + 0px))">
+          <div class="knob-container size-B color-B_cyan" data-source="cutoff" style="">
+      <div class="knob-shadow-ring"></div>
+      
+      <div class="knob-cap" style="">
+        <div class="knob-specular"></div>
+      </div>
+      <div class="knob-marker" style="--knob-rotation: 67.5deg; "></div>
+    </div>
+        </div>
+      </div>
+        </div>
+    
+        <div class="cell-anchor" style="position: absolute; left: 50px; top: 20px; --omega-height: 1">
+            <div class="control-cell variant-B_orange" data-node-id="res" style="--comp-radius: 6px;">
+        
+        
+        
+        
+        
+        <div class="cell-main" style="width: 18px; height: 18px; transform: translate(calc(-50% + 0px), calc(-50% + 0px))">
+          <div class="slider-wrapper slider-v size-B color-orange " data-source="res" style="">
+       
+       <div class="slider-rail-active" style="height: calc(25% - 4px); background-color: var(--omega-indicator-color) !important;"></div>
+       <div class="slider-cap" style="bottom: calc(22.5%); background-color: var(--omega-color-override) !important;"></div>
+     </div>
+        </div>
+      </div>
+        </div>
+    
+        <div class="cell-anchor" style="position: absolute; left: 90px; top: 20px; --omega-height: 1">
+            <div class="control-cell variant-B_green" data-node-id="sync_led" style="--comp-radius: 4px;">
+        
+        
+        
+        
+        
+        <div class="cell-main" style="width: 12px; height: 12px; transform: translate(calc(-50% + 0px), calc(-50% + 0px))">
+          <div class="led size-B color-B_green active" data-source="sync_led" style="opacity: 1">
+       
+       <div class="led-glass-overlay"></div>
+       <div class="led-internal-glow"></div>
+     </div>
+        </div>
+      </div>
+        </div>
+    
+        <div class="cell-anchor" style="position: absolute; left: 10px; top: 120px; --omega-height: 1">
+            <div class="control-cell variant-B_cyan" data-node-id="bpm" style="--comp-radius: 13px;">
+        
+        
+        
+        
+        
+        <div class="cell-main" style="width: 39px; height: 39px; transform: translate(calc(-50% + 0px), calc(-50% + 0px))">
+          <div class="mini-display variant-oled size-B color-B_cyan" data-source="bpm">
+      <div class="display-glass-overlay" style=""></div>
+      <div class="display-internal-glow"></div>
+      <div class="display-scanlines"></div>
+      <button class="display-btn minus" data-action="step-down">−</button>
+      <div class="display-value" style="">50</div>
+      <button class="display-btn plus" data-action="step-up">+</button>
+    </div>
+        </div>
+      </div>
+        </div>
+    
+        <div class="cell-anchor" style="position: absolute; left: 90px; top: 120px; --omega-height: 1">
+            <div class="control-cell variant-B_red" data-node-id="bypass" style="--comp-radius: 12px;">
+        
+        
+        
+        
+        
+        <div class="cell-main" style="width: 36px; height: 36px; transform: translate(calc(-50% + 0px), calc(-50% + 0px))">
+          <div class="switch-container size-B color-red" data-source="bypass">
+      <div class="sw-led "></div>
+      <div class="sw-led active"></div>
+    </div>
+        </div>
+      </div>
+        </div>
+    
+        <div class="cell-anchor" style="position: absolute; left: 10px; top: 300px; --omega-height: 1">
+            <div class="control-cell variant-B_cyan" data-node-id="cv_in" style="--comp-radius: 18px;">
+        
+        
+        
+        
+        
+        <div class="cell-main" style="width: 54px; height: 54px; transform: translate(calc(-50% + 0px), calc(-50% + 0px))">
+          <div class="port-socket size-B color-B_cyan" data-source="cv_in" style=""><div class="port-inner"><div class="port-led" style="background-color: var(--signal-cyan, var(--wb-primary)); opacity: 0.3;"></div></div></div>
+        </div>
+      </div>
+        </div>
+    
+        <div class="cell-anchor" style="position: absolute; left: 90px; top: 300px; --omega-height: 1">
+            <div class="control-cell variant-B_cyan" data-node-id="audio_out" style="--comp-radius: 18px;">
+        
+        
+        
+        
+        
+        <div class="cell-main" style="width: 54px; height: 54px; transform: translate(calc(-50% + 0px), calc(-50% + 0px))">
+          <div class="port-socket size-B color-B_cyan" data-source="audio_out" style=""><div class="port-inner"><div class="port-led" style="background-color: var(--signal-cyan, var(--wb-primary)); opacity: 0.3;"></div></div></div>
+        </div>
+      </div>
+        </div>
+    
+                </div>
+            </div>
+        </div>
+    "
+`;

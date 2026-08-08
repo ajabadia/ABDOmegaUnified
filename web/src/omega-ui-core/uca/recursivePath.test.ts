@@ -1,15 +1,15 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
  * Recursive Hierarchy Tests (Phase 17.3 - Extended)
  */
-import { blueprintToTree } from './ucaBridge.js';
-import type { BlueprintDefinition, OmegaBlueprintNode } from '../types/manifest.js';
+import { blueprintToTree } from './ucaBridge';
+import type { BlueprintDefinition, OmegaBlueprintNode } from '../types/manifest';
 
 describe('recursivePath — blueprintToTree', () => {
   const nestedBlueprint: BlueprintDefinition = {

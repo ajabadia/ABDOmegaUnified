@@ -4,6 +4,7 @@
  */
 
 import { BaseStore } from './runtimeStores.js';
+import { ACEMM_CATALOG } from '../Catalog/AcemmCatalog.js';
 
 export interface InventoryItem {
     id: string;
@@ -70,21 +71,45 @@ export class InventoryStore extends BaseStore {
         return this.loadPromise;
     }
 
+    /**
+     * Mapea el `family` crudo (canónico en modules/) a una de las categorías
+     * que filtra el ModuleBrowser (OSC/FLT/ENV/AMP/MOD/IO/UTILITY).
+     */
+    private categoryForFamily(family?: string): string {
+        const known: Record<string, string> = {
+            'osc': 'OSC', 'oscillator': 'OSC', 'vco': 'OSC',
+            'flt': 'FLT', 'filter': 'FLT', 'vcf': 'FLT',
+            'env': 'ENV', 'envelope': 'ENV', 'adsr': 'ENV',
+            'amp': 'AMP', 'vca': 'AMP',
+            'mod': 'MOD', 'lfo': 'MOD',
+            'io': 'IO', 'midi': 'IO', 'control': 'IO',
+            'utility': 'UTILITY',
+        };
+        const f = (family || '').toLowerCase();
+        return known[f] || 'UTILITY';
+    }
+
+    /**
+     * Catálogo web standalone derivado de ACEMM_CATALOG (fuente única):
+     * canónicos desde modules/ (generado en build) + legacy planos. NO es una
+     * lista hardcodeada: cualquier módulo nuevo en modules/ aparece aquí solo
+     * con regenerar el catálogo.
+     */
     private populateWebFallbackCatalog() {
-        const fallbackItems: (InventoryItem & { family?: string })[] = [
-            { id: 'midi_in', name: 'GLOBAL MIDI INPUT', category: 'IO', family: 'IO', hp: 4, description: 'Entrada global de eventos MIDI y telemetría LED.' },
-            { id: 'midi_trigger', name: 'MIDI TRIGGER & GATE CONVERTER', category: 'IO', family: 'IO', hp: 6, description: 'Conversor de notas MIDI a impulsos Trigger y señales Gate de 10V.' },
-            { id: 'omega_lab_monitor', name: 'OMEGA LAB TELEMETRY MONITOR', category: 'UTILITY', family: 'UTILITY', hp: 8, description: 'Osciloscopio y monitor de telemetría de señales CV/Audio en tiempo real.' },
-            { id: 'test_parity', name: '00-TEST-PARITY', category: 'UTILITY', family: 'UTILITY', hp: 24, description: 'Manifiesto de referencia para pruebas de paridad visual Era 7.' },
-            { id: 'oscillator_vA', name: 'VIRTUAL ANALOG OSCILLATOR', category: 'OSC', family: 'OSC', hp: 8, description: 'Oscilador analógico virtual multi-onda (Sine, Saw, Pulse, Triangle).' },
-            { id: 'filter_vA', name: 'VIRTUAL ANALOG LADDER FILTER', category: 'FLT', family: 'FLT', hp: 6, description: 'Filtro resonante de escalera transistorizada de 24dB/octava.' },
-            { id: 'envelope_adsr', name: 'ADSR ENVELOPE GENERATOR', category: 'ENV', family: 'ENV', hp: 4, description: 'Generador de envolvente cuádruple Attack, Decay, Sustain, Release.' },
-            { id: 'vca', name: 'DUAL LINEAR VCA', category: 'AMP', family: 'AMP', hp: 6, description: 'Amplificador controlado por voltaje lineal duplo para audio y CV.' },
-            { id: 'lfo', name: 'MULTI-WAVE LFO', category: 'MOD', family: 'MOD', hp: 6, description: 'Oscilador de baja frecuencia multifunción con reset de fase.' }
-        ];
+        const items: (InventoryItem & { family?: string })[] = Object.values(ACEMM_CATALOG).map((entry: any) => {
+            const family = entry.metadata?.family || entry.family || 'utility';
+            return {
+                id: entry.id,
+                name: entry.metadata?.name || entry.name || entry.id.toUpperCase(),
+                description: entry.metadata?.description || entry.description,
+                category: this.categoryForFamily(family),
+                family: String(family).toUpperCase(),
+                hp: Number(entry.metadata?.rack?.hp ?? entry.rack?.hp) || 8,
+            };
+        });
 
         this.items.clear();
-        fallbackItems.forEach(item => {
+        items.forEach(item => {
             this.items.set(item.id, item as InventoryItem);
         });
     }

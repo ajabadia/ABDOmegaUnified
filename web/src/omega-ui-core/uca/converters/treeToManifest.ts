@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,7 +15,7 @@
  * @lastUpdated 2026-06-15T16:54:00.462Z
  */
 
-import type { OMEGA_Manifest, OmegaNode, LayoutContainer, ManifestEntity } from '../../types/manifest.js';
+import type { OMEGA_Manifest, OmegaNode, LayoutContainer, ManifestEntity } from '../../types/manifest';
 
 /**
  * treeToManifest
@@ -38,7 +38,7 @@ export function treeToManifest(root: OmegaNode): Partial<OMEGA_Manifest['ui']> {
           w: typeof node.layout?.size?.width === 'number' ? node.layout.size.width : undefined, 
           h: typeof node.layout?.size?.height === 'number' ? node.layout.size.height : undefined
         },
-        variant: 'default',
+        variant: node.style?.variant || 'default',
         zIndex: node.layout?.zIndex,
         color: node.style?.color,
         indicatorColor: node.style?.indicatorColor,
@@ -59,7 +59,7 @@ export function treeToManifest(root: OmegaNode): Partial<OMEGA_Manifest['ui']> {
         size: node.layout?.size || { width: 48, height: 48 },
         presentation: {
           component: node.cellRef || 'knob',
-          variant: 'default',
+          variant: node.style?.variant || 'default',
           offsetX: 0,
           offsetY: 0,
           attachments: [],

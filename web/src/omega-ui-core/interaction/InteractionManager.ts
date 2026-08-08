@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,8 +15,8 @@
  * @lastUpdated 2026-08-02T00:00:00.000Z
  */
 
-import type { PanelBinding, PanelBindingKind, PanelBindingRange, PanelTransport } from '../types/panelRenderer.js';
-import { PANEL_SELECTORS } from '../types/panelRenderer.js';
+import type { PanelBinding, PanelBindingKind, PanelBindingRange, PanelTransport } from '../types/panelRenderer';
+import { PANEL_SELECTORS } from '../types/panelRenderer';
 
 /** Sensibilidad de drag vertical del knob (px por unidad 0-1). Heredada de useKnobInteraction/ControlBinder. */
 export const KNOB_SENSITIVITY_PX = 150;

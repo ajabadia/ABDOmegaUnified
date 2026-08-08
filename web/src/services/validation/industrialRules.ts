@@ -12,15 +12,16 @@ import type { OMEGA_Manifest, ManifestEntity, OmegaNode, OMEGA_Contract } from '
 import type { ValidationIssue } from '@/types/validation';
 import type { OmegaContract } from '../wasmLoader';
 import { CircularityAuditor } from '@/omega-ui-core/utils/circularityAuditor';
+import { DEFAULT_PANEL_HEIGHT, DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 
 export class IndustrialRules {
   static validate(manifest: OMEGA_Manifest, contract: (OmegaContract | OMEGA_Contract) | null): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
     if (!manifest.schemaVersion?.startsWith('7')) return issues;
 
-    const hp = manifest.metadata?.rack?.hp || 12;
+    const hp = manifest.metadata?.rack?.hp || DEFAULT_RACK_HP;
     const rackWidth = hp * 15;
-    const rackHeight = manifest.metadata?.rack?.height || manifest.ui.layout?.height || 420;
+    const rackHeight = manifest.metadata?.rack?.height || manifest.ui.layout?.height || DEFAULT_PANEL_HEIGHT;
     
     const containers = manifest.ui.layout?.containers || [];
     const activePlanes = manifest.ui.layout?.planes || ['MAIN'];

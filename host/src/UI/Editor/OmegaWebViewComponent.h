@@ -53,11 +53,13 @@ namespace Omega {
             if (p.endsWithIgnoreCase (".json")) return "application/json";
             if (p.endsWithIgnoreCase (".png"))  return "image/png";
             if (p.endsWithIgnoreCase (".svg"))  return "image/svg+xml";
+            if (p.endsWithIgnoreCase (".ico"))  return "image/x-icon";
             if (p.endsWithIgnoreCase (".jpg") || p.endsWithIgnoreCase (".jpeg")) return "image/jpeg";
             if (p.endsWithIgnoreCase (".woff2")) return "font/woff2";
             if (p.endsWithIgnoreCase (".ttf"))  return "font/ttf";
             return "application/octet-stream";
         }
+
     } // namespace
 #endif
 

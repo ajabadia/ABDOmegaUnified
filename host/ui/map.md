@@ -25,7 +25,7 @@
     - `RuntimeEventHub.ts`.
     - **`AssetResolver.ts`**: [ERA 7.2.3] Centralized module asset resolution.
   - `index.ts`: Unified Entry Point.
-- **omega-ui-core/**: [SYNCED] Shared Design System (DO NOT EDIT).
+- **omega-ui-core/**: [CANONICAL] Shared Design System — junction a `web/src/omega-ui-core` (fuente única de verdad).
 - **dist/**: Compiled JavaScript output (Modular ESM).
 - **fonts/**: Typography (`Inter`, `SevenSegment`, etc.).
 - **css/**: Stylesheets organized by component.
@@ -39,7 +39,7 @@
 
 | Component | Source | Sync Method |
 | :--- | :--- | :--- |
-| `omega-ui-core` | `ABDSynthsWeb` | `sync_omega_ui.bat` |
+| `omega-ui-core` | `web/src/omega-ui-core` (canonical) | Junction — sin sync scripts |
 | `omega_rpc.ts` | Local | Manual (Local SOT) |
 
 ## 🛠️ Build Pipeline

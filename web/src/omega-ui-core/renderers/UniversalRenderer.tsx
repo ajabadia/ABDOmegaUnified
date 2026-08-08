@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:40
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -16,13 +16,13 @@
  */
 
 import React from 'react';
-import { resolveNodeSemantics } from '../uca/ucaSemantics.js';
-import { resolveLayout } from '../uca/layoutResolver.js';
-import { StructuralNode } from './components/StructuralNode.js';
-import { CellNode } from './components/CellNode.js';
-import { UCADebugHUD } from './components/UCADebugHUD.js';
+import { resolveNodeSemantics } from '../uca/ucaSemantics';
+import { resolveLayout } from '../uca/layoutResolver';
+import { StructuralNode } from './components/StructuralNode';
+import { CellNode } from './components/CellNode';
+import { UCADebugHUD } from './components/UCADebugHUD';
 import { PluginRegistry } from '@/lib/plugins/PluginRegistry';
-import type { UniversalRendererProps } from './ucaTypes.js';
+import type { UniversalRendererProps } from './ucaTypes';
 
 /**
  * UNIVERSAL RENDERER (Phase 1 Experimental - Refactored)

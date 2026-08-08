@@ -3,11 +3,26 @@
 #include "VoiceState.h"
 #include "RpcTelemetryController.h"
 #include <cstdint>
+#include <string>
 
 namespace {
     /**
+     * @brief Resolves the VoiceState bound to the module instance that issued
+     * the import call (via slot ownership).
+     */
+    Omega::Core::Voice::VoiceState* voiceStateFromExecEnv(wasm_exec_env_t exec_env) {
+        if (!exec_env) return nullptr;
+        auto& wasm = Omega::Core::Wasm::WasmModuleService::getInstance();
+        wasm_module_inst_t inst = wasm_runtime_get_module_inst(exec_env);
+        int idx = wasm.findVoiceIdxByInst(inst);
+        if (idx < 0) return nullptr;
+        return (Omega::Core::Voice::VoiceState*)wasm.getVoiceState(idx);
+    }
+
+    /**
      * @brief Host Import: get_system_buffer
      * [Era 6.3] Returns a pointer to a global system stream (e.g. system.audio.main_l)
+     * [Era 8.1] Adds system.audio.out.N and per-voice state streams (system.voice.*)
      */
     void* omega_get_system_buffer(wasm_exec_env_t exec_env, const char* systemId) {
         auto& wasm = Omega::Core::Wasm::WasmModuleService::getInstance();
@@ -27,7 +42,33 @@ namespace {
         // Backward compatibility for legacy modules
         if (id == "system.audio.in_l") return (void*)wasm.getInput(0);
         if (id == "system.audio.in_r") return (void*)wasm.getInput(1);
-        
+
+        // Multi-port output support: system.audio.out.0, system.audio.out.1, ...
+        // Backed by the owning voice's audio buses (bus 0/1 = L/R, 2/3 = aux).
+        if (id.find("system.audio.out.") == 0) {
+            auto* state = voiceStateFromExecEnv(exec_env);
+            if (!state) return nullptr;
+            try {
+                int port = std::stoi(id.substr(17));
+                if (port >= 0 && port < 4) return (void*)&state->buses[port];
+            } catch (...) { return nullptr; }
+            return nullptr;
+        }
+
+        // Per-voice live state streams (read via float*).
+        if (id == "system.voice.frequency") {
+            auto* state = voiceStateFromExecEnv(exec_env);
+            return state ? (void*)&state->frequencyHz : nullptr;
+        }
+        if (id == "system.voice.velocity") {
+            auto* state = voiceStateFromExecEnv(exec_env);
+            return state ? (void*)&state->velocity : nullptr;
+        }
+        if (id == "system.voice.gate") {
+            auto* state = voiceStateFromExecEnv(exec_env);
+            return state ? (void*)&state->gate : nullptr;
+        }
+
         return nullptr;
     }
 
@@ -131,9 +172,36 @@ namespace {
     /**
      * @brief Host Import: publish_midi
      * [Era 7.2] High-performance MIDI output for modules.
+     * [P0-2] Cierre del flujo modular: el mensaje publicado por un módulo
+     * (p. ej. midi_in reenviando el sistema, o midi_trigger generando) se
+     * 1) inyecta en el bus MIDI modular de la voz que lo publicó (para que los
+     *    midiTargets del plan lo consuman en el render) y
+     * 2) si es NoteOn/NoteOff, dispara la voz del engine vía el callback
+     *    registrado por VirtualAnalogEngine — así las notas del sistema llegan
+     *    al rack SOLO a través del módulo midi_in (modelo modular puro).
      */
     void omega_publish_midi(wasm_exec_env_t exec_env, uint32_t port, uint8_t status, uint8_t d1, uint8_t d2) {
+        (void)port;
         auto& wasm = Omega::Core::Wasm::WasmModuleService::getInstance();
+
+        // 1. Resolve the owning voice of the publishing module instance.
+        wasm_module_inst_t inst = wasm_runtime_get_module_inst(exec_env);
+        int voiceIdx = wasm.findVoiceIdxByInst(inst);
+        if (voiceIdx >= 0) {
+            // 1a. Inyectar al bus MIDI modular de la voz (consumido por midiTargets).
+            auto* state = (Omega::Core::Voice::VoiceState*)wasm.getVoiceState(voiceIdx);
+            if (state && state->modularMidi.count < 16) {
+                auto& msg = state->modularMidi.messages[state->modularMidi.count++];
+                msg.status = status;
+                msg.d1 = d1;
+                msg.d2 = d2;
+            }
+
+            // 1b. Disparar la voz del engine en eventos de nota (modular puro).
+            wasm.triggerVoice(voiceIdx, status, d1, d2);
+        }
+
+        // 2. Canal legacy (callback externo si algún consumidor lo registra).
         wasm.publishMidi(port, status, d1, d2);
     }
 

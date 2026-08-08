@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -23,8 +23,8 @@
  * as fallback for manifests that haven't been migrated yet.
  */
  
-import type { OmegaNode, OMEGA_Manifest } from '../../types/manifest.js';
-import { parseVariant } from './VariantParser.js';
+import type { OmegaNode, OMEGA_Manifest } from '../../types/manifest';
+import { parseVariant } from './VariantParser';
  
 const RADIUS_MAP: Record<string, Record<string, number>> = {
   knob: { A: 24, B: 18, C: 12, D: 9 },

@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,8 +15,8 @@
  * @lastUpdated 2026-06-20T22:29:06.555Z
  */
 
-import type { OmegaNode } from '../../types/manifest.js';
-import type { ComponentNode, ComponentType } from '../../types/rack.js';
+import type { OmegaNode } from '../../types/manifest';
+import type { ComponentNode, ComponentType } from '../../types/rack';
 
 /** Maps OmegaNode cellRef/kind to ComponentType */
 export const COMP_TYPE_MAP: Record<string, ComponentType> = {

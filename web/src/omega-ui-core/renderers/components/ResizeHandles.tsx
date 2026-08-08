@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 'use client';
@@ -19,10 +19,10 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import type { OmegaNode, OMEGA_Manifest } from '../../types/manifest.js';
-import type { UCADebugContext } from '../ucaTypes.js';
-import { useUCAResize } from '../hooks/useUCAResize.js';
-import { RotationHandle } from './RotationHandle.js';
+import type { OmegaNode, OMEGA_Manifest } from '../../types/manifest';
+import type { UCADebugContext } from '../ucaTypes';
+import { useUCAResize } from '../hooks/useUCAResize';
+import { RotationHandle } from './RotationHandle';
 
 interface ResizeHandlesProps {
   node: OmegaNode;

@@ -2,6 +2,7 @@
 #include "AceCatalog.h"
 #include "EngineConfigManager.h"
 #include "PatchIdentifiers.h"
+#include "PatchCableSync.h"
 #include <juce_core/juce_core.h>
 #include <algorithm>
 
@@ -53,6 +54,14 @@ namespace UI {
         } else {
             instanceId = (uint32_t)payload["instanceId"].operator int();
         }
+
+        // [Revisor P2-5] Las instancias del rack empiezan en 1 (createDefaultPatch
+        // / addModule usan maxId+1): instanceId 0 = payload inválido. Sin este
+        // guard, un parse fallido prunearía slots referenciando "0.*" (inofensivo
+        // pero confuso).
+        if (instanceId == 0) {
+            return createError("REMOVE_MODULE_ACK", requestId, "Invalid instanceId");
+        }
         
         auto doc = mHistory.engineConfig().getPatchDocument();
         auto it = std::find_if(doc.modules.begin(), doc.modules.end(), 
@@ -60,6 +69,12 @@ namespace UI {
         
         if (it != doc.modules.end()) {
             doc.modules.erase(it);
+            // [P2-x] Sync estructural (grupos de I/O — lado "eliminar"): al quitar
+            // un módulo se eliminan los slots del patchbay que lo referencian
+            // (source/target/via) y las conexiones huérfanas. La matrix es la SOT
+            // del cableado: sin este prune los cables del frontal quedarían
+            // colgados apuntando a un módulo inexistente.
+            Core::Model::pruneOrphanedMatrixSlots(doc, instanceId);
             mHistory.applyAndNotify(doc, onLoad);
             return createResponse("REMOVE_MODULE_ACK", requestId, juce::var(), true);
         }

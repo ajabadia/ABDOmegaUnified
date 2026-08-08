@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,19 +15,19 @@
  * @lastUpdated 2026-06-19T18:56:38.821Z
  */
 
-import type { OmegaNode, Attachment } from '../types/manifest.js';
-import type { CellOptions, MasterRendererProps } from './cellRendererTypes.js';
-import { COMP_RENDERER_MAP } from './cellRendererMap.js';
-import { renderRackHTML } from './chassisRenderer.js';
-import { renderContainerHTML } from './ContainerRenderer.js';
-import { parseVariant } from './utils/VariantParser.js';
-import { getComponentRadius } from './utils/CellMetrics.js';
-import { renderAttachmentStackHTML } from './utils/AttachmentStack.js';
-import { getInheritedTypography } from './utils/TypographyInheritance.js';
-import { resolveNodeStyle } from '../utils/StyleResolver.js';
+import type { OmegaNode, Attachment } from '../types/manifest';
+import type { CellOptions, MasterRendererProps } from './cellRendererTypes';
+import { COMP_RENDERER_MAP } from './cellRendererMap';
+import { renderRackHTML } from './chassisRenderer';
+import { renderContainerHTML } from './ContainerRenderer';
+import { parseVariant } from './utils/VariantParser';
+import { getComponentRadius } from './utils/CellMetrics';
+import { renderAttachmentStackHTML } from './utils/AttachmentStack';
+import { getInheritedTypography } from './utils/TypographyInheritance';
+import { resolveNodeStyle } from '../utils/StyleResolver';
 
-export type { CellOptions } from './cellRendererTypes.js';
-export type { MasterRendererProps } from './cellRendererTypes.js';
+export type { CellOptions } from './cellRendererTypes';
+export type { MasterRendererProps } from './cellRendererTypes';
 
 export class CellRenderer {
   /**

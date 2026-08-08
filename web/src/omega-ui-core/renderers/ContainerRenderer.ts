@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:39
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,9 +15,9 @@
  * @lastUpdated 2026-06-19T18:57:16.049Z
  */
 
-import type { OmegaNode, OmegaStyleNode } from '../types/manifest.js';
-import type { CellOptions } from './cellRendererTypes.js';
-import { ColorResolver } from '../utils/ColorResolver.js';
+import type { OmegaNode, OmegaStyleNode } from '../types/manifest';
+import type { CellOptions } from './cellRendererTypes';
+import { ColorResolver } from '../utils/ColorResolver';
 
 /**
  * ARCHITECTURAL RENDERER

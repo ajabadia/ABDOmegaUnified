@@ -1,8 +1,8 @@
 /* =================================================================
-   DO NOT EDIT - Synced from ABDOmegaEditor/omega-ui-core
-   Any changes here will be OVERWRITTEN by sync_omega_ui.bat
-   Edit the source at: ABDOmegaEditor/src/omega-ui-core/
-   Sync Timestamp: 2026-08-02 11:27:38
+   OMEGA UI CORE - CANONICAL SOURCE (ABDOmegaUnified)
+   web/src/omega-ui-core es la fuente unica de verdad del design system.
+   Consumido por host/ui y web/public via junctions (sin sync scripts).
+   Editable en su lugar.
    ================================================================= */
 
 /**
@@ -15,7 +15,7 @@
  * @lastUpdated 2026-06-22
  */
 
-import type { OmegaEventMap, OmegaEventName } from './eventTypes.js';
+import type { OmegaEventMap, OmegaEventName } from './eventTypes';
 
 export interface IEventBus {
   on<E extends OmegaEventName>(event: E, handler: (payload: OmegaEventMap[E]) => void): () => void;

@@ -432,6 +432,1652 @@
     });
   }
 
+  // ../../web/src/omega-ui-core/uca/spatialConstraints.ts
+  function getNodeSize(node) {
+    return {
+      width: node.layout?.size?.width || 48,
+      height: node.layout?.size?.height || 48
+    };
+  }
+
+  // ../../web/src/omega-ui-core/uca/layoutResolver.ts
+  function resolveLayout(node, providedSize) {
+    const mode = node.layout?.mode || "absolute";
+    const gap = node.layout?.gap || 0;
+    const padding = node.layout?.padding || 0;
+    const nestedResolvedChildren = node.children ? node.children.map((c) => resolveLayout(c)) : [];
+    const childrenSizes = nestedResolvedChildren.map((c) => getNodeSize(c));
+    let autoWidth = 0;
+    let autoHeight = 0;
+    if (mode === "stack-v") {
+      autoWidth = childrenSizes.reduce((max, s) => Math.max(max, s.width), 0) + 2 * padding;
+      autoHeight = childrenSizes.reduce((acc, s) => acc + s.height, 0) + Math.max(0, childrenSizes.length - 1) * gap + 2 * padding;
+    } else if (mode === "stack-h") {
+      autoWidth = childrenSizes.reduce((acc, s) => acc + s.width, 0) + Math.max(0, childrenSizes.length - 1) * gap + 2 * padding;
+      autoHeight = childrenSizes.reduce((max, s) => Math.max(max, s.height), 0) + 2 * padding;
+    } else {
+      autoWidth = childrenSizes.reduce((max, s, i) => {
+        const childX = nestedResolvedChildren[i].layout?.pos?.x || 0;
+        return Math.max(max, childX + s.width);
+      }, 0) + 2 * padding;
+      autoHeight = childrenSizes.reduce((max, s, i) => {
+        const childY = nestedResolvedChildren[i].layout?.pos?.y || 0;
+        return Math.max(max, childY + s.height);
+      }, 0) + 2 * padding;
+    }
+    const effectiveSize = {
+      width: providedSize?.width || node.layout?.size?.width || autoWidth || 80,
+      height: providedSize?.height || node.layout?.size?.height || autoHeight || 80
+    };
+    const nodeWithEffectiveSize = {
+      ...node,
+      layout: {
+        ...node.layout,
+        pos: node.layout?.pos || { x: 0, y: 0 },
+        size: effectiveSize
+      }
+    };
+    if (!nodeWithEffectiveSize.children || nodeWithEffectiveSize.children.length === 0) return nodeWithEffectiveSize;
+    if (mode === "absolute") {
+      return {
+        ...nodeWithEffectiveSize,
+        children: nestedResolvedChildren
+      };
+    }
+    const containerWidth = effectiveSize.width;
+    const containerHeight = effectiveSize.height;
+    let totalContentSize = 0;
+    if (mode === "stack-v") {
+      totalContentSize = childrenSizes.reduce((acc, s) => acc + s.height, 0) + Math.max(0, childrenSizes.length - 1) * gap;
+    } else if (mode === "stack-h") {
+      totalContentSize = childrenSizes.reduce((acc, s) => acc + s.width, 0) + Math.max(0, childrenSizes.length - 1) * gap;
+    }
+    const justify = nodeWithEffectiveSize.layout?.justify || "start";
+    const align = nodeWithEffectiveSize.layout?.align || "start";
+    let cursor = padding;
+    let effectiveGap = gap;
+    if (justify === "center") {
+      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
+      cursor = padding + Math.max(0, (containerSize - 2 * padding - totalContentSize) / 2);
+    } else if (justify === "end") {
+      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
+      cursor = containerSize - padding - totalContentSize;
+    } else if (justify === "space-between" && nestedResolvedChildren.length > 1) {
+      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
+      const totalChildrenSize = childrenSizes.reduce((acc, s) => acc + (mode === "stack-v" ? s.height : s.width), 0);
+      effectiveGap = Math.max(0, (containerSize - 2 * padding - totalChildrenSize) / (nestedResolvedChildren.length - 1));
+      cursor = padding;
+    }
+    const stackedChildren = nestedResolvedChildren.map((child, index) => {
+      const size = childrenSizes[index];
+      if (!size) return child;
+      let resolvedPos = { x: 0, y: 0 };
+      const resolvedSize = { ...child.layout?.size || { width: size.width, height: size.height } };
+      let needsReResolve = false;
+      if (mode === "stack-v") {
+        let x = padding;
+        if (align === "center") x = padding + (containerWidth - 2 * padding - size.width) / 2;
+        else if (align === "end") x = containerWidth - padding - size.width;
+        else if (align === "stretch") {
+          x = padding;
+          resolvedSize.width = Math.max(0, containerWidth - 2 * padding);
+          if (resolvedSize.width !== size.width) needsReResolve = true;
+        }
+        resolvedPos = { x, y: cursor };
+        cursor += size.height + effectiveGap;
+      } else if (mode === "stack-h") {
+        let y = padding;
+        if (align === "center") y = padding + (containerHeight - 2 * padding - size.height) / 2;
+        else if (align === "end") y = containerHeight - padding - size.height;
+        else if (align === "stretch") {
+          y = padding;
+          resolvedSize.height = Math.max(0, containerHeight - 2 * padding);
+          if (resolvedSize.height !== size.height) needsReResolve = true;
+        }
+        resolvedPos = { x: cursor, y };
+        cursor += size.width + effectiveGap;
+      }
+      let finalChild = child;
+      if (needsReResolve && child.children && child.children.length > 0) {
+        finalChild = resolveLayout(child, resolvedSize);
+      }
+      return {
+        ...finalChild,
+        layout: {
+          ...finalChild.layout,
+          pos: resolvedPos,
+          size: resolvedSize
+        }
+      };
+    });
+    return {
+      ...nodeWithEffectiveSize,
+      children: stackedChildren
+    };
+  }
+
+  // ../../web/src/omega-ui-core/uca/panelGeometry.ts
+  var RACK_UNIT_HEIGHT_PX = 48;
+  var RACK_HP_WIDTH_PX = 15;
+  var MIN_CHASSIS_WIDTH_PX = 60;
+  var DEFAULT_SKIN = "industrial";
+  var DEFAULT_ZOOM = 1;
+  var DEFAULT_RUNTIME_VALUE = 0.5;
+  var DEFAULT_STEPS = 100;
+  var DEFAULT_PANEL_WIDTH = 120;
+  var DEFAULT_PANEL_HEIGHT = 420;
+  var DEFAULT_RACK_HP = 12;
+  function rackHeightForUnits(units) {
+    const u = String(units || "3U");
+    if (u.startsWith("1U")) return RACK_UNIT_HEIGHT_PX * 3;
+    if (u.startsWith("2U")) return RACK_UNIT_HEIGHT_PX * 4;
+    if (u.startsWith("3U")) return RACK_UNIT_HEIGHT_PX * 9;
+    if (u.startsWith("4U")) return RACK_UNIT_HEIGHT_PX * 12;
+    if (u.startsWith("5U")) return RACK_UNIT_HEIGHT_PX * 15;
+    if (u.startsWith("6U")) return RACK_UNIT_HEIGHT_PX * 18;
+    if (u.startsWith("7U")) return RACK_UNIT_HEIGHT_PX * 21;
+    if (u.startsWith("8U")) return RACK_UNIT_HEIGHT_PX * 24;
+    return RACK_UNIT_HEIGHT_PX * 9;
+  }
+  function resolvePanelGeometry(manifest, options = {}) {
+    const rack = manifest?.metadata?.rack;
+    const hp = Number(rack?.hp ?? DEFAULT_RACK_HP);
+    const units = rack?.units ?? "3U";
+    const declaredUpper = units.startsWith("1U");
+    const isUpper = options.forceUpper === true || declaredUpper;
+    const widthPx = Math.max(hp * RACK_HP_WIDTH_PX, MIN_CHASSIS_WIDTH_PX);
+    const heightPx = isUpper ? rackHeightForUnits("1U") : rackHeightForUnits(units);
+    return {
+      hp,
+      units,
+      widthPx,
+      heightPx,
+      slotType: isUpper ? "1U" : "3U",
+      rackSlot: rack ? isUpper ? "upper" : "lower" : void 0,
+      isUpper
+    };
+  }
+  function resolveRenderOptions(manifest, options = {}) {
+    return {
+      skin: options.skin ?? manifest?.ui?.skin ?? DEFAULT_SKIN,
+      zoom: options.zoom ?? manifest?.ui?.layout?.zoom ?? DEFAULT_ZOOM,
+      runtimeValue: options.runtimeValue ?? DEFAULT_RUNTIME_VALUE,
+      steps: options.steps ?? DEFAULT_STEPS,
+      activeTab: options.activeTab ?? resolveActiveTab(manifest),
+      resolveAsset: options.resolveAsset,
+      forceUpper: options.forceUpper
+    };
+  }
+  function resolveActiveTab(manifest) {
+    const items = [
+      ...manifest?.ui?.controls || [],
+      ...manifest?.ui?.jacks || []
+    ];
+    const firstWithTab = items.find((i) => i.presentation?.tab);
+    return firstWithTab?.presentation?.tab;
+  }
+
+  // ../../web/src/omega-ui-core/utils/ColorResolver.ts
+  var ColorResolver = class _ColorResolver {
+    /**
+     * Translates a color token or value into a physical HEX color.
+     */
+    static resolve(col, manifest) {
+      if (!col || col === "none") return "transparent";
+      if (col === "transparent" || col === "white" || col === "black") return col;
+      let baseColor = col;
+      let alpha = 1;
+      if (col.includes("/")) {
+        const parts = col.split("/");
+        baseColor = parts[0] || col;
+        alpha = parseFloat(parts[1] || "1") || 1;
+      }
+      const resolveBase = (c) => {
+        if (c.startsWith("#") || c.startsWith("rgba") || c.startsWith("rgb")) return c;
+        const palette = manifest?.ui?.palette || {};
+        const colors = manifest?.ui?.colors || {};
+        if (palette[c]) return palette[c];
+        if (colors[c]) return colors[c];
+        return "transparent";
+      };
+      const resolvedHex = resolveBase(baseColor);
+      const hasExplicitAlpha = col.includes("/");
+      if (hasExplicitAlpha || alpha < 1) {
+        if (resolvedHex.startsWith("#")) {
+          const r = parseInt(resolvedHex.slice(1, 3), 16);
+          const g = parseInt(resolvedHex.slice(3, 5), 16);
+          const b = parseInt(resolvedHex.slice(5, 7), 16);
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+        if (resolvedHex.startsWith("rgba")) {
+          return resolvedHex.replace(/[\d.]+\)$/, `${alpha})`);
+        }
+      }
+      return resolvedHex;
+    }
+    /**
+     * Recursively resolves all color properties in a style node.
+     */
+    static resolveStyle(style, manifest) {
+      if (!style) return {};
+      const resolved = { ...style };
+      const colorProps = [
+        "color",
+        "indicatorColor",
+        "glowColor",
+        "glassColor",
+        "fontColor",
+        "shadowColor",
+        "ambientColor",
+        "specularColor",
+        "warningColor",
+        "borderColor",
+        "backgroundColor",
+        "activeColor",
+        "hoverColor"
+      ];
+      colorProps.forEach((prop) => {
+        if (typeof resolved[prop] === "string") {
+          resolved[prop] = _ColorResolver.resolve(resolved[prop], manifest);
+        }
+      });
+      return resolved;
+    }
+  };
+
+  // ../../web/src/omega-ui-core/utils/styleResolverDistill.ts
+  var CANONICAL_PALETTE_KEYS = {
+    primary: "#00f2ff",
+    secondary: "#ff8c00",
+    utility: "#a0a0a0",
+    feedback: "#32cd32",
+    surface: "#121416",
+    hardware: "#777777",
+    chassis: "#1a1a1a",
+    text: "#ffffff",
+    glow: "#00f2ff",
+    glass: "rgba(255,255,255,0.05)",
+    warning: "#ff3300",
+    highlight: "#ffffff",
+    weak: "#555555"
+  };
+
+  // src/Catalog/acemmCatalog.generated.ts
+  var GENERATED_ACEMM_CATALOG = {
+    "440demo": {
+      "id": "440demo",
+      "name": "440 DEMO",
+      "description": "",
+      "metadata": {
+        "name": "440 DEMO",
+        "family": "utility",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 4,
+          "units": "1U",
+          "slot": "upper"
+        }
+      },
+      "rack": {
+        "slot": "upper",
+        "hp": 4
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "405064857271ef6072636e0a2223fce5290367dde2433b72a97db7b16d873a93",
+        "size": 2372
+      },
+      "wasmUrl": "modules/440demo/440demo.wasm",
+      "manifestUrl": "modules/440demo/440demo.acemm",
+      "params": {
+        "enabled": {
+          "label": "Enable Tone",
+          "min": 0,
+          "max": 1,
+          "default": 1,
+          "choices": [
+            {
+              "label": "OFF",
+              "value": 0
+            },
+            {
+              "label": "ON",
+              "value": 1
+            }
+          ]
+        },
+        "amplitude": {
+          "label": "Amplitude",
+          "min": 0,
+          "max": 1,
+          "default": 0.5,
+          "exponent": 2,
+          "units": ""
+        },
+        "led_rate": {
+          "label": "LED Rate",
+          "min": 1,
+          "max": 30,
+          "default": 8,
+          "exponent": 1,
+          "units": "hz"
+        }
+      },
+      "ui": {
+        "dimensions": {
+          "width": 60,
+          "height": 140
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "main",
+              "label": "Tone",
+              "pos": {
+                "x": 5,
+                "y": 5
+              },
+              "size": {
+                "w": 50,
+                "h": 130
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "sw_enable",
+            "bind": "enabled",
+            "pos": {
+              "x": 30,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "switch",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 40
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "ON"
+                }
+              ]
+            }
+          },
+          {
+            "id": "led_act",
+            "bind": "led_activity",
+            "pos": {
+              "x": 30,
+              "y": 75
+            },
+            "presentation": {
+              "container": "main",
+              "component": "led",
+              "variant": "orange",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "ACT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_out",
+            "bind": "audio_out",
+            "pos": {
+              "x": 30,
+              "y": 110
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "OUT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_amplitude",
+            "bind": "amplitude",
+            "pos": {
+              "x": 30,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_led_rate",
+            "bind": "led_rate",
+            "pos": {
+              "x": 30,
+              "y": 140
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          }
+        ]
+      }
+    },
+    "midi_2_cv": {
+      "id": "midi_2_cv",
+      "name": "MIDI 2 CV",
+      "description": "",
+      "metadata": {
+        "name": "MIDI 2 CV",
+        "family": "control",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 8,
+          "units": "1U",
+          "slot": "upper"
+        }
+      },
+      "rack": {
+        "slot": "upper",
+        "hp": 8
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "3d74a6bbc1056ebbc2a82acf18d6711bc8d139ce58de2ecc056257a67fa404bd",
+        "size": 3391
+      },
+      "wasmUrl": "modules/midi_2_cv/midi_2_cv.wasm",
+      "manifestUrl": "modules/midi_2_cv/midi_2_cv.acemm",
+      "params": {},
+      "ui": {
+        "dimensions": {
+          "width": 120,
+          "height": 140
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "main",
+              "label": "CV/GATE",
+              "pos": {
+                "x": 5,
+                "y": 5
+              },
+              "size": {
+                "w": 110,
+                "h": 130
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "port_cv_out",
+            "bind": "cv_out",
+            "pos": {
+              "x": 10,
+              "y": 65
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 22,
+                "h": 22
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "CV"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_gate_out",
+            "bind": "gate_out",
+            "pos": {
+              "x": 40,
+              "y": 65
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "silver",
+              "size": {
+                "w": 22,
+                "h": 22
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "GATE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_vel_out",
+            "bind": "vel_out",
+            "pos": {
+              "x": 70,
+              "y": 65
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 22,
+                "h": 22
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "VEL"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_at_out",
+            "bind": "at_out",
+            "pos": {
+              "x": 100,
+              "y": 65
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 22,
+                "h": 22
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "AT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_midi_channel",
+            "bind": "midi_channel",
+            "pos": {
+              "x": 10,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_glide_mode",
+            "bind": "glide_mode",
+            "pos": {
+              "x": 20,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_glide_time",
+            "bind": "glide_time",
+            "pos": {
+              "x": 30,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_bend_range",
+            "bind": "bend_range",
+            "pos": {
+              "x": 40,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_at_mode",
+            "bind": "at_mode",
+            "pos": {
+              "x": 50,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          }
+        ]
+      }
+    },
+    "midi_in": {
+      "id": "midi_in",
+      "name": "GLOBAL MIDI INPUT",
+      "description": "",
+      "metadata": {
+        "name": "GLOBAL MIDI INPUT",
+        "family": "io",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 4,
+          "units": "1U",
+          "slot": "upper"
+        }
+      },
+      "rack": {
+        "slot": "upper",
+        "hp": 4
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "43c8d528b2197f8592cad04a2b3412b3ad1021a3d8b48a61ae0b734b1a007007",
+        "size": 864
+      },
+      "wasmUrl": "modules/midi_in/midi_in.wasm",
+      "manifestUrl": "modules/midi_in/midi_in.acemm",
+      "params": {},
+      "ui": {
+        "dimensions": {
+          "width": 60,
+          "height": 140
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "main",
+              "label": "Bridge",
+              "pos": {
+                "x": 5,
+                "y": 5
+              },
+              "size": {
+                "w": 50,
+                "h": 130
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "port_out",
+            "bind": "midi_out",
+            "pos": {
+              "x": 25,
+              "y": 20
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "industrial",
+              "size": {
+                "w": 30,
+                "h": 30
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "DATA"
+                }
+              ]
+            }
+          },
+          {
+            "id": "led_act",
+            "bind": "led_activity",
+            "pos": {
+              "x": 25,
+              "y": 75
+            },
+            "presentation": {
+              "container": "main",
+              "component": "led",
+              "variant": "orange",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "ACT"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "midi_trigger": {
+      "id": "midi_trigger",
+      "name": "MIDI TRIGGER",
+      "description": "",
+      "metadata": {
+        "name": "MIDI TRIGGER",
+        "family": "midi",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 12,
+          "units": "1U",
+          "slot": "upper"
+        }
+      },
+      "rack": {
+        "slot": "upper",
+        "hp": 12
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "5e826d5c94d176fe485c6f4e32a01b6af7f045593fb3d64e1da7d94ceb34ce85",
+        "size": 1718
+      },
+      "wasmUrl": "modules/midi_trigger/midi_trigger.wasm",
+      "manifestUrl": "modules/midi_trigger/midi_trigger.acemm",
+      "params": {},
+      "ui": {
+        "dimensions": {
+          "width": 180,
+          "height": 140
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "left",
+              "label": "Displays",
+              "pos": {
+                "x": 5,
+                "y": 5
+              },
+              "size": {
+                "w": 80,
+                "h": 130
+              },
+              "variant": "inset"
+            },
+            {
+              "id": "right",
+              "label": "Performance",
+              "pos": {
+                "x": 90,
+                "y": 5
+              },
+              "size": {
+                "w": 85,
+                "h": 130
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "d_note",
+            "bind": "note_idx",
+            "pos": {
+              "x": 5,
+              "y": 15
+            },
+            "presentation": {
+              "container": "left",
+              "component": "display",
+              "variant": "oled",
+              "size": {
+                "w": 70,
+                "h": 36
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "NOTE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "d_oct",
+            "bind": "octave",
+            "pos": {
+              "x": 5,
+              "y": 65
+            },
+            "presentation": {
+              "container": "left",
+              "component": "display",
+              "variant": "led",
+              "size": {
+                "w": 70,
+                "h": 36
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "OCTAVE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "b_trig",
+            "bind": "trigger",
+            "pos": {
+              "x": 8,
+              "y": 15
+            },
+            "presentation": {
+              "container": "right",
+              "component": "button",
+              "variant": "cyan",
+              "size": {
+                "w": 34,
+                "h": 34
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "TRIG"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_out",
+            "bind": "midi_out",
+            "pos": {
+              "x": 10,
+              "y": 70
+            },
+            "presentation": {
+              "container": "right",
+              "component": "port",
+              "variant": "industrial",
+              "size": {
+                "w": 30,
+                "h": 30
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "MIDI"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s_vel",
+            "bind": "velocity",
+            "pos": {
+              "x": 55,
+              "y": 15
+            },
+            "presentation": {
+              "container": "right",
+              "component": "slider-v",
+              "variant": "industrial",
+              "size": {
+                "w": 18,
+                "h": 85
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "VEL"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "omega_lab_monitor": {
+      "id": "omega_lab_monitor",
+      "name": "OMEGA LAB TELEMETRY MONITOR",
+      "description": "",
+      "metadata": {
+        "name": "OMEGA LAB TELEMETRY MONITOR",
+        "family": "utility",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 16,
+          "units": "3U",
+          "slot": "lower"
+        }
+      },
+      "rack": {
+        "slot": "lower",
+        "hp": 16
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "fdb207b98c43a6086688b5e769281548ec30d5454e44226882f7f486da3c8a6d",
+        "size": 3385
+      },
+      "wasmUrl": "modules/omega_lab_monitor/omega_lab_monitor.wasm",
+      "manifestUrl": "modules/omega_lab_monitor/omega_lab_monitor.acemm",
+      "params": {
+        "timebase": {
+          "label": "Time/Div",
+          "min": 0.1,
+          "max": 10,
+          "default": 1,
+          "exponent": 1,
+          "units": "x"
+        },
+        "gain": {
+          "label": "Volt/Div",
+          "min": 0.1,
+          "max": 10,
+          "default": 1,
+          "exponent": 1,
+          "units": "v"
+        },
+        "offset": {
+          "label": "Offset",
+          "min": -1,
+          "max": 1,
+          "default": 0,
+          "units": "v"
+        },
+        "mode": {
+          "label": "Mode",
+          "min": 0,
+          "max": 3,
+          "default": 0,
+          "choices": [
+            {
+              "label": "Scope",
+              "value": 0
+            },
+            {
+              "label": "Spectrum",
+              "value": 1
+            },
+            {
+              "label": "XY",
+              "value": 2
+            },
+            {
+              "label": "Meter",
+              "value": 3
+            }
+          ]
+        }
+      },
+      "ui": {
+        "dimensions": {
+          "width": 240,
+          "height": 420
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "scope_sec",
+              "label": "Oscilloscope Waveform Display",
+              "pos": {
+                "x": 5,
+                "y": 10
+              },
+              "size": {
+                "w": 230,
+                "h": 185
+              },
+              "variant": "inset"
+            },
+            {
+              "id": "meter_sec",
+              "label": "Digital Meter & Voltage Telemetry",
+              "pos": {
+                "x": 5,
+                "y": 200
+              },
+              "size": {
+                "w": 230,
+                "h": 65
+              },
+              "variant": "panel"
+            },
+            {
+              "id": "ctrl_sec",
+              "label": "Input Jacks & Calibration",
+              "pos": {
+                "x": 5,
+                "y": 270
+              },
+              "size": {
+                "w": 230,
+                "h": 140
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "scope_1",
+            "bind": "audio_in",
+            "pos": {
+              "x": 5,
+              "y": 10
+            },
+            "presentation": {
+              "container": "scope_sec",
+              "component": "scope",
+              "variant": "phosphor",
+              "size": {
+                "w": 220,
+                "h": 165
+              }
+            }
+          },
+          {
+            "id": "d_volts",
+            "bind": "signal_telemetry",
+            "pos": {
+              "x": 5,
+              "y": 12
+            },
+            "presentation": {
+              "container": "meter_sec",
+              "component": "display",
+              "variant": "oled",
+              "size": {
+                "w": 150,
+                "h": 42
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "VOLTAGE / FREQ"
+                }
+              ]
+            }
+          },
+          {
+            "id": "led_clip",
+            "bind": "clip_status",
+            "pos": {
+              "x": 165,
+              "y": 20
+            },
+            "presentation": {
+              "container": "meter_sec",
+              "component": "led",
+              "variant": "orange",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "CLIP"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_audio",
+            "bind": "audio_in",
+            "pos": {
+              "x": 10,
+              "y": 15
+            },
+            "presentation": {
+              "container": "ctrl_sec",
+              "component": "port",
+              "variant": "audio",
+              "size": {
+                "w": 30,
+                "h": 30
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "AUDIO"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_cv",
+            "bind": "cv_in",
+            "pos": {
+              "x": 60,
+              "y": 15
+            },
+            "presentation": {
+              "container": "ctrl_sec",
+              "component": "port",
+              "variant": "cv",
+              "size": {
+                "w": 30,
+                "h": 30
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "CV IN"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_thru",
+            "bind": "thru_out",
+            "pos": {
+              "x": 10,
+              "y": 75
+            },
+            "presentation": {
+              "container": "ctrl_sec",
+              "component": "port",
+              "variant": "industrial",
+              "size": {
+                "w": 30,
+                "h": 30
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "THRU"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_trig",
+            "bind": "trig_in",
+            "pos": {
+              "x": 60,
+              "y": 75
+            },
+            "presentation": {
+              "container": "ctrl_sec",
+              "component": "port",
+              "variant": "industrial",
+              "size": {
+                "w": 30,
+                "h": 30
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "TRIG"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_time",
+            "bind": "timebase",
+            "pos": {
+              "x": 110,
+              "y": 15
+            },
+            "presentation": {
+              "container": "ctrl_sec",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 36,
+                "h": 36
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "TIME/DIV"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_volt",
+            "bind": "gain",
+            "pos": {
+              "x": 170,
+              "y": 15
+            },
+            "presentation": {
+              "container": "ctrl_sec",
+              "component": "knob",
+              "variant": "white",
+              "size": {
+                "w": 36,
+                "h": 36
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "VOLT/DIV"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_offset",
+            "bind": "offset",
+            "pos": {
+              "x": 110,
+              "y": 75
+            },
+            "presentation": {
+              "container": "ctrl_sec",
+              "component": "knob",
+              "variant": "default",
+              "size": {
+                "w": 36,
+                "h": 36
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "OFFSET"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_mode",
+            "bind": "mode",
+            "pos": {
+              "x": 170,
+              "y": 75
+            },
+            "presentation": {
+              "container": "ctrl_sec",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 36,
+                "h": 36
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "MODE"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "test_parity": {
+      "id": "test_parity",
+      "name": "00-TEST-PARITY",
+      "description": "Visual Parity Reference Manifest.",
+      "metadata": {
+        "name": "00-TEST-PARITY",
+        "family": "utility",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 24,
+          "units": "3U",
+          "slot": "lower"
+        }
+      },
+      "rack": {
+        "slot": "lower",
+        "hp": 24
+      },
+      "assets": {
+        "source": false,
+        "wasm": false
+      },
+      "artifact": null,
+      "wasmUrl": null,
+      "manifestUrl": "modules/test_parity/test_parity.acemm",
+      "params": {},
+      "ui": {
+        "skin": "industrial",
+        "dimensions": {
+          "width": 360,
+          "height": 420
+        },
+        "layout": {
+          "containers": [
+            {
+              "id": "c_prim",
+              "label": "PRIMITIVES",
+              "pos": {
+                "x": 10,
+                "y": 10
+              },
+              "size": {
+                "w": 340,
+                "h": 120
+              },
+              "variant": "panel"
+            },
+            {
+              "id": "c_att",
+              "label": "ATTACHMENTS",
+              "pos": {
+                "x": 10,
+                "y": 140
+              },
+              "size": {
+                "w": 340,
+                "h": 120
+              },
+              "variant": "section"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "k1",
+            "bind": "k_main",
+            "pos": {
+              "x": 40,
+              "y": 40
+            },
+            "presentation": {
+              "component": "knob",
+              "variant": "A_cyan",
+              "container": "c_prim"
+            }
+          },
+          {
+            "id": "p1",
+            "bind": "p_in",
+            "pos": {
+              "x": 100,
+              "y": 40
+            },
+            "presentation": {
+              "component": "port",
+              "variant": "B_audio",
+              "container": "c_prim"
+            }
+          },
+          {
+            "id": "k_att",
+            "bind": "k_main",
+            "pos": {
+              "x": 40,
+              "y": 40
+            },
+            "presentation": {
+              "component": "knob",
+              "variant": "B_white",
+              "container": "c_att",
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "TOP",
+                  "position": "top"
+                },
+                {
+                  "type": "label",
+                  "text": "BOTTOM",
+                  "position": "bottom"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  };
+
+  // src/Catalog/AcemmCatalog.ts
+  var LEGACY_ACEMM_ENTRIES = {
+    "oscillator_vA": {
+      id: "oscillator_vA",
+      name: "Analog Oscillator (VCO)",
+      rack: { slot: "lower", hp: 10 },
+      controls: [
+        { id: "pitch", name: "Coarse Pitch", type: "knob" },
+        { id: "fine", name: "Fine Tune", type: "knob" },
+        { id: "shape", name: "Wave Shape", type: "knob" },
+        { id: "fm_depth", name: "FM Depth", type: "knob" }
+      ],
+      jacks: [
+        { id: "pitch_in", name: "V/OCT In", dataType: "cv", direction: "input" },
+        { id: "fm_in", name: "FM CV", dataType: "cv", direction: "input" },
+        { id: "sine_out", name: "Sine Out", dataType: "audio", direction: "output" },
+        { id: "saw_out", name: "Saw Out", dataType: "audio", direction: "output" }
+      ]
+    },
+    "filter_vA": {
+      id: "filter_vA",
+      name: "Ladder VCF Filter",
+      rack: { slot: "lower", hp: 10 },
+      controls: [
+        { id: "cutoff", name: "Cutoff Freq", type: "knob" },
+        { id: "resonance", name: "Resonance", type: "knob" },
+        { id: "drive", name: "Overdrive", type: "knob" },
+        { id: "env_amount", name: "Env Modulation", type: "knob" }
+      ],
+      jacks: [
+        { id: "audio_in", name: "Audio In", dataType: "audio", direction: "input" },
+        { id: "cutoff_cv", name: "Cutoff CV", dataType: "cv", direction: "input" },
+        { id: "audio_out", name: "Audio Out", dataType: "audio", direction: "output" }
+      ]
+    },
+    "envelope_adsr": {
+      id: "envelope_adsr",
+      name: "ADSR Envelope Generator",
+      rack: { slot: "lower", hp: 8 },
+      controls: [
+        { id: "attack", name: "Attack", type: "knob" },
+        { id: "decay", name: "Decay", type: "knob" },
+        { id: "sustain", name: "Sustain", type: "knob" },
+        { id: "release", name: "Release", type: "knob" }
+      ],
+      jacks: [
+        { id: "gate_in", name: "Gate In", dataType: "cv", direction: "input" },
+        { id: "env_out", name: "Env Out", dataType: "cv", direction: "output" }
+      ]
+    },
+    "vca": {
+      id: "vca",
+      name: "Dual Linear VCA",
+      rack: { slot: "lower", hp: 6 },
+      controls: [
+        { id: "gain", name: "Initial Gain", type: "knob" },
+        { id: "cv_amt", name: "CV Amount", type: "knob" }
+      ],
+      jacks: [
+        { id: "in", name: "Signal In", dataType: "audio", direction: "input" },
+        { id: "cv", name: "CV In", dataType: "cv", direction: "input" },
+        { id: "out", name: "Signal Out", dataType: "audio", direction: "output" }
+      ]
+    },
+    "lfo": {
+      id: "lfo",
+      name: "Multi-Wave LFO",
+      rack: { slot: "lower", hp: 6 },
+      controls: [
+        { id: "rate", name: "LFO Speed", type: "knob" },
+        { id: "depth", name: "Output Depth", type: "knob" }
+      ],
+      jacks: [
+        { id: "reset_in", name: "Sync Reset", dataType: "cv", direction: "input" },
+        { id: "lfo_out", name: "LFO Out", dataType: "cv", direction: "output" }
+      ]
+    }
+  };
+  var ACEMM_CATALOG = {
+    ...GENERATED_ACEMM_CATALOG,
+    ...LEGACY_ACEMM_ENTRIES
+  };
+  var CONTROL_COMPONENTS = {
+    knob: "knob",
+    slider: "slider-v",
+    "slider-v": "slider-v",
+    "slider-h": "slider-h",
+    button: "button",
+    switch: "switch",
+    toggle: "toggle",
+    led: "led",
+    display: "display",
+    stepper: "stepper",
+    fader: "fader"
+  };
+  function layoutItems(items, width, height, opts) {
+    const n = items.length || 0;
+    if (n === 0) return [];
+    const cols = opts.cols ?? n;
+    const rows = Math.max(1, Math.ceil(n / cols));
+    const perRow = Math.ceil(n / rows);
+    return items.map((item, i) => {
+      const row = Math.floor(i / perRow);
+      const col = i % perRow;
+      const colsInRow = Math.min(perRow, n - row * perRow);
+      const xStep = width / (colsInRow + 1);
+      const size = opts.size;
+      const component = typeof opts.component === "function" ? opts.component(item) : opts.component;
+      return {
+        ...item,
+        role: opts.role,
+        type: opts.type,
+        pos: { x: Math.round(xStep * (col + 1) - size / 2), y: Math.round(opts.startY + row * opts.rowStep) },
+        presentation: {
+          component,
+          size: { width: size, height: size }
+        }
+      };
+    });
+  }
+  function ensureCanonicalPalette(ui) {
+    if (ui.palette && Object.keys(ui.palette).length > 0) return;
+    const existing = ui.colors || {};
+    ui.palette = { ...CANONICAL_PALETTE_KEYS, ...existing };
+  }
+  function normalizeCatalogManifest(entry) {
+    if (!entry) return entry;
+    if (entry.ui && (entry.ui.tree || Array.isArray(entry.ui.controls) || Array.isArray(entry.ui.jacks) || Array.isArray(entry.ui.items))) {
+      ensureCanonicalPalette(entry.ui);
+      return entry;
+    }
+    const slot = entry.rack?.slot === "upper" ? "upper" : "lower";
+    const hp = Number(entry.rack?.hp) || 8;
+    const units = slot === "upper" ? "1U" : "3U";
+    const width = Math.max(hp * 15, MIN_CHASSIS_WIDTH_PX);
+    const height = slot === "upper" ? 144 : 432;
+    const controls = layoutItems(entry.controls || [], width, height, {
+      cols: slot === "upper" ? entry.controls?.length || 1 : 3,
+      startY: slot === "upper" ? height - 52 : height - 320,
+      rowStep: slot === "upper" ? 40 : 56,
+      size: slot === "upper" ? 24 : 28,
+      component: (c) => CONTROL_COMPONENTS[c.type] || "knob"
+    });
+    const jacks = layoutItems(entry.jacks || [], width, height, {
+      cols: entry.jacks?.length || 1,
+      startY: slot === "upper" ? height - 24 : height - 42,
+      rowStep: 0,
+      size: slot === "upper" ? 18 : 20,
+      component: "port",
+      role: "io",
+      type: "jack"
+    });
+    return {
+      ...entry,
+      metadata: {
+        ...entry.metadata || {},
+        rack: { hp, units, slot }
+      },
+      ui: {
+        skin: entry.ui?.skin || DEFAULT_SKIN,
+        palette: { ...CANONICAL_PALETTE_KEYS, ...entry.ui?.palette || {}, ...entry.ui?.colors || {} },
+        dimensions: { width, height },
+        controls,
+        jacks,
+        layout: { width, height, gridSnap: 1, containers: [] }
+      }
+    };
+  }
+  async function getOrFetchManifest(id) {
+    if (!id) return null;
+    const win2 = window;
+    let manifest = win2.schemaStore?.getSchema(id);
+    if (!manifest && ACEMM_CATALOG[id]) {
+      manifest = ACEMM_CATALOG[id];
+    }
+    if (!manifest) {
+      manifest = {
+        id,
+        name: id.toUpperCase(),
+        rack: { slot: resolveRackTarget(id, {}, null).isUpper ? "upper" : "lower", hp: 8 },
+        controls: [{ id: "param1", name: "Param 1", type: "knob" }],
+        jacks: [{ id: "in1", name: "In 1", dataType: "audio", direction: "input" }, { id: "out1", name: "Out 1", dataType: "audio", direction: "output" }]
+      };
+    }
+    manifest = normalizeCatalogManifest(manifest);
+    if (win2.schemaStore && typeof win2.schemaStore.registerSchema === "function") {
+      win2.schemaStore.registerSchema(id, manifest);
+    }
+    return manifest;
+  }
+  if (typeof window !== "undefined") {
+    window.ACEMM_CATALOG = ACEMM_CATALOG;
+    window.getOrFetchManifest = getOrFetchManifest;
+  }
+
   // src/Logic/module_manager.ts
   var ModuleManager = class {
     activeModules = /* @__PURE__ */ new Map();
@@ -505,7 +2151,7 @@
           const instId = `v7_${mod.instanceId}`;
           newActiveIds.add(instId);
           if (!this.activeModules.has(instId)) {
-            const manifest = window.schemaStore?.getSchema(componentId);
+            const manifest = await getOrFetchManifest(componentId);
             const { isUpper, rackType } = resolveRackTarget(componentId, mod, manifest);
             const targetRack = isUpper ? document.getElementById("upper-rack") : document.getElementById("lower-rack");
             console.log(
@@ -526,7 +2172,7 @@
               manifest: manifest || {
                 id: componentId,
                 name: componentId,
-                ui: { dimensions: { width: 60, height: 420 }, controls: [], jacks: [], skin: "industrial" },
+                ui: { dimensions: { width: MIN_CHASSIS_WIDTH_PX, height: DEFAULT_PANEL_HEIGHT }, controls: [], jacks: [], skin: DEFAULT_SKIN },
                 registry: []
               },
               layer: rackType
@@ -1036,17 +2682,45 @@
         if (this.selectedPresetIdx === idx) li.classList.add("active");
         li.innerHTML = `<span class="preset-name">${p.name}</span>`;
         if (p.favorite) li.innerHTML += `<span class="preset-fav active">\u2605</span>`;
+        const isFactory = lib.name.toUpperCase() === "FACTORY" || p.category === "Factory";
+        if (!isFactory) {
+          const delBtn = document.createElement("button");
+          delBtn.className = "preset-delete";
+          delBtn.title = "Delete preset";
+          delBtn.textContent = "\u{1F5D1}";
+          delBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.deletePreset(p.name);
+          });
+          li.appendChild(delBtn);
+        }
         li.onclick = () => this.selectPreset(idx);
         list.appendChild(li);
       });
     }
+    /**
+     * [P2-4] Elimina un preset de usuario del disco (RPC deletePreset →
+     * PatchRepository::remove). Los patches de fábrica no tienen botón.
+     */
+    async deletePreset(name) {
+      if (!confirm(`\xBFEliminar el preset "${name}"?`)) return;
+      const dispatcher = window.rpcCommandDispatcher;
+      if (dispatcher) {
+        await dispatcher.dispatch({ type: "deletePreset", payload: { target: name } });
+      }
+      this.selectedPresetIdx = -1;
+      await this.refresh();
+    }
     async selectPreset(idx) {
       this.selectedPresetIdx = idx;
+      const lib = this.data.libraries[this.selectedLibIdx];
+      const patch = lib?.patches[idx];
+      if (!patch) return;
       const dispatcher = window.rpcCommandDispatcher;
       if (dispatcher) {
         await dispatcher.dispatch({
           type: "loadPreset",
-          value: { libIdx: this.selectedLibIdx, prstIdx: idx }
+          payload: { target: patch.name }
         });
       }
       this.renderPresets();
@@ -1183,74 +2857,6 @@
         const nextIndex = (currentIndex + 1) % options.length;
         this.renderer.setParam(id, nextIndex / options.length);
       });
-    }
-  };
-
-  // ../../web/src/omega-ui-core/utils/ColorResolver.ts
-  var ColorResolver = class _ColorResolver {
-    /**
-     * Translates a color token or value into a physical HEX color.
-     */
-    static resolve(col, manifest) {
-      if (!col || col === "none") return "transparent";
-      if (col === "transparent" || col === "white" || col === "black") return col;
-      let baseColor = col;
-      let alpha = 1;
-      if (col.includes("/")) {
-        const parts = col.split("/");
-        baseColor = parts[0] || col;
-        alpha = parseFloat(parts[1] || "1") || 1;
-      }
-      const resolveBase = (c) => {
-        if (c.startsWith("#") || c.startsWith("rgba") || c.startsWith("rgb")) return c;
-        const palette = manifest?.ui?.palette || {};
-        const colors = manifest?.ui?.colors || {};
-        if (palette[c]) return palette[c];
-        if (colors[c]) return colors[c];
-        return "transparent";
-      };
-      const resolvedHex = resolveBase(baseColor);
-      const hasExplicitAlpha = col.includes("/");
-      if (hasExplicitAlpha || alpha < 1) {
-        if (resolvedHex.startsWith("#")) {
-          const r = parseInt(resolvedHex.slice(1, 3), 16);
-          const g = parseInt(resolvedHex.slice(3, 5), 16);
-          const b = parseInt(resolvedHex.slice(5, 7), 16);
-          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        }
-        if (resolvedHex.startsWith("rgba")) {
-          return resolvedHex.replace(/[\d.]+\)$/, `${alpha})`);
-        }
-      }
-      return resolvedHex;
-    }
-    /**
-     * Recursively resolves all color properties in a style node.
-     */
-    static resolveStyle(style, manifest) {
-      if (!style) return {};
-      const resolved = { ...style };
-      const colorProps = [
-        "color",
-        "indicatorColor",
-        "glowColor",
-        "glassColor",
-        "fontColor",
-        "shadowColor",
-        "ambientColor",
-        "specularColor",
-        "warningColor",
-        "borderColor",
-        "backgroundColor",
-        "activeColor",
-        "hoverColor"
-      ];
-      colorProps.forEach((prop) => {
-        if (typeof resolved[prop] === "string") {
-          resolved[prop] = _ColorResolver.resolve(resolved[prop], manifest);
-        }
-      });
-      return resolved;
     }
   };
 
@@ -1509,12 +3115,13 @@
   // ../../web/src/omega-ui-core/renderers/ScopeRenderer.ts
   function renderScopeHTML(props) {
     const { variant, bind, size, color = "var(--scope-color, #00ff88)" } = props;
-    const w = size.width || 220;
-    const h = size.height || 125;
+    const zoom = 1.5;
+    const w = size.width * zoom;
+    const h = size.height * zoom;
     return `
     <div class="scope-display variant-${variant}" 
          data-bind="${bind}"
-         style="width: 100%; height: 100%; --scope-color: ${color};">
+         style="--scope-width: ${w}px; --scope-height: ${h}px; --scope-color: ${color};">
         <canvas class="scope-canvas" width="${w}" height="${h}"></canvas>
         <div class="scope-grid"></div>
     </div>
@@ -1523,12 +3130,15 @@
 
   // ../../web/src/omega-ui-core/renderers/TerminalRenderer.ts
   function renderTerminalHTML(props) {
-    const { variant, bind, color = "var(--terminal-color, #ffcc00)", font = "monospace" } = props;
+    const { variant, bind, size, color = "var(--terminal-color, #ffcc00)", font = "monospace" } = props;
+    const zoom = 1.5;
+    const w = size.width * zoom;
+    const h = size.height * zoom;
     return `
     <div class="terminal-display variant-${variant}" 
          data-bind="${bind}"
-         style="width: 100%; height: 100%; color: ${color}; font-family: ${font};">
-        <div class="terminal-container" style="padding: 6px; font-size: 10px; opacity: 0.85; height: 100%; overflow: hidden; box-sizing: border-box;">&gt; SYS_OK: Telemetry online...</div>
+         style="--terminal-width: ${w}px; --terminal-height: ${h}px; color: ${color}; font-family: ${font};">
+        <div class="terminal-container"></div>
     </div>
   `;
   }
@@ -1859,11 +3469,10 @@
     },
     "scope": (node, _props, opt) => {
       const resolved = resolveNodeStyle(node, opt.manifest);
-      const sz = node.layout?.size || { width: 220, height: 150 };
       return renderScopeHTML({
-        variant: node.style?.variant || "phosphor",
+        variant: node.style?.variant || "default",
         bind: node.bind || "",
-        size: { width: sz.width || 220, height: sz.height || 150 },
+        size: node.style?.width && node.style?.height ? { width: node.style.width, height: node.style.height } : { width: 100, height: 100 },
         color: resolved.style.color || node.style?.color,
         font: resolved.style.font || node.style?.font,
         inheritedFont: resolved.style.font || opt.inherited.font,
@@ -1873,11 +3482,10 @@
     },
     "terminal": (node, _props, opt) => {
       const resolved = resolveNodeStyle(node, opt.manifest);
-      const sz = node.layout?.size || { width: 220, height: 120 };
       return renderTerminalHTML({
-        variant: node.style?.variant || "amber",
+        variant: node.style?.variant || "default",
         bind: node.bind || "",
-        size: { width: sz.width || 220, height: sz.height || 120 },
+        size: node.style?.width && node.style?.height ? { width: node.style.width, height: node.style.height } : { width: 100, height: 100 },
         color: resolved.style.color || node.style?.color,
         font: resolved.style.font || node.style?.font,
         inheritedFont: resolved.style.font || opt.inherited.font,
@@ -1913,7 +3521,7 @@
   };
 
   // ../../web/src/omega-ui-core/renderers/chassisRenderer.ts
-  function renderRackHTML(node, options) {
+  function renderRackHTML(node, options, nodeId = "") {
     const { manifest, resolveAsset, activeTab = "MAIN" } = options;
     const style = node.style || {};
     const variant = style.variant || "default";
@@ -2032,7 +3640,7 @@
       `;
     };
     return `
-      <div class="industrial-rack-chassis"
+      <div class="industrial-rack-chassis" data-node-id="${nodeId}"
         style="position: absolute; inset: 0; background-color: ${bgColor}; ${bgStyles} border-radius: ${rounding}px; border: ${borderWidth}px solid rgba(255,255,255,0.05); overflow: hidden;">
         ${screwFragment ? positions.map((p, i) => renderScrew(p, i)).join("") : ""}
       </div>
@@ -2176,13 +3784,14 @@
     static renderCellHTML(node, options) {
       const { runtimeValue, steps, isSelected, resolveAsset, manifest } = options;
       const compType = node.cellRef || node.kind || "knob";
+      const nodeId = node.id || "";
       if (compType === "rack") {
-        return renderRackHTML(node, options);
+        return renderRackHTML(node, options, nodeId);
       }
       const isArchitectural = compType === "container" || compType === "group" || compType === "face";
       if (isArchitectural) {
         return `
-        <div class="architectural-cell" style="width: 100%; height: 100%; position: relative;">
+        <div class="architectural-cell" data-node-id="${nodeId}" style="width: 100%; height: 100%; position: relative;">
           ${renderContainerHTML(node, options)}
         </div>
       `.trim();
@@ -2235,7 +3844,7 @@
       const containerWidth = resolvedStyle.width !== void 0 ? resolvedStyle.width : compRadius * 2 * 1.5;
       const containerHeight = resolvedStyle.height !== void 0 ? resolvedStyle.height : compRadius * 2 * 1.5;
       return `
-      <div class="control-cell variant-${variant}" style="--comp-radius: ${compRadius}px;">
+      <div class="control-cell variant-${variant}" data-node-id="${nodeId}" style="--comp-radius: ${compRadius}px;">
         ${renderAttachmentStackHTML("top", attachments, stackOptions)}
         ${renderAttachmentStackHTML("bottom", attachments, stackOptions)}
         ${renderAttachmentStackHTML("left", attachments, stackOptions)}
@@ -2249,200 +3858,417 @@
     }
   };
 
-  // ../../web/src/omega-ui-core/typography/registry.ts
-  var OMEGA_OFFICIAL_FONTS = [
-    {
-      id: "inter",
-      name: "Inter",
-      category: "ui",
-      description: "Standard Industrial UI & Labeling",
-      isProtected: true
-    },
-    {
-      id: "outfit",
-      name: "Outfit",
-      category: "branding",
-      description: "Headlines, Branding & High-Density Titles",
-      isProtected: true
-    },
-    {
-      id: "seven-segment",
-      name: "Seven Segment",
-      category: "digital",
-      description: "LCD / LED Digital Displays",
-      isProtected: true
-    },
-    {
-      id: "microgramma",
-      name: "Microgramma",
-      category: "technical",
-      description: "Technical Specs & Vintage Aero-Industrial Labels",
-      isProtected: true
+  // ../../web/src/omega-ui-core/uca/treeUtils.ts
+  function mergeWithOverrides(base, overrides, policy) {
+    const result = JSON.parse(JSON.stringify(base));
+    for (const [path, value] of Object.entries(overrides)) {
+      const matchingRules = policy.filter((p) => path === p.path || path.startsWith(p.path + ".")).sort((a, b) => b.path.length - a.path.length);
+      const activeRule = matchingRules[0];
+      if (activeRule) {
+        if (activeRule.mode === "locked") {
+          console.warn(`[UCA] Path is locked by policy: ${path}`);
+          continue;
+        }
+        if (activeRule.mode === "hidden") {
+          continue;
+        }
+      }
+      setPathValue(result, path, value);
     }
-  ];
-  var PROTECTED_FONT_NAMES = OMEGA_OFFICIAL_FONTS.map((f) => f.name);
-  var TYPOGRAPHY_CATEGORIES = [
-    { id: "headings", label: "Module Headings", defaultFont: "Outfit", defaultSize: 12 },
-    { id: "labels", label: "Component Labels", defaultFont: "Inter", defaultSize: 8 },
-    { id: "displays", label: "Digital Displays", defaultFont: "Seven Segment", defaultSize: 14 },
-    { id: "technical", label: "Technical Specs", defaultFont: "Microgramma", defaultSize: 7 }
-  ];
+    return result;
+  }
+  function setPathValue(obj, path, value) {
+    const parts = path.split(".");
+    let current = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      if (part === void 0) continue;
+      if (!current[part] || typeof current[part] !== "object") {
+        current[part] = {};
+      }
+      current = current[part];
+    }
+    const lastPart = parts[parts.length - 1];
+    if (lastPart !== void 0) {
+      current[lastPart] = value;
+    }
+  }
+  function applySlotMappings(node, mappings) {
+    if (node.bind && mappings[node.bind]) {
+      node.bind = mappings[node.bind] || void 0;
+    }
+    if (node.children) {
+      node.children.forEach((child) => applySlotMappings(child, mappings));
+    }
+  }
+
+  // ../../web/src/omega-ui-core/uca/ucaSemantics.ts
+  function resolveNodeSemantics(node, ctx) {
+    let templateBase = {};
+    if (node.snapshot) {
+      templateBase = JSON.parse(JSON.stringify(node.snapshot));
+    } else if (node.cellRef && ctx.moduleTemplates?.[node.cellRef]) {
+      const template = ctx.moduleTemplates[node.cellRef];
+      if (template) {
+        const baseNode = template.baseNode;
+        if (baseNode) {
+          const blueprint = JSON.parse(JSON.stringify(baseNode));
+          templateBase = mergeWithOverrides(blueprint, node.overrides || {}, template.policy || []);
+          if (node.slotMappings) {
+            applySlotMappings(templateBase, node.slotMappings);
+          }
+        }
+      }
+    } else if (node.kind === "cell" && (node.cellRef || node.templateRef)) {
+      const ref = node.cellRef || node.templateRef;
+      const template = ctx.catalog[ref];
+      if (template) {
+        templateBase = JSON.parse(JSON.stringify(template.baseNode));
+      }
+    }
+    const resolved = {
+      ...templateBase,
+      ...node,
+      layout: {
+        ...templateBase.layout,
+        ...node.layout,
+        // Ensure position is at least 0,0 if not provided
+        pos: node.layout?.pos || templateBase.layout?.pos || { x: 0, y: 0 }
+      },
+      style: {
+        ...templateBase.style,
+        ...node.style
+      },
+      children: [
+        ...templateBase.children || [],
+        ...node.children || []
+      ]
+    };
+    if (ctx.parentStyle) {
+      resolved.style = {
+        ...resolved.style,
+        font: resolved.style?.font || ctx.parentStyle.font || void 0,
+        fontColor: resolved.style?.fontColor || ctx.parentStyle.fontColor || void 0
+      };
+    }
+    if (resolved.layout && !resolved.layout.size && templateBase.layout?.size) {
+      resolved.layout.size = { ...templateBase.layout.size };
+    }
+    if (resolved.children && resolved.children.length > 0) {
+      resolved.children = resolved.children.map((child, index) => {
+        const childCtx = {
+          ...ctx,
+          parentStyle: resolved.style
+        };
+        const resolvedChild = resolveNodeSemantics(child, childCtx);
+        if (!child.id) {
+          resolvedChild.id = `${resolved.id}_child_${index}`;
+        } else if (templateBase.children?.some((tc) => tc.id === child.id)) {
+          resolvedChild.id = `${resolved.id}_${child.id}`;
+        }
+        return resolvedChild;
+      });
+    }
+    return resolved;
+  }
+
+  // ../../web/src/omega-ui-core/renderers/cellOptions.ts
+  function buildCellOptions(manifest, input = {}) {
+    const base = resolveRenderOptions(manifest, input);
+    return {
+      skin: base.skin ?? DEFAULT_SKIN,
+      zoom: base.zoom ?? DEFAULT_ZOOM,
+      runtimeValue: base.runtimeValue ?? DEFAULT_RUNTIME_VALUE,
+      steps: base.steps ?? DEFAULT_STEPS,
+      activeTab: base.activeTab,
+      resolveAsset: base.resolveAsset,
+      manifest,
+      isSelected: input.isSelected ?? false,
+      isLiveMode: input.isLiveMode ?? false,
+      isError: input.isError,
+      forceFrame: input.forceFrame,
+      recipe: input.recipe
+    };
+  }
+
+  // ../../web/src/omega-ui-core/uca/converters/flatToTree.ts
+  function toNumber(v, rackWidth) {
+    if (v === void 0 || v === null || v === "") return void 0;
+    if (typeof v === "number") return isFinite(v) ? v : void 0;
+    const s = v.trim();
+    if (s === "full" || s === "100%") return rackWidth;
+    if (s === "1/2" || s === "50%") return rackWidth * 0.5;
+    const n = parseFloat(s);
+    return isFinite(n) ? n : void 0;
+  }
+  function toDimensions(size, rackWidth) {
+    if (!size) return void 0;
+    const width = toNumber(size.width ?? size.w, rackWidth);
+    const height = toNumber(size.height ?? size.h, rackWidth);
+    if (width === void 0 || height === void 0) return void 0;
+    return { width, height };
+  }
+  function toPos(pos, x, y) {
+    return { x: pos?.x ?? x ?? 0, y: pos?.y ?? y ?? 0 };
+  }
+  function indexTree(tree, out = /* @__PURE__ */ new Map()) {
+    if (!tree) return out;
+    out.set(tree.id, tree);
+    (tree.children || []).forEach((child) => indexTree(child, out));
+    return out;
+  }
+  function assetLayers(attachments, existing) {
+    const existingChildren = existing?.children?.filter((c) => c.kind === "asset-layer");
+    if (existingChildren && existingChildren.length > 0) return existingChildren;
+    if (!attachments || attachments.length === 0) return void 0;
+    return attachments.map((a) => ({
+      id: a.id,
+      kind: "asset-layer",
+      role: a.role || "decor",
+      bind: a.bind || void 0,
+      layout: {
+        pos: { x: a.offsetX ?? a.pos?.x ?? 0, y: a.offsetY ?? a.pos?.y ?? 0 }
+      },
+      style: {
+        ...a.style,
+        font: a.fontFamily || a.style?.font,
+        fontSize: a.fontSize || a.style?.fontSize,
+        fontColor: a.fontColor || a.style?.fontColor
+      }
+    }));
+  }
+  function flatToTree(manifest, existingTree) {
+    const ui = manifest?.ui || {};
+    const rackWidth = toNumber(ui.dimensions?.width ?? ui.layout?.width, DEFAULT_PANEL_WIDTH) || DEFAULT_PANEL_WIDTH;
+    const rackHeight = toNumber(ui.dimensions?.height ?? ui.layout?.height, DEFAULT_PANEL_HEIGHT) || DEFAULT_PANEL_HEIGHT;
+    const existingById = indexTree(existingTree);
+    const existingMainFace = existingTree?.children?.find((c) => c.id === "MAIN_FACE");
+    const root = {
+      id: manifest?.id || "anonymous_rack",
+      kind: "rack",
+      role: "root",
+      layout: {
+        pos: existingTree?.layout?.pos || { x: 0, y: 0 },
+        size: existingTree?.layout?.size || { width: rackWidth, height: rackHeight }
+      },
+      children: []
+    };
+    const mainFace = {
+      id: "MAIN_FACE",
+      kind: "face",
+      role: "presentation",
+      layout: {
+        pos: existingMainFace?.layout?.pos || { x: 0, y: 0 },
+        size: existingMainFace?.layout?.size || { width: rackWidth, height: rackHeight }
+      },
+      children: []
+    };
+    root.children?.push(mainFace);
+    const containerMap = /* @__PURE__ */ new Map();
+    (ui.layout?.containers || []).forEach((c) => {
+      const existing = existingById.get(c.id || "");
+      const node = {
+        id: c.id || `container_${containerMap.size}`,
+        kind: "container",
+        role: "infrastructure",
+        layout: {
+          pos: existing?.layout?.pos || toPos(c.pos),
+          size: existing?.layout?.size || toDimensions(c.size, rackWidth),
+          zIndex: existing?.layout?.zIndex ?? c.zIndex
+        },
+        style: existing?.style || {
+          color: c.color || void 0,
+          indicatorColor: c.indicatorColor || void 0,
+          rounding: c.rounding || void 0,
+          borderWidth: c.borderWidth || void 0,
+          variant: c.variant || void 0
+        },
+        children: existing?.children || []
+      };
+      containerMap.set(node.id, node);
+      mainFace.children?.push(node);
+    });
+    const allEntities = [...ui.controls || [], ...ui.jacks || []];
+    allEntities.forEach((entity, idx) => {
+      const fallbackId = entity.bind || entity.paramId || entity.source || entity.portId || `entity_${idx}`;
+      const id = entity.id || fallbackId;
+      const existing = existingById.get(id);
+      const component = entity.presentation?.component;
+      const isJack = entity.role === "io" || entity.type?.startsWith?.("jack") || component === "port";
+      const cellRef = isJack ? "port" : component || entity.type || fallbackId;
+      const node = {
+        id,
+        kind: "cell",
+        role: existing?.role || entity.role || (isJack ? "io" : "control"),
+        bind: entity.bind || entity.paramId || entity.source || entity.portId || id,
+        layout: {
+          pos: existing?.layout?.pos || toPos(entity.pos, entity.x, entity.y),
+          size: existing?.layout?.size || toDimensions(entity.presentation?.size, rackWidth) || toDimensions({ width: entity.width ?? entity.w, height: entity.height ?? entity.h }, rackWidth),
+          zIndex: existing?.layout?.zIndex ?? entity.presentation?.style?.zIndex ?? entity.zIndex
+        },
+        style: existing?.style || {
+          ...entity.presentation?.style,
+          variant: entity.presentation?.variant ?? entity.presentation?.style?.variant
+        },
+        cellRef,
+        meta: existing?.meta ?? (entity.label ? { label: entity.label } : void 0),
+        children: assetLayers(entity.attachments, existing)
+      };
+      const containerId = entity.presentation?.container || entity.presentation?.group;
+      const targetParent = containerId ? containerMap.get(containerId) : mainFace;
+      if (targetParent) {
+        targetParent.children = targetParent.children || [];
+        targetParent.children.push(node);
+      } else {
+        mainFace.children?.push(node);
+      }
+    });
+    return root;
+  }
 
   // src/Util/AssetResolver.ts
   var AssetResolver = class {
     /**
-     * Resolves a local module path to a full virtual URL handled by the C++ host.
+     * Resolves a local module path to a full virtual URL handled by the C++ host or web standalone.
      * @param moduleId The canonical ID of the module.
      * @param path The relative path inside the module directory (e.g., 'illustration.svg').
      */
     static resolve(moduleId, path) {
       if (!path || !moduleId) return void 0;
-      if (path.startsWith("http") || path.startsWith("blob:") || path.startsWith("data:")) {
+      if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("blob:") || path.startsWith("data:")) {
         return path;
       }
-      if (path.startsWith("asset://")) {
-        const assetPath = path.substring(8);
+      const cleanPath = path.startsWith("./") ? path.substring(2) : path;
+      const assetPath = path.startsWith("asset://") ? path.substring(8) : cleanPath;
+      const isJuce = typeof window !== "undefined" && (!!window.__JUCE__ || window.location.hostname === "juce.localhost");
+      if (isJuce) {
         return `https://juce.localhost/modules/${moduleId}/${assetPath}`;
       }
-      const cleanPath = path.startsWith("./") ? path.substring(2) : path;
-      return `https://juce.localhost/modules/${moduleId}/${cleanPath}`;
+      if (assetPath.startsWith("assets/modules/") || assetPath.startsWith("modules/")) {
+        return `/${assetPath.replace(/^\/+/, "")}`;
+      }
+      return `/modules/${moduleId}/${assetPath}`;
     }
     /**
      * Resolves a global UI asset path.
      */
     static resolveGlobal(path) {
-      return path;
+      if (!path) return "";
+      if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:") || path.startsWith("/")) {
+        return path;
+      }
+      return `/${path}`;
     }
   };
 
-  // src/Renderers/templates.ts
-  function resolveContainerWidth(w, rackWidth) {
-    if (typeof w === "number") return w;
-    switch (w) {
-      case "full":
-        return rackWidth;
-      case "1/2":
-        return rackWidth * 0.5;
-      default:
-        return parseFloat(w) || rackWidth;
-    }
-  }
-  function shouldRenderInTab(item, activeTab, descriptor) {
-    const currentTab = activeTab || "MAIN";
-    const containerId = item.presentation?.container || item.presentation?.group;
-    if (containerId) {
-      const container = descriptor.ui?.layout?.containers?.find((c) => c.id === containerId);
-      if (container && container.tab) return container.tab === currentTab;
-    }
-    return (item.presentation?.tab || "MAIN") === currentTab;
-  }
-  function renderItemHTML(item, descriptor, values, scale) {
-    const id = item.bind || item.paramId || item.source || item.portId;
-    const val = values[id] ?? 0;
-    const x = (item.pos?.x || 0) * scale;
-    const y = (item.pos?.y || 0) * scale;
-    const html = CellRenderer.renderCellHTML(item, {
-      skin: descriptor.ui?.skin || "industrial",
-      zoom: scale,
-      runtimeValue: val,
-      steps: item.steps || 100,
-      isSelected: false,
-      isLiveMode: true,
-      manifest: descriptor,
-      resolveAsset: (ref) => AssetResolver.resolve(descriptor.id, ref)
-    });
-    const compHeight = item.presentation?.height ?? 1;
-    return `
-        <div class="cell-anchor" style="position: absolute; left: ${x}px; top: ${y}px; --omega-height: ${compHeight}">
-            ${html}
-        </div>
-    `;
-  }
-  function renderContainersHTML(descriptor, activeTab, scale) {
-    const layout = descriptor.ui?.layout;
-    if (!layout || !layout.containers) return "";
-    const rackWidth = descriptor.ui?.dimensions?.width || 120;
-    const currentTab = activeTab || "MAIN";
-    const skin = descriptor.ui?.skin || "industrial";
-    const activeContainers = layout.containers.filter((c) => !c.tab || c.tab === currentTab);
-    const sorted = [...activeContainers].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
-    return sorted.map((c) => {
-      const x = c.pos.x * scale;
-      const y = c.pos.y * scale;
-      const w = resolveContainerWidth(c.size.w, rackWidth) * scale;
-      const h = c.size.h * scale;
-      const variant = c.variant || "default";
-      const labelConfig = TYPOGRAPHY_CATEGORIES.find((cat) => cat.id === "labels");
-      const defaultSize = labelConfig?.defaultSize || 8;
-      const labelSize = (c.labelFontSize || defaultSize) * scale;
-      const labelFont = labelConfig?.defaultFont || "Inter";
-      const style = `left: ${x}px; top: ${y}px; width: ${w}px; height: ${h}px; z-index: ${c.zIndex || 0};`;
-      const labelStyle = `font-family: '${labelFont}'; font-size: ${labelSize}px;`;
+  // src/Renderers/ManifestRenderer.ts
+  var ManifestRenderer = class {
+    /**
+     * Render a complete module panel from its manifest.
+     * Returns an HTML string ready for innerHTML injection.
+     */
+    static renderModulePanel(manifest, forceUpper = false) {
+      if (!manifest) return "";
+      const geometry = resolvePanelGeometry(manifest, { forceUpper });
+      const { widthPx, heightPx, isUpper } = geometry;
+      const tree = manifest.ui?.tree ?? flatToTree(manifest);
+      if (!tree) return "";
+      const html = this.renderNode(tree, manifest, 0);
+      const chassisNode = {
+        id: manifest.id,
+        kind: "rack",
+        style: {},
+        children: []
+      };
+      const chassisOptions = buildCellOptions(manifest, {
+        isLiveMode: true,
+        resolveAsset: (ref) => AssetResolver.resolve(manifest.id, ref)
+      });
+      const chassisHTML = renderRackHTML(chassisNode, chassisOptions, manifest.id);
       return `
-            <div class="layout-container container-${skin} variant-${variant}" style="${style}" data-container-id="${c.id}">
-                ${c.label ? `<div class="container-label-pill" style="${labelStyle}">${c.label}</div>` : ""}
-            </div>
-        `;
-    }).join("");
-  }
-  function buildPanelHTML(descriptor, activeTab, values, scale) {
-    const skin = descriptor.ui?.skin || "industrial";
-    const w = (descriptor.ui?.dimensions?.width || 120) * scale;
-    const h = (descriptor.ui?.dimensions?.height || 420) * scale;
-    const lighting = descriptor.ui?.lighting;
-    const lightAngle = lighting?.shadowAngle ?? 135;
-    const lightDist = lighting?.distance ?? 4;
-    const lightBlur = lighting?.blur ?? 4;
-    const lightColor = lighting?.shadowColor || "rgba(0,0,0,0.5)";
-    const angleRad = lightAngle * Math.PI / 180;
-    const shadowX = Math.cos(angleRad) * lightDist;
-    const shadowY = Math.sin(angleRad) * lightDist;
-    const shadowVars = `
-        --omega-shadow-angle: ${lightAngle}deg;
-        --omega-shadow-x: ${shadowX.toFixed(2)}px;
-        --omega-shadow-y: ${shadowY.toFixed(2)}px;
-        --omega-shadow-blur: ${lightBlur}px;
-        --omega-shadow-color: ${lightColor};
-    `.trim();
-    let aestheticVars = "";
-    if (descriptor.ui?.colors) {
-      Object.entries(descriptor.ui.colors).forEach(([key, val]) => {
-        aestheticVars += `--omega-${key}: ${val}; `;
-      });
-    }
-    if (descriptor.ui?.typography) {
-      Object.entries(descriptor.ui.typography).forEach(([key, val]) => {
-        aestheticVars += `--omega-${key}: ${val}; `;
-      });
-    }
-    const faceplate = descriptor.ui?.faceplate ? `background-image: url('${AssetResolver.resolve(descriptor.id, descriptor.ui.faceplate)}'); background-size: cover;` : "";
-    const allItems = [...descriptor.ui?.controls || [], ...descriptor.ui?.jacks || []];
-    const tabs = [...new Set(allItems.map((i) => i.presentation?.tab || "MAIN"))].sort();
-    return `
-        <div class="module-panel skin-${skin}" style="width: ${w}px; height: ${h}px; ${shadowVars} ${aestheticVars} ${faceplate}">
-            <!-- Industrial Screws -->
-            <div class="module-screw top-left"></div>
-            <div class="module-screw top-right"></div>
-            <div class="module-screw bottom-left"></div>
-            <div class="module-screw bottom-right"></div>
-
-            ${tabs.length > 1 ? `
-            <div class="module-tabs">
-                ${tabs.map((t) => {
-      const isActive = activeTab === t;
-      return `<button class="tab-btn ${isActive ? "active" : ""}" data-tab="${t}">${t}</button>`;
-    }).join("")}
-            </div>
-            ` : ""}
-
-            <div class="module-canvas">
-                <div class="layer layer-background">${renderContainersHTML(descriptor, activeTab, scale)}</div>
-                <div class="layer layer-controls">
-                    ${allItems.filter((item) => shouldRenderInTab(item, activeTab, descriptor)).map((item) => renderItemHTML(item, descriptor, values, scale)).join("")}
-                </div>
-            </div>
+      <div class="omega-module-chassis ${isUpper ? "chassis-1u" : "chassis-3u"}" style="
+        width: ${widthPx}px;
+        height: ${heightPx}px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.45);
+      ">
+        ${chassisHTML}
+        <div class="module-loader-overlay" style="
+          position: absolute;
+          inset: 0;
+          background: rgba(10, 14, 23, 0.94);
+          backdrop-filter: blur(4px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          transition: opacity 0.4s ease-out;
+        ">
+          <div style="
+            width: 26px;
+            height: 26px;
+            border: 3px solid rgba(0, 240, 255, 0.2);
+            border-top-color: #00f0ff;
+            border-radius: 50%;
+            animation: omega-spinner-rotate 0.8s linear infinite;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+          "></div>
+          <span style="
+            margin-top: 8px;
+            font-family: 'Space Mono', monospace, sans-serif;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #00f0ff;
+            text-transform: uppercase;
+          ">CARGANDO...</span>
         </div>
-    `;
+        ${html}
+      </div>
+    `.trim();
+    }
+    /**
+     * Recursively render a single OmegaNode and its children.
+     */
+    static renderNode(rawNode, manifest, depth) {
+      const semanticNode = resolveNodeSemantics(rawNode, { catalog: manifest.moduleTemplates || {} });
+      const node = resolveLayout(semanticNode);
+      if (node.visible === false) return "";
+      const posX = node.layout?.pos?.x || 0;
+      const posY = node.layout?.pos?.y || 0;
+      const width = node.layout?.size?.width;
+      const height = node.layout?.size?.height;
+      if (node.kind === "rack" || node.kind === "face" || node.kind === "container" || node.kind === "group") {
+        const childrenHtml = (node.children || []).map((child) => this.renderNode(child, manifest, depth + 1)).join("");
+        return `
+        <div class="omega-node-${node.kind}" style="
+          position: absolute;
+          left: ${posX}px;
+          top: ${posY}px;
+          ${width ? `width: ${width}px;` : ""}
+          ${height ? `height: ${height}px;` : ""}
+        ">
+          ${childrenHtml}
+        </div>
+      `;
+      }
+      const cellOptions = buildCellOptions(manifest, {
+        isLiveMode: true
+      });
+      const cellHTML = CellRenderer.renderCellHTML(node, cellOptions);
+      if (!cellHTML.includes("left:")) {
+        return cellHTML.replace(
+          /(<div class="control-cell[^"]*" data-node-id="[^"]*" style=")([^"]*?);?\s*(">)/,
+          `$1$2; left: ${posX}px; top: ${posY}px;$3`
+        );
+      }
+      return cellHTML;
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.ManifestRenderer = ManifestRenderer;
   }
 
   // src/Renderers/ValueFormatters.ts
@@ -2552,6 +4378,39 @@
     void containerEl.offsetWidth;
     containerEl.classList.add("active-pulse");
   }
+
+  // ../../web/src/omega-ui-core/typography/registry.ts
+  var OMEGA_OFFICIAL_FONTS = [
+    {
+      id: "inter",
+      name: "Inter",
+      category: "ui",
+      description: "Standard Industrial UI & Labeling",
+      isProtected: true
+    },
+    {
+      id: "outfit",
+      name: "Outfit",
+      category: "branding",
+      description: "Headlines, Branding & High-Density Titles",
+      isProtected: true
+    },
+    {
+      id: "seven-segment",
+      name: "Seven Segment",
+      category: "digital",
+      description: "LCD / LED Digital Displays",
+      isProtected: true
+    },
+    {
+      id: "microgramma",
+      name: "Microgramma",
+      category: "technical",
+      description: "Technical Specs & Vintage Aero-Industrial Labels",
+      isProtected: true
+    }
+  ];
+  var PROTECTED_FONT_NAMES = OMEGA_OFFICIAL_FONTS.map((f) => f.name);
 
   // src/Renderers/FontInjector.ts
   function injectResources(descriptor) {
@@ -2671,6 +4530,35 @@
     }
   };
 
+  // src/Util/moduleLoader.ts
+  function dismissLoaderOverlay(root) {
+    const loader = root.querySelector(".module-loader-overlay");
+    if (!loader) return;
+    const imgs = Array.from(root.querySelectorAll("img"));
+    let pending = imgs.length;
+    const dismiss = () => {
+      loader.style.opacity = "0";
+      loader.style.pointerEvents = "none";
+      setTimeout(() => loader.remove(), 400);
+    };
+    if (pending === 0) {
+      setTimeout(dismiss, 200);
+      return;
+    }
+    const checkDone = () => {
+      pending--;
+      if (pending <= 0) dismiss();
+    };
+    imgs.forEach((img) => {
+      if (img.complete) checkDone();
+      else {
+        img.addEventListener("load", checkDone, { once: true });
+        img.addEventListener("error", checkDone, { once: true });
+      }
+    });
+    setTimeout(dismiss, 600);
+  }
+
   // src/Renderers/ModuleRenderer.ts
   var ModuleRenderer = class {
     content;
@@ -2680,10 +4568,9 @@
     activeTab = "MAIN";
     binder;
     visualizers;
-    RENDER_SCALE = 1.5;
     constructor(content, options) {
       this.content = content;
-      this.descriptor = options.manifest || options;
+      this.descriptor = normalizeCatalogManifest(options.manifest || options);
       this.binder = new ControlBinder(this, this.values);
       this.visualizers = new VisualizerEngine();
       const allItems = [...this.descriptor.ui?.controls || [], ...this.descriptor.ui?.jacks || []];
@@ -2696,7 +4583,6 @@
     async init() {
       injectResources(this.descriptor);
       this.render();
-      this.bind();
       this.visualizers.init(this.content);
       this.isInitialized = true;
       subscribeToTelemetry(this.descriptor);
@@ -2704,9 +4590,16 @@
       this.visualizers.start();
     }
     render() {
-      this.content.innerHTML = buildPanelHTML(this.descriptor, this.activeTab, this.values, this.RENDER_SCALE);
-      this.bind();
-      this.syncAllFromStore();
+      this.content.innerHTML = ManifestRenderer.renderModulePanel(this.descriptor);
+      try {
+        this.bind();
+        this.syncAllFromStore();
+      } finally {
+        this.dismissLoader();
+      }
+    }
+    dismissLoader() {
+      dismissLoaderOverlay(this.content);
     }
     getRegistryEntity(id) {
       return getRegistryEntity(id);
@@ -2761,373 +4654,6 @@
       this.visualizers.destroy();
     }
   };
-
-  // ../../web/src/omega-ui-core/uca/treeUtils.ts
-  function mergeWithOverrides(base, overrides, policy) {
-    const result = JSON.parse(JSON.stringify(base));
-    for (const [path, value] of Object.entries(overrides)) {
-      const matchingRules = policy.filter((p) => path === p.path || path.startsWith(p.path + ".")).sort((a, b) => b.path.length - a.path.length);
-      const activeRule = matchingRules[0];
-      if (activeRule) {
-        if (activeRule.mode === "locked") {
-          console.warn(`[UCA] Path is locked by policy: ${path}`);
-          continue;
-        }
-        if (activeRule.mode === "hidden") {
-          continue;
-        }
-      }
-      setPathValue(result, path, value);
-    }
-    return result;
-  }
-  function setPathValue(obj, path, value) {
-    const parts = path.split(".");
-    let current = obj;
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i];
-      if (part === void 0) continue;
-      if (!current[part] || typeof current[part] !== "object") {
-        current[part] = {};
-      }
-      current = current[part];
-    }
-    const lastPart = parts[parts.length - 1];
-    if (lastPart !== void 0) {
-      current[lastPart] = value;
-    }
-  }
-  function applySlotMappings(node, mappings) {
-    if (node.bind && mappings[node.bind]) {
-      node.bind = mappings[node.bind] || void 0;
-    }
-    if (node.children) {
-      node.children.forEach((child) => applySlotMappings(child, mappings));
-    }
-  }
-
-  // ../../web/src/omega-ui-core/uca/ucaSemantics.ts
-  function resolveNodeSemantics(node, ctx) {
-    let templateBase = {};
-    if (node.snapshot) {
-      templateBase = JSON.parse(JSON.stringify(node.snapshot));
-    } else if (node.cellRef && ctx.moduleTemplates?.[node.cellRef]) {
-      const template = ctx.moduleTemplates[node.cellRef];
-      if (template) {
-        const baseNode = template.baseNode;
-        if (baseNode) {
-          const blueprint = JSON.parse(JSON.stringify(baseNode));
-          templateBase = mergeWithOverrides(blueprint, node.overrides || {}, template.policy || []);
-          if (node.slotMappings) {
-            applySlotMappings(templateBase, node.slotMappings);
-          }
-        }
-      }
-    } else if (node.kind === "cell" && (node.cellRef || node.templateRef)) {
-      const ref = node.cellRef || node.templateRef;
-      const template = ctx.catalog[ref];
-      if (template) {
-        templateBase = JSON.parse(JSON.stringify(template.baseNode));
-      }
-    }
-    const resolved = {
-      ...templateBase,
-      ...node,
-      layout: {
-        ...templateBase.layout,
-        ...node.layout,
-        // Ensure position is at least 0,0 if not provided
-        pos: node.layout?.pos || templateBase.layout?.pos || { x: 0, y: 0 }
-      },
-      style: {
-        ...templateBase.style,
-        ...node.style
-      },
-      children: [
-        ...templateBase.children || [],
-        ...node.children || []
-      ]
-    };
-    if (ctx.parentStyle) {
-      resolved.style = {
-        ...resolved.style,
-        font: resolved.style?.font || ctx.parentStyle.font || void 0,
-        fontColor: resolved.style?.fontColor || ctx.parentStyle.fontColor || void 0
-      };
-    }
-    if (resolved.layout && !resolved.layout.size && templateBase.layout?.size) {
-      resolved.layout.size = { ...templateBase.layout.size };
-    }
-    if (resolved.children && resolved.children.length > 0) {
-      resolved.children = resolved.children.map((child, index) => {
-        const childCtx = {
-          ...ctx,
-          parentStyle: resolved.style
-        };
-        const resolvedChild = resolveNodeSemantics(child, childCtx);
-        if (!child.id) {
-          resolvedChild.id = `${resolved.id}_child_${index}`;
-        } else if (templateBase.children?.some((tc) => tc.id === child.id)) {
-          resolvedChild.id = `${resolved.id}_${child.id}`;
-        }
-        return resolvedChild;
-      });
-    }
-    return resolved;
-  }
-
-  // ../../web/src/omega-ui-core/uca/spatialConstraints.ts
-  function getNodeSize(node) {
-    return {
-      width: node.layout?.size?.width || 48,
-      height: node.layout?.size?.height || 48
-    };
-  }
-
-  // ../../web/src/omega-ui-core/uca/layoutResolver.ts
-  function resolveLayout(node, providedSize) {
-    const mode = node.layout?.mode || "absolute";
-    const gap = node.layout?.gap || 0;
-    const padding = node.layout?.padding || 0;
-    const nestedResolvedChildren = node.children ? node.children.map((c) => resolveLayout(c)) : [];
-    const childrenSizes = nestedResolvedChildren.map((c) => getNodeSize(c));
-    let autoWidth = 0;
-    let autoHeight = 0;
-    if (mode === "stack-v") {
-      autoWidth = childrenSizes.reduce((max, s) => Math.max(max, s.width), 0) + 2 * padding;
-      autoHeight = childrenSizes.reduce((acc, s) => acc + s.height, 0) + Math.max(0, childrenSizes.length - 1) * gap + 2 * padding;
-    } else if (mode === "stack-h") {
-      autoWidth = childrenSizes.reduce((acc, s) => acc + s.width, 0) + Math.max(0, childrenSizes.length - 1) * gap + 2 * padding;
-      autoHeight = childrenSizes.reduce((max, s) => Math.max(max, s.height), 0) + 2 * padding;
-    } else {
-      autoWidth = childrenSizes.reduce((max, s, i) => {
-        const childX = nestedResolvedChildren[i].layout?.pos?.x || 0;
-        return Math.max(max, childX + s.width);
-      }, 0) + 2 * padding;
-      autoHeight = childrenSizes.reduce((max, s, i) => {
-        const childY = nestedResolvedChildren[i].layout?.pos?.y || 0;
-        return Math.max(max, childY + s.height);
-      }, 0) + 2 * padding;
-    }
-    const effectiveSize = {
-      width: providedSize?.width || node.layout?.size?.width || autoWidth || 80,
-      height: providedSize?.height || node.layout?.size?.height || autoHeight || 80
-    };
-    const nodeWithEffectiveSize = {
-      ...node,
-      layout: {
-        ...node.layout,
-        pos: node.layout?.pos || { x: 0, y: 0 },
-        size: effectiveSize
-      }
-    };
-    if (!nodeWithEffectiveSize.children || nodeWithEffectiveSize.children.length === 0) return nodeWithEffectiveSize;
-    if (mode === "absolute") {
-      return {
-        ...nodeWithEffectiveSize,
-        children: nestedResolvedChildren
-      };
-    }
-    const containerWidth = effectiveSize.width;
-    const containerHeight = effectiveSize.height;
-    let totalContentSize = 0;
-    if (mode === "stack-v") {
-      totalContentSize = childrenSizes.reduce((acc, s) => acc + s.height, 0) + Math.max(0, childrenSizes.length - 1) * gap;
-    } else if (mode === "stack-h") {
-      totalContentSize = childrenSizes.reduce((acc, s) => acc + s.width, 0) + Math.max(0, childrenSizes.length - 1) * gap;
-    }
-    const justify = nodeWithEffectiveSize.layout?.justify || "start";
-    const align = nodeWithEffectiveSize.layout?.align || "start";
-    let cursor = padding;
-    let effectiveGap = gap;
-    if (justify === "center") {
-      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
-      cursor = padding + Math.max(0, (containerSize - 2 * padding - totalContentSize) / 2);
-    } else if (justify === "end") {
-      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
-      cursor = containerSize - padding - totalContentSize;
-    } else if (justify === "space-between" && nestedResolvedChildren.length > 1) {
-      const containerSize = mode === "stack-v" ? containerHeight : containerWidth;
-      const totalChildrenSize = childrenSizes.reduce((acc, s) => acc + (mode === "stack-v" ? s.height : s.width), 0);
-      effectiveGap = Math.max(0, (containerSize - 2 * padding - totalChildrenSize) / (nestedResolvedChildren.length - 1));
-      cursor = padding;
-    }
-    const stackedChildren = nestedResolvedChildren.map((child, index) => {
-      const size = childrenSizes[index];
-      if (!size) return child;
-      let resolvedPos = { x: 0, y: 0 };
-      const resolvedSize = { ...child.layout?.size || { width: size.width, height: size.height } };
-      let needsReResolve = false;
-      if (mode === "stack-v") {
-        let x = padding;
-        if (align === "center") x = padding + (containerWidth - 2 * padding - size.width) / 2;
-        else if (align === "end") x = containerWidth - padding - size.width;
-        else if (align === "stretch") {
-          x = padding;
-          resolvedSize.width = Math.max(0, containerWidth - 2 * padding);
-          if (resolvedSize.width !== size.width) needsReResolve = true;
-        }
-        resolvedPos = { x, y: cursor };
-        cursor += size.height + effectiveGap;
-      } else if (mode === "stack-h") {
-        let y = padding;
-        if (align === "center") y = padding + (containerHeight - 2 * padding - size.height) / 2;
-        else if (align === "end") y = containerHeight - padding - size.height;
-        else if (align === "stretch") {
-          y = padding;
-          resolvedSize.height = Math.max(0, containerHeight - 2 * padding);
-          if (resolvedSize.height !== size.height) needsReResolve = true;
-        }
-        resolvedPos = { x: cursor, y };
-        cursor += size.width + effectiveGap;
-      }
-      let finalChild = child;
-      if (needsReResolve && child.children && child.children.length > 0) {
-        finalChild = resolveLayout(child, resolvedSize);
-      }
-      return {
-        ...finalChild,
-        layout: {
-          ...finalChild.layout,
-          pos: resolvedPos,
-          size: resolvedSize
-        }
-      };
-    });
-    return {
-      ...nodeWithEffectiveSize,
-      children: stackedChildren
-    };
-  }
-
-  // src/Renderers/ManifestRenderer.ts
-  var ManifestRenderer = class {
-    /**
-     * Render a complete module panel from its manifest.
-     * Returns an HTML string ready for innerHTML injection.
-     */
-    static renderModulePanel(manifest, forceUpper = false) {
-      if (!manifest) return "";
-      const hp = manifest?.rack?.hp || manifest?.metadata?.hp || manifest?.hp || 8;
-      const widthPx = Math.max(hp * 15, 120);
-      const title = (manifest.name || manifest.id || "MODULE").toUpperCase();
-      const slot = manifest?.rack?.slot || manifest?.slot || "";
-      const isUpper = forceUpper || slot === "upper" || title.includes("MIDI") || title.includes("MONITOR") || title.includes("TRIGGER");
-      const heightPx = isUpper ? 144 : 436;
-      const knobSize = 32;
-      const jackSize = 22;
-      const tree = manifest.ui?.tree;
-      if (tree) {
-        const html = this.renderNode(tree, manifest, 0);
-        return `
-        <div class="omega-module-chassis ${isUpper ? "chassis-1u" : "chassis-3u"}" style="
-          width: ${widthPx}px;
-          height: ${heightPx}px;
-          position: relative;
-          background: linear-gradient(180deg, #1e2638 0%, #0d121d 100%);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 0;
-          overflow: hidden;
-          box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.45);
-        ">
-          ${html}
-        </div>
-      `.trim();
-      }
-      const controls = manifest?.controls || manifest?.ui?.controls || [];
-      const jacks = manifest?.jacks || manifest?.ui?.jacks || [];
-      let controlsHTML = "";
-      controls.forEach((c) => {
-        controlsHTML += `
-        <div style="display:flex; flex-direction:column; align-items:center; width:${knobSize + 12}px; gap:3px;">
-          <div style="width:${knobSize}px; height:${knobSize}px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #475569, #0f172a); border:2px solid #64748b; box-shadow:0 3px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2); position:relative;">
-            <div style="position:absolute; top:3px; left:${Math.floor(knobSize / 2) - 1}px; width:3px; height:${Math.floor(knobSize / 3)}px; background:var(--neon-cyan, #00f2ff); border-radius:1px;"></div>
-          </div>
-          <span style="font-size:8px; font-family:monospace; color:#cbd5e1; text-transform:uppercase; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%; font-weight:bold;">${c.name || c.id}</span>
-        </div>
-      `;
-      });
-      let jacksHTML = "";
-      jacks.forEach((j) => {
-        const color = j.dataType === "midi" ? "#a855f7" : j.dataType === "audio" ? "#10b981" : "#06b6d4";
-        jacksHTML += `
-        <div class="module-jack" data-jack-id="${j.id}" data-jack-type="${j.dataType || "cv"}" data-jack-direction="${j.direction || "input"}" style="display:flex; flex-direction:column; align-items:center; width:${jackSize + 10}px; gap:3px;">
-          <div class="port-socket size-A color-cyan" data-source="${j.id}" style="width:${jackSize}px; height:${jackSize}px; border-radius:50%; background:#090d16; border:2px solid ${color}; box-shadow:0 0 6px ${color}40, inset 0 0 4px #000; position:relative; display:flex; align-items:center; justify-content:center;">
-            <div class="port-inner" style="width:8px; height:8px; border-radius:50%; background:#000; border:1px solid #334155;"></div>
-          </div>
-          <span style="font-size:8px; font-family:monospace; color:${color}; font-weight:bold; text-transform:uppercase; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%;">${j.name || j.id}</span>
-        </div>
-      `;
-      });
-      return `
-      <div class="omega-module-chassis ${isUpper ? "chassis-1u" : "chassis-3u"}" style="
-        width: ${widthPx}px;
-        height: ${heightPx}px;
-        position: relative;
-        background: linear-gradient(180deg, #1e2638 0%, #0d121d 100%);
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 0;
-        padding: 8px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.45);
-      ">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:4px; margin-bottom:4px;">
-          <span style="font-family:'Outfit',monospace; font-size:10px; font-weight:900; color:var(--neon-cyan); letter-spacing:1px; text-transform:uppercase;">${title}</span>
-          <span style="font-size:8px; font-family:monospace; color:#64748b; background:#090d16; padding:1px 5px; border-radius:3px; border:1px solid rgba(255,255,255,0.05);">${hp} HP</span>
-        </div>
-        
-        <div style="display:flex; flex-wrap:wrap; gap:${isUpper ? "6px" : "16px"}; justify-content:center; align-items:center; flex-grow:1; padding:${isUpper ? "2px 0" : "10px 0"};">
-          ${controlsHTML || '<div style="font-size:9px; color:#64748b; font-family:monospace;">DSP CORE</div>'}
-        </div>
-
-        <div style="display:flex; flex-wrap:wrap; gap:${isUpper ? "4px" : "10px"}; justify-content:center; align-items:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:${isUpper ? "4px" : "8px"}; margin-top:4px;">
-          ${jacksHTML}
-        </div>
-      </div>
-    `.trim();
-    }
-    /**
-     * Recursively render a single OmegaNode and its children.
-     */
-    static renderNode(rawNode, manifest, depth) {
-      const semanticNode = resolveNodeSemantics(rawNode, { catalog: manifest.moduleTemplates || {} });
-      const node = resolveLayout(semanticNode);
-      if (node.visible === false) return "";
-      const posX = node.layout?.pos?.x || 0;
-      const posY = node.layout?.pos?.y || 0;
-      const width = node.layout?.size?.width;
-      const height = node.layout?.size?.height;
-      if (node.kind === "rack" || node.kind === "face" || node.kind === "container" || node.kind === "group") {
-        const childrenHtml = (node.children || []).map((child) => this.renderNode(child, manifest, depth + 1)).join("");
-        return `
-        <div class="omega-node-${node.kind}" style="
-          position: absolute;
-          left: ${posX}px;
-          top: ${posY}px;
-          ${width ? `width: ${width}px;` : ""}
-          ${height ? `height: ${height}px;` : ""}
-        ">
-          ${childrenHtml}
-        </div>
-      `;
-      }
-      const cellOptions = {
-        skin: manifest.ui?.skin || "industrial",
-        zoom: manifest.ui?.layout?.zoom || 1,
-        runtimeValue: 0.5,
-        steps: 100,
-        isSelected: false,
-        isLiveMode: true,
-        manifest
-      };
-      return CellRenderer.renderCellHTML(node, cellOptions);
-    }
-  };
-  if (typeof window !== "undefined") {
-    window.ManifestRenderer = ManifestRenderer;
-  }
 
   // src/Components/patchbay/matrixLayout.ts
   var DEFAULT_REGISTRIES = {
@@ -4247,143 +5773,6 @@
     }
   };
 
-  // src/Catalog/AcemmCatalog.ts
-  var ACEMM_CATALOG = {
-    "midi_in": {
-      id: "midi_in",
-      name: "Global MIDI Input",
-      rack: { slot: "upper", hp: 6 },
-      controls: [{ id: "channel", name: "Ch Select", type: "knob" }, { id: "vel", name: "Vel Curve", type: "knob" }],
-      jacks: [{ id: "midi_out", name: "MIDI Out", dataType: "midi", direction: "output" }, { id: "gate_out", name: "Gate Out", dataType: "cv", direction: "output" }]
-    },
-    "midi_trigger": {
-      id: "midi_trigger",
-      name: "MIDI Trigger & Gate",
-      rack: { slot: "upper", hp: 6 },
-      controls: [{ id: "mode", name: "Trig Mode", type: "knob" }, { id: "len", name: "Pulse Len", type: "knob" }],
-      jacks: [
-        { id: "midi_in", name: "MIDI In", dataType: "midi", direction: "input" },
-        { id: "trig_out", name: "Trig Out", dataType: "cv", direction: "output" },
-        { id: "gate_out", name: "Gate Out", dataType: "cv", direction: "output" },
-        { id: "note_out", name: "Note V/Oct", dataType: "cv", direction: "output" }
-      ]
-    },
-    "omega_lab_monitor": {
-      id: "omega_lab_monitor",
-      name: "Omega Telemetry Monitor",
-      rack: { slot: "upper", hp: 8 },
-      controls: [{ id: "timebase", name: "Timebase", type: "knob" }, { id: "scale", name: "V/Div Scale", type: "knob" }],
-      jacks: [{ id: "sig_in", name: "Signal In", dataType: "audio", direction: "input" }, { id: "cv_in", name: "CV In", dataType: "cv", direction: "input" }]
-    },
-    "test_parity": {
-      id: "test_parity",
-      name: "Era 7 Parity Test",
-      rack: { slot: "lower", hp: 12 },
-      controls: [{ id: "freq", name: "Frequency", type: "knob" }, { id: "resonance", name: "Resonance", type: "knob" }, { id: "drive", name: "Drive", type: "knob" }],
-      jacks: [{ id: "audio_in", name: "Audio In", dataType: "audio", direction: "input" }, { id: "audio_out", name: "Audio Out", dataType: "audio", direction: "output" }]
-    },
-    "oscillator_vA": {
-      id: "oscillator_vA",
-      name: "Analog Oscillator (VCO)",
-      rack: { slot: "lower", hp: 10 },
-      controls: [
-        { id: "pitch", name: "Coarse Pitch", type: "knob" },
-        { id: "fine", name: "Fine Tune", type: "knob" },
-        { id: "shape", name: "Wave Shape", type: "knob" },
-        { id: "fm_depth", name: "FM Depth", type: "knob" }
-      ],
-      jacks: [
-        { id: "pitch_in", name: "V/OCT In", dataType: "cv", direction: "input" },
-        { id: "fm_in", name: "FM CV", dataType: "cv", direction: "input" },
-        { id: "sine_out", name: "Sine Out", dataType: "audio", direction: "output" },
-        { id: "saw_out", name: "Saw Out", dataType: "audio", direction: "output" }
-      ]
-    },
-    "filter_vA": {
-      id: "filter_vA",
-      name: "Ladder VCF Filter",
-      rack: { slot: "lower", hp: 10 },
-      controls: [
-        { id: "cutoff", name: "Cutoff Freq", type: "knob" },
-        { id: "resonance", name: "Resonance", type: "knob" },
-        { id: "drive", name: "Overdrive", type: "knob" },
-        { id: "env_amount", name: "Env Modulation", type: "knob" }
-      ],
-      jacks: [
-        { id: "audio_in", name: "Audio In", dataType: "audio", direction: "input" },
-        { id: "cutoff_cv", name: "Cutoff CV", dataType: "cv", direction: "input" },
-        { id: "audio_out", name: "Audio Out", dataType: "audio", direction: "output" }
-      ]
-    },
-    "envelope_adsr": {
-      id: "envelope_adsr",
-      name: "ADSR Envelope Generator",
-      rack: { slot: "lower", hp: 8 },
-      controls: [
-        { id: "attack", name: "Attack", type: "knob" },
-        { id: "decay", name: "Decay", type: "knob" },
-        { id: "sustain", name: "Sustain", type: "knob" },
-        { id: "release", name: "Release", type: "knob" }
-      ],
-      jacks: [
-        { id: "gate_in", name: "Gate In", dataType: "cv", direction: "input" },
-        { id: "env_out", name: "Env Out", dataType: "cv", direction: "output" }
-      ]
-    },
-    "vca": {
-      id: "vca",
-      name: "Dual Linear VCA",
-      rack: { slot: "lower", hp: 6 },
-      controls: [
-        { id: "gain", name: "Initial Gain", type: "knob" },
-        { id: "cv_amt", name: "CV Amount", type: "knob" }
-      ],
-      jacks: [
-        { id: "in", name: "Signal In", dataType: "audio", direction: "input" },
-        { id: "cv", name: "CV In", dataType: "cv", direction: "input" },
-        { id: "out", name: "Signal Out", dataType: "audio", direction: "output" }
-      ]
-    },
-    "lfo": {
-      id: "lfo",
-      name: "Multi-Wave LFO",
-      rack: { slot: "lower", hp: 6 },
-      controls: [
-        { id: "rate", name: "LFO Speed", type: "knob" },
-        { id: "depth", name: "Output Depth", type: "knob" }
-      ],
-      jacks: [
-        { id: "reset_in", name: "Sync Reset", dataType: "cv", direction: "input" },
-        { id: "lfo_out", name: "LFO Out", dataType: "cv", direction: "output" }
-      ]
-    }
-  };
-  async function getOrFetchManifest(id) {
-    if (!id) return null;
-    const win2 = window;
-    let manifest = win2.schemaStore?.getSchema(id);
-    if (!manifest && ACEMM_CATALOG[id]) {
-      manifest = ACEMM_CATALOG[id];
-      if (win2.schemaStore && typeof win2.schemaStore.registerSchema === "function") {
-        win2.schemaStore.registerSchema(id, manifest);
-      }
-    }
-    if (!manifest) {
-      manifest = {
-        id,
-        name: id.toUpperCase(),
-        rack: { slot: resolveRackTarget(id, {}, null).isUpper ? "upper" : "lower", hp: 8 },
-        controls: [{ id: "param1", name: "Param 1", type: "knob" }],
-        jacks: [{ id: "in1", name: "In 1", dataType: "audio", direction: "input" }, { id: "out1", name: "Out 1", dataType: "audio", direction: "output" }]
-      };
-    }
-    return manifest;
-  }
-  if (typeof window !== "undefined") {
-    window.ACEMM_CATALOG = ACEMM_CATALOG;
-    window.getOrFetchManifest = getOrFetchManifest;
-  }
-
   // src/Components/ModuleBrowser.ts
   var ModuleBrowser = class {
     el = null;
@@ -4514,26 +5903,32 @@
       if (!this.gallery) return;
       const images = m.images || [];
       if (images.length === 0) {
+        const frontImg = AssetResolver.resolve(m.id, "mockup_front.png") || "";
+        const angleImg = AssetResolver.resolve(m.id, "mockup_angle.png") || "";
+        const detailImg = AssetResolver.resolve(m.id, "mockup_detail.png") || "";
         this.gallery.innerHTML = `
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/modules/${m.id}/mockup_front.png')"></div>
+                    <div class="gallery-image" style="background-image: url('${frontImg}')"></div>
                     <label>FRONT</label>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/modules/${m.id}/mockup_angle.png')"></div>
+                    <div class="gallery-image" style="background-image: url('${angleImg}')"></div>
                     <label>ANGLE</label>
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('assets/modules/${m.id}/mockup_detail.png')"></div>
+                    <div class="gallery-image" style="background-image: url('${detailImg}')"></div>
                     <label>DETAIL</label>
                 </div>
             `;
       } else {
-        this.gallery.innerHTML = images.map((img) => `
+        this.gallery.innerHTML = images.map((img) => {
+          const resolved = AssetResolver.resolve(m.id, img) || img;
+          return `
                 <div class="gallery-item">
-                    <div class="gallery-image" style="background-image: url('${img}')"></div>
+                    <div class="gallery-image" style="background-image: url('${resolved}')"></div>
                 </div>
-            `).join("");
+            `;
+        }).join("");
       }
       const addBtn = document.getElementById("btn-add-module-exec");
       if (addBtn) {
@@ -4542,7 +5937,6 @@
     }
     getIconForModule(m) {
       const id = m.id || m.componentId;
-      const logoPath = AssetResolver.resolve(id, "module_logo.svg");
       const icons = {
         "osc-analog": "\u{1F50A}",
         "midi-util": "\u{1F3B9}",
@@ -4550,9 +5944,9 @@
         "env-standard": "\u{1F4D0}"
       };
       const emoji = icons[m.icon] || "\u{1F4E6}";
-      const illustrationPath = AssetResolver.resolve(id, "illustration.svg");
-      return `<img src="${logoPath}" class="card-illustration" alt="${m.name}" 
-                     onerror="this.src='${illustrationPath}'; this.onerror=function(){ this.style.display='none'; this.nextElementSibling.style.display='block'; };">
+      const illustrationPath = AssetResolver.resolve(id, "illustration.svg") || "";
+      return `<img src="${illustrationPath}" class="card-illustration" alt="${m.name}" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <div class="card-icon-fallback" style="display:none; font-size: 2rem;">${emoji}</div>`;
     }
     setupListeners() {
@@ -4625,6 +6019,7 @@
                     `;
           }
           targetContainer.appendChild(modCard);
+          dismissLoaderOverlay(modCard);
           window.modulePatchbayMatrix?.loadMetadata?.();
         }
         const slot = targetRackInfo.isUpper ? "upper" : "lower";
@@ -5026,20 +6421,53 @@
       })();
       return this.loadPromise;
     }
+    /**
+     * Mapea el `family` crudo (canónico en modules/) a una de las categorías
+     * que filtra el ModuleBrowser (OSC/FLT/ENV/AMP/MOD/IO/UTILITY).
+     */
+    categoryForFamily(family) {
+      const known = {
+        "osc": "OSC",
+        "oscillator": "OSC",
+        "vco": "OSC",
+        "flt": "FLT",
+        "filter": "FLT",
+        "vcf": "FLT",
+        "env": "ENV",
+        "envelope": "ENV",
+        "adsr": "ENV",
+        "amp": "AMP",
+        "vca": "AMP",
+        "mod": "MOD",
+        "lfo": "MOD",
+        "io": "IO",
+        "midi": "IO",
+        "control": "IO",
+        "utility": "UTILITY"
+      };
+      const f = (family || "").toLowerCase();
+      return known[f] || "UTILITY";
+    }
+    /**
+     * Catálogo web standalone derivado de ACEMM_CATALOG (fuente única):
+     * canónicos desde modules/ (generado en build) + legacy planos. NO es una
+     * lista hardcodeada: cualquier módulo nuevo en modules/ aparece aquí solo
+     * con regenerar el catálogo.
+     */
     populateWebFallbackCatalog() {
-      const fallbackItems = [
-        { id: "midi_in", name: "GLOBAL MIDI INPUT", category: "IO", family: "IO", hp: 4, description: "Entrada global de eventos MIDI y telemetr\xEDa LED." },
-        { id: "midi_trigger", name: "MIDI TRIGGER & GATE CONVERTER", category: "IO", family: "IO", hp: 6, description: "Conversor de notas MIDI a impulsos Trigger y se\xF1ales Gate de 10V." },
-        { id: "omega_lab_monitor", name: "OMEGA LAB TELEMETRY MONITOR", category: "UTILITY", family: "UTILITY", hp: 8, description: "Osciloscopio y monitor de telemetr\xEDa de se\xF1ales CV/Audio en tiempo real." },
-        { id: "test_parity", name: "00-TEST-PARITY", category: "UTILITY", family: "UTILITY", hp: 24, description: "Manifiesto de referencia para pruebas de paridad visual Era 7." },
-        { id: "oscillator_vA", name: "VIRTUAL ANALOG OSCILLATOR", category: "OSC", family: "OSC", hp: 8, description: "Oscilador anal\xF3gico virtual multi-onda (Sine, Saw, Pulse, Triangle)." },
-        { id: "filter_vA", name: "VIRTUAL ANALOG LADDER FILTER", category: "FLT", family: "FLT", hp: 6, description: "Filtro resonante de escalera transistorizada de 24dB/octava." },
-        { id: "envelope_adsr", name: "ADSR ENVELOPE GENERATOR", category: "ENV", family: "ENV", hp: 4, description: "Generador de envolvente cu\xE1druple Attack, Decay, Sustain, Release." },
-        { id: "vca", name: "DUAL LINEAR VCA", category: "AMP", family: "AMP", hp: 6, description: "Amplificador controlado por voltaje lineal duplo para audio y CV." },
-        { id: "lfo", name: "MULTI-WAVE LFO", category: "MOD", family: "MOD", hp: 6, description: "Oscilador de baja frecuencia multifunci\xF3n con reset de fase." }
-      ];
+      const items = Object.values(ACEMM_CATALOG).map((entry) => {
+        const family = entry.metadata?.family || entry.family || "utility";
+        return {
+          id: entry.id,
+          name: entry.metadata?.name || entry.name || entry.id.toUpperCase(),
+          description: entry.metadata?.description || entry.description,
+          category: this.categoryForFamily(family),
+          family: String(family).toUpperCase(),
+          hp: Number(entry.metadata?.rack?.hp ?? entry.rack?.hp) || 8
+        };
+      });
       this.items.clear();
-      fallbackItems.forEach((item) => {
+      items.forEach((item) => {
         this.items.set(item.id, item);
       });
     }
@@ -5079,6 +6507,7 @@
       "listPresets",
       "getBrowserData",
       "getHistory",
+      "deletePreset",
       "addModule",
       "removeModule",
       "moveModule",
@@ -6434,7 +7863,7 @@
       if (j.backend) OmegaLog.debug("DIAG", "__JUCE__.backend keys:", Object.keys(j.backend));
     }
     if (window.juce) OmegaLog.debug("DIAG", "juce found:", Object.keys(window.juce));
-    const buildId = "721";
+    const buildId = "DEV";
     OmegaLog.info("BOOT", `Booting Era 7 Aseptic UI [BUILD #${buildId}]`);
     try {
       Preferences.init();
@@ -6531,15 +7960,15 @@
               if (win.presetBrowser) {
                 win.presetBrowser.saveUserPreset(nameClean);
               }
+              const rpcCmd = action === "new_preset" ? "newPreset" : "savePreset";
+              try {
+                rpcCommandDispatcher.dispatch({ type: rpcCmd, payload: { name: nameClean } });
+              } catch (e) {
+              }
               OmegaLog.info("PRESET", `Preset '${nameClean}' guardado y activado.`);
               alert(`\xA1Preset '${nameClean}' listo!
 
 Ahora puedes usar 'Add Module...' en el men\xFA EDIT para agregar m\xF3dulos al rack.`);
-            }
-            const rpcCmd = action === "new_preset" ? "newPreset" : action === "save_preset" ? "savePreset" : action;
-            try {
-              rpcCommandDispatcher.dispatch({ type: rpcCmd });
-            } catch (e) {
             }
             break;
           case "undo":
