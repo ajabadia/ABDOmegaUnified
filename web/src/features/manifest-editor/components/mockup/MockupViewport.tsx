@@ -11,7 +11,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { OMEGA_Manifest } from '@/omega-ui-core/types/manifest';
-import { UniversalRenderer } from '@/omega-ui-core/renderers/UniversalRenderer';
+import { renderModuleHTML } from '@/features/rack-player/lib/renderModuleHTML';
 
 
 interface MockupViewportProps {
@@ -24,7 +24,7 @@ interface MockupViewportProps {
 }
 
 export const MockupViewport = ({ 
-  manifest, resolveAsset, width, height, skin, viewportRef 
+  manifest, width, height, skin, viewportRef 
 }: MockupViewportProps) => {
   const getSkinConfig = () => {
     switch (skin) {
@@ -61,14 +61,10 @@ export const MockupViewport = ({
 
 
         {/* UCA NATIVE ENGINE (Static Viewport) */}
-        <div className="absolute inset-0 uca-native-layer">
-          <UniversalRenderer 
-            node={manifest.ui.tree!} 
-            manifest={manifest} 
-            catalog={manifest.moduleTemplates || {}}
-            resolveAsset={resolveAsset}
-          />
-        </div>
+        <div 
+          className="absolute inset-0 uca-native-layer"
+          dangerouslySetInnerHTML={{ __html: renderModuleHTML(manifest) }}
+        />
 
         {/* STUDIO OVERLAY SHINE (Glass Effect) */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-white/[0.01] pointer-events-none z-[100]" />

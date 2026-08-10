@@ -2,14 +2,18 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { SharedModuleCatalogService } from '@/services/sharedModuleCatalog';
-import { UniversalRenderer } from '@/omega-ui-core/renderers/UniversalRenderer';
+import { SharedModuleCatalogService, type SharedModuleEntry } from '@/services/sharedModuleCatalog';
 import { manifestToTree } from '@/omega-ui-core/uca/ucaBridge';
-import { DEFAULT_PANEL_HEIGHT, DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
+import { DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
+import { renderModuleHTML } from '@/features/rack-player/lib/renderModuleHTML';
 import { Plus, Trash2, FolderPlus, X } from 'lucide-react';
 
 export default function RackPlayerContainer() {
-  const catalogModules = SharedModuleCatalogService.getCatalog();
+  // Catálogo de módulos (estado): se hidrata en vivo desde /api/modules al
+  // montar; inicialmente usa el catálogo generado como primera pintura.
+  const [catalogModules, setCatalogModules] = useState<SharedModuleEntry[]>(
+    SharedModuleCatalogService.getCatalog()
+  );
   
   // State
   const [activePatch, setActivePatch] = useState('Default Modular Patch (Era 8)');
@@ -34,8 +38,13 @@ export default function RackPlayerContainer() {
   // Initial load
   useEffect(() => {
     async function loadAllManifests() {
+      // Hidrata el catálogo en vivo (modules/ escaneado en runtime); si el
+      // endpoint falla, usa el catálogo generado (fallback sincrónico).
+      const entries = await SharedModuleCatalogService.loadCatalog();
+      setCatalogModules(entries);
+
       const loaded: Record<string, any> = {};
-      for (const entry of catalogModules) {
+      for (const entry of entries) {
         try {
           const manifest = await SharedModuleCatalogService.fetchManifest(entry.id);
           if (manifest) {
@@ -49,7 +58,7 @@ export default function RackPlayerContainer() {
       }
       setManifests(loaded);
       // Default rack contains all catalog modules
-      setRackModuleIds(catalogModules.map(m => m.id));
+      setRackModuleIds(entries.map(m => m.id));
       setLoading(false);
     }
     loadAllManifests();
@@ -265,7 +274,6 @@ export default function RackPlayerContainer() {
                 if (!manifest || !manifest.ui?.tree) return null;
 
                 const hp = (manifest.metadata as any)?.rack?.hp || (manifest.metadata as any)?.hp || modEntry?.hpWidth || DEFAULT_RACK_HP;
-                const widthPx = Math.max(hp * 15, 60);
 
                 return (
                   <div 
@@ -292,28 +300,11 @@ export default function RackPlayerContainer() {
                       </div>
                     </div>
 
-                    {/* Unified graphical representation */}
-                    <div 
-                      className="relative border border-slate-700/50 bg-[#0a0e17] rounded-lg overflow-hidden select-none mx-auto flex items-start justify-start"
-                      style={{ width: `${widthPx}px`, height: `${manifest.ui?.dimensions?.height || DEFAULT_PANEL_HEIGHT}px` }}
-                    >
-                      <UniversalRenderer 
-                        node={manifest.ui.tree}
-                        manifest={manifest}
-                        catalog={manifest.moduleTemplates || {}}
-                        debugContext={{
-                          enabled: false,
-                          showLabels: false,
-                          hideDecorative: false,
-                          isLiveMode: true,
-                          runtimeValues: {},
-                          selectedId: null,
-                          multiSelectedIds: [],
-                          onSelect: () => {},
-                          zoom: 1
-                        }}
-                      />
-                    </div>
+                    {/* Unified graphical representation (canonical chassis via renderModuleHTML) */}
+                    <div
+                      className="relative rounded-lg overflow-hidden select-none mx-auto"
+                      dangerouslySetInnerHTML={{ __html: renderModuleHTML(manifest) }}
+                    />
 
                     <div className="bg-[#0b0f19] p-2.5 rounded-lg flex justify-between items-center border border-slate-800/80 mt-1">
                       <div className="flex flex-col gap-0.5">

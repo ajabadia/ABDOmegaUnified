@@ -20,8 +20,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { OmegaNode, OMEGA_Manifest, CellTemplate } from '../../types/manifest';
-import type { ComponentNode, ComponentType } from '../../types/rack';
-import { renderComponentNode } from '../primitives/index';
+import { CellRenderer } from '../CellRenderer';
+import { buildCellOptions } from '../cellOptions';
 import { useUCADrag } from '../hooks/useUCADrag';
 import { UCADebugHUD } from './UCADebugHUD';
 import { CADOverlay } from './CADOverlay';
@@ -33,28 +33,6 @@ import { useA11y } from '../hooks/useA11y';
 import { IntegrityOverlay } from '@/features/manifest-editor/components/viewport/IntegrityOverlay';
 import { ReorderIndicator } from './ReorderIndicator';
 import { ResizeHandles } from './ResizeHandles';
-
-const COMP_TYPE_MAP: Record<string, ComponentType> = {
-  'knob': 'knob', 'slider-v': 'slider', 'slider-h': 'slider',
-  'slider': 'slider', 'switch': 'switch', 'button': 'button',
-  'port': 'port', 'led': 'led', 'display': 'display', 'label': 'label'
-};
-
-function omegaNodeToComponentNode(node: OmegaNode): ComponentNode {
-  const compType = node.cellRef || node.kind || 'knob';
-  const type = COMP_TYPE_MAP[compType] || 'knob';
-  return {
-    id: node.id,
-    type,
-    label: (node.meta?.label as string) || node.id || '',
-    pos: { x: node.layout?.pos?.x || 0, y: node.layout?.pos?.y || 0 },
-    size: node.layout?.size ? { width: node.layout.size.width || 48, height: node.layout.size.height || 48 } : { width: 48, height: 48 },
-    style: (node.style || {}) as ComponentNode['style'],
-    bind: node.bind ? { target: node.bind } : undefined,
-    visible: node.visible,
-    locked: node.locked,
-  };
-}
 
 interface CellNodeProps {
   node: OmegaNode;
@@ -98,12 +76,6 @@ export function CellNode({
   });
 
   const runtimeValue = debugContext?.runtimeValues?.[node.id] ?? 0;
-
-  const componentNode = omegaNodeToComponentNode(node);
-  const renderedComponent = renderComponentNode(componentNode, {
-    value: runtimeValue,
-    assetUrl: resolveAsset ? resolveAsset(node.style?.asset) : node.style?.asset,
-  });
 
   // LIVE mode knob rotation: transparent overlay with vertical drag → 0-1 value
   const isKnob = (node.cellRef || node.kind) === 'knob';
@@ -188,6 +160,27 @@ export function CellNode({
   const scaleX = currentW / baseSize.width;
   const scaleY = currentH / baseSize.height;
 
+  // Canonical HTML base (root-fix): visual body delegates to CellRenderer,
+  // anchored at the box center so it matches the legacy centered primitive.
+  const canonicalHTML = (() => {
+    const options = buildCellOptions(manifest, {
+      isSelected,
+      isLiveMode: !!debugContext?.isLiveMode,
+      isError: (audit?.errorCount ?? 0) > 0,
+      resolveAsset,
+    });
+    const raw = CellRenderer.renderCellHTML(node, options);
+    if (!raw.includes('left:')) {
+      const cx = currentW / 2;
+      const cy = currentH / 2;
+      return raw.replace(
+        /(<div class="control-cell[^"]*" data-node-id="[^"]*" style=")([^"]*?);?\s*(">)/,
+        `$1$2; left: ${cx}px; top: ${cy}px;$3`,
+      );
+    }
+    return raw;
+  })();
+
   return (
     <motion.div
       id={`uca-${node.id}`}
@@ -262,14 +255,13 @@ export function CellNode({
       )}
 
       <div 
-        className="absolute inset-0 pointer-events-none flex items-center justify-center"
+        className="absolute inset-0 pointer-events-none"
         style={{
           transform: `scale(${scaleX}, ${scaleY})`,
           transformOrigin: 'center center'
         }}
-      >
-        {renderedComponent}
-      </div>
+        dangerouslySetInnerHTML={{ __html: canonicalHTML }}
+      />
 
       {/* LIVE mode KnobDragOverlay — vertical drag controls 0–1 value */}
       {debugContext?.isLiveMode && isKnob && debugContext?.onUpdateRuntimeValue && (

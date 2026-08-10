@@ -29,6 +29,8 @@ import type { UCADebugContext } from '../ucaTypes';
 import { useDesignTokens } from '../../hooks/useDesignTokens';
 import { ReorderIndicator } from './ReorderIndicator';
 import { ResizeHandles } from './ResizeHandles';
+import { CellRenderer } from '../CellRenderer';
+import { buildCellOptions } from '../cellOptions';
 
 interface StructuralNodeProps {
   node: OmegaNode;
@@ -103,6 +105,27 @@ export function StructuralNode({
   const currentX = isBeingResized ? ((node.layout?.pos?.x || 0) + activeResizeOffset.x) : ((node.layout?.pos?.x || 0) + offsetToApply.x);
   const currentY = isBeingResized ? ((node.layout?.pos?.y || 0) + activeResizeOffset.y) : ((node.layout?.pos?.y || 0) + offsetToApply.y);
 
+  // Base visual canónica (root-fix): la superficie estructural delega en
+  // CellRenderer (renderRackHTML / renderContainerHTML) sin recurrencia de hijos.
+  const canonicalHTML = (() => {
+    const options = buildCellOptions(manifest, {
+      isSelected,
+      isLiveMode: !!debugContext?.isLiveMode,
+      isError: (audit?.errorCount ?? 0) > 0,
+      resolveAsset,
+    });
+    const raw = CellRenderer.renderCellHTML(node, options);
+    if (!raw.includes('left:')) {
+      const cx = currentW / 2;
+      const cy = currentH / 2;
+      return raw.replace(
+        /(<div[^>]*style=")([^"]*?);?\s*(">)/,
+        `$1$2; left: ${cx}px; top: ${cy}px;$3`,
+      );
+    }
+    return raw;
+  })();
+
   return (
     <motion.div
       id={`uca-${node.id}`}
@@ -147,6 +170,8 @@ export function StructuralNode({
         boxShadow: (!debugContext?.isLiveMode && isSelected) ? '0 0 20px rgba(0, 242, 255, 0.5)' : (!debugContext?.isLiveMode && isMultiSelected) ? '0 0 12px rgba(168, 85, 247, 0.3)' : 'none'
       }}
     >
+      <div className="absolute inset-0 pointer-events-none" dangerouslySetInnerHTML={{ __html: canonicalHTML }} />
+
       {!debugContext?.isLiveMode && (
         <UCADebugHUD 
           node={node} 

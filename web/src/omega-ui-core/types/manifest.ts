@@ -330,6 +330,10 @@ export interface ManifestEntity {
   description?: string | undefined;
   isLocal?: boolean | undefined;
   path?: string | undefined;
+  // RUNTIME-DATA (no renderizado): Cell Studio los escribe (editor-only) y el
+  // manifest los persiste, pero ningún renderer (omega-ui-core ni host/ui) los
+  // consume; `cellOptions.ts` solo los pasa como passthrough. Ver auditoría de
+  // paridad editor<->renderer. Convivir por compatibilidad de round-trip.
   assetBehavior?: import('./assetBehavior').AssetBehavior | undefined;
   recipe?: import('./assetBehavior').LayerRecipe | undefined;
 }
@@ -383,6 +387,7 @@ export interface OmegaNode {
   locked?: boolean | undefined;
   children?: OmegaNode[] | undefined;
   ports?: UCA_Port[] | undefined;
+  // RUNTIME-DATA (no renderizado): matrix de modulación; solo data para el DSP.
   modulationTargets?: string[] | undefined;
   signalPath?: string | undefined;
   overrides?: Record<string, unknown> | undefined;
@@ -408,6 +413,7 @@ export interface ModuleTemplate {
   slots?: { id: string; label: string; [key: string]: unknown }[] | undefined;
   metadata?: Record<string, unknown> | undefined;
   compatibility?: Record<string, string> | undefined;
+  // RUNTIME-DATA (no renderizado): ver nota en OmegaNode.assetBehavior/recipe.
   assetBehavior?: import('./assetBehavior').AssetBehavior | undefined;
   recipe?: import('./assetBehavior').LayerRecipe | undefined;
   family?: string | undefined;
@@ -596,6 +602,9 @@ export interface OMEGA_Manifest {
     attachments?: Attachment[] | undefined; // Added for VirtualRack compatibility
   };
   entities: ManifestEntity[];
+  // RUNTIME-DATA (no renderizado): wiring de modulación; el editor los edita
+  // (ModulationSection) y el manifest los persiste, pero ningún renderer los
+  // dibuja — solo data para el motor (DSP/hardware). Ver auditoría de paridad.
   links?: OMEGA_Modulation[] | undefined;
   modulations?: OMEGA_Modulation[] | undefined;
   moduleTemplates?: Record<string, ModuleTemplate> | undefined;
