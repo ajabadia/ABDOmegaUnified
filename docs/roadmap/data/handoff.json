@@ -1,6 +1,6 @@
 {
   "partitionId": "handoff",
-  "lastHandoffDate": "2026-08-10T14:00:00+02:00",
+  "lastHandoffDate": "2026-08-10T15:00:00+02:00",
   "currentPhase": "Fase 4: Motor DSP Analógico ABDEep & Cadena de Voz WASM",
   "activeGoal": "Migración del DSP analógico modelado (TPT ZDF VCF + PolyBLEP DCOs) a ABDEep, cadena de voz WASM verificada en runtime (VCO→VCF→ADSR→VCA+LFO) y renderizado canónico unificado en el editor y el player.",
   "handoffState": {
@@ -20,12 +20,12 @@
       "[ABDOmegaUnified] gen_contracts.mjs: contratos regenerados desde los binarios reales (omega_get_contract).",
       "[ABDOmegaUnified] verify_voice_chain_runtime.mjs: verificación runtime del DSP real (frecuencia, cutoff, sustain, VCA, LFO) — exit 0.",
       "[ABDOmegaUnified] GET /api/modules: catálogo ACEMM dinámico escaneando modules/ en runtime (mismo shape que acemmCatalog.generated.ts).",
-      "[ABDOmegaUnified] Renderizado canónico unificado: CellNode/StructuralNode con CellRenderer.renderCellHTML; MockupViewport e InjectionPreviewOverlay con renderModuleHTML (tsc EXIT 0, jest 68 suites / 1341 tests / 48 snapshots, next build OK)."
+      "[ABDOmegaUnified] Renderizado canónico unificado: CellNode/StructuralNode con CellRenderer.renderCellHTML; MockupViewport e InjectionPreviewOverlay con renderModuleHTML (tsc EXIT 0, jest 68 suites / 1341 tests / 48 snapshots, next build OK).",
+      "[ABDOmegaUnified] ADR-020 (native-omeganode-rendering) pasado a ACCEPTED (implemented, RM-216 f2a2b6d).",
+      "[ABDOmegaUnified] Golden visualParity.test.ts re-ejecutado tras las migraciones: 8/8 PASS (junction byte-idéntica + paridad call-sites + chassis + snapshot)."
     ],
     "immediateNextTasks": [
       "Verificación visual manual en navegador de /en/player y del editor tras las migraciones del renderizado canónico.",
-      "Revisar ADR-020 (native-omeganode-rendering) y pasarlo a implemented si procede.",
-      "Revisar el golden congelado de host/ui/tests/renderers/visualParity.test.ts tras las migraciones.",
       "Revisar los fallos preexistentes conocidos (tolerancia DriftEngine, ciclo de vida Envelope, mapping Transpose/tune, límites FX)."
     ],
     "knownGotchasAndRules": [

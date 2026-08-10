@@ -1,7 +1,7 @@
 # Phase 19 — Native OmegaNode Rendering
 
 ## Status
-PROPOSED
+ACCEPTED (implemented — RM-216 / commit f2a2b6d)
 
 ## Context
 Tras cerrar Phase 18, el sistema ya opera con OmegaNode como fuente de verdad canónica para edición, almacenamiento y auditoría.
