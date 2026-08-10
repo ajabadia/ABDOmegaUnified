@@ -1,21 +1,49 @@
 {
-  "lastUpdated": "2026-07-30T15:02:00+02:00",
+  "partitionId": "handoff",
+  "lastHandoffDate": "2026-08-10T14:00:00+02:00",
+  "currentPhase": "Fase 4: Motor DSP Analógico ABDEep & Cadena de Voz WASM",
+  "activeGoal": "Migración del DSP analógico modelado (TPT ZDF VCF + PolyBLEP DCOs) a ABDEep, cadena de voz WASM verificada en runtime (VCO→VCF→ADSR→VCA+LFO) y renderizado canónico unificado en el editor y el player.",
+  "handoffState": {
+    "completedMilestones": [
+      "[ABDEep] Chord Memory & Poly Chord: fix del colgado de notas (rootNoteTriggered + releaseNote por rootNote).",
+      "[ABDEep] VCF migrado a TPT ZDF (JunoVCF_ZDF) con oversampling polifásico 2x/4x y modos 2/4-polo.",
+      "[ABDEep] Osciladores PolyBLEP de 2º orden: saw con curvatura y PWM con slew (OSC1) y square con blep correcto + tone mod tanh (OSC2).",
+      "[ABDEep] Parámetro vcf_oversample (1x/2x/4x) con tab Advanced (DSP Quality + Build Info) en el modal de settings.",
+      "[ABDEep] Sistema multi-build DEEP_TARGET_MODEL: 0=MIDI Controller, 1=Classic, 2=Enhanced.",
+      "[ABDEep] Simulación de personalidad de voces: tolerancias estáticas (LCG) + drift térmico Browniano.",
+      "[ABDEep] Persistencia de patches: ParamSet ⇄ APVTS round-trip con JSON y validación.",
+      "[ABDEep] Suite de límites del motor FX: 3.181.547 aserciones / 0 fallos en los 35 tipos de efecto.",
+      "[ABDEep] Fix NaN en FXPitchShifter (std::fmod en readDelay) — índice de buffer negativo.",
+      "[ABDEep] Fidelidad Core 1.9: HPF global post-VCA (JunoHPF 1-polo + bass boost); Fase 1 de Fidelidad Core completa (1.1–1.9).",
+      "[ABDEep] Tab Global en WebUI: 7 parámetros globales (Device ID, MIDI Channel, Master Tune, Transpose, Velocity Curve, Pedal, LCD Contrast).",
+      "[ABDOmegaUnified] Cadena de voz analógica WASM (FASE A): módulos vco/vcf/adsr/vca/lfo con contrato embebido, memoria por slot y puente zero-copy de buses.",
+      "[ABDOmegaUnified] gen_contracts.mjs: contratos regenerados desde los binarios reales (omega_get_contract).",
+      "[ABDOmegaUnified] verify_voice_chain_runtime.mjs: verificación runtime del DSP real (frecuencia, cutoff, sustain, VCA, LFO) — exit 0.",
+      "[ABDOmegaUnified] GET /api/modules: catálogo ACEMM dinámico escaneando modules/ en runtime (mismo shape que acemmCatalog.generated.ts).",
+      "[ABDOmegaUnified] Renderizado canónico unificado: CellNode/StructuralNode con CellRenderer.renderCellHTML; MockupViewport e InjectionPreviewOverlay con renderModuleHTML (tsc EXIT 0, jest 68 suites / 1341 tests / 48 snapshots, next build OK)."
+    ],
+    "immediateNextTasks": [
+      "Verificación visual manual en navegador de /en/player y del editor tras las migraciones del renderizado canónico.",
+      "Revisar ADR-020 (native-omeganode-rendering) y pasarlo a implemented si procede.",
+      "Revisar el golden congelado de host/ui/tests/renderers/visualParity.test.ts tras las migraciones.",
+      "Revisar los fallos preexistentes conocidos (tolerancia DriftEngine, ciclo de vida Envelope, mapping Transpose/tune, límites FX)."
+    ],
+    "knownGotchasAndRules": [
+      "Verificación de código SOLO desde web/ (npx tsc --noEmit y npx jest); los binarios están en web/node_modules/.bin.",
+      "tsconfig con noUnusedLocals/noUnusedParameters: los props resolveAsset se mantienen en las interfaces pero no en el destructure.",
+      "RenderedRackTree está congelado (spec 24/24) pero aún invoca UniversalRenderer — no tocar.",
+      "CMake/build.bat usan '-D DEEP_TARGET_MODEL' con espacio; '-DEEP_TARGET_MODEL=1' pierde la D en el parsing de PowerShell.",
+      "El visor de roadmap tiene dos copias espejo (web/public/roadmap/data y docs/roadmap/data) — actualizar ambas.",
+      "Fechas de los JSON del roadmap en ISO YYYY-MM-DDTHH:mm:00+02:00; handoff.json debe conservar partitionId='handoff' y handoffState para que el visor lo pinte.",
+      "DEEP_TARGET_MODEL actual en CMakeCache = 0 (modo MIDI Controller)."
+    ]
+  },
   "projectState": {
     "name": "ABDOmegaUnified",
     "architecture": "Architecture Greenfield 3-Cajas (host, engine, modules, web)",
     "activePort": 6789,
-    "roadmapItemsCount": 21,
-    "completedItemsCount": 20,
+    "roadmapItemsCount": 41,
+    "completedItemsCount": 40,
     "discardedItemsCount": 1
-  },
-  "recentAccomplishments": [
-    "Unificado omega-ui-core en la raíz del proyecto usando Junctions NTFS para evitar código redundante.",
-    "Implementado ManifestRenderer.ts para renderizar dinámicamente el árbol UCA en el rack web.",
-    "Conectado el navegador de módulos del Rack con la estantería /modules para renderizar los controles físicos (knobs, ports, leds).",
-    "Corregidos imports de TypeScript eliminando extensiones .js para mantener compatibilidad universal Next.js y tsc.",
-    "Implementado el expositor visual puro en el Player (/en/player) cargando los manifiestos .acemm con UniversalRenderer."
-  ],
-  "nextSteps": [
-    "Avanzar en el motor DSP de sonido WebAudio WASM para que los módulos del rack procesen audio real."
-  ]
+  }
 }

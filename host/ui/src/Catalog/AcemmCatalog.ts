@@ -2,13 +2,15 @@
  * OMEGA Era 7.2.3 - ACEMM Catalog & Manifest Resolver
  * 
  * FUENTE ÚNICA: los manifiestos canónicos viven en `modules/<id>/<id>.acemm`
- * (estantería compartida editor + rack). `GENERATED_ACEMM_CATALOG` se deriva
- * de ellos en build (`node scripts/generate_acemm_catalog.mjs`) — este archivo
- * ya NO mantiene copias inline de los .acemm.
+ * (estantería compartida editor + rack). En runtime el catálogo se hidrata en
+ * vivo desde `GET /api/modules` (escaneo de modules/ en el servidor); el
+ * `GENERATED_ACEMM_CATALOG` embebido en build (derivado de los .acemm por
+ * `node scripts/generate_acemm_catalog.mjs`) actúa como fallback offline.
  * 
  * Las entradas LEGACY (oscillator_vA, filter_vA, envelope_adsr, vca, lfo) son
  * placeholders planos SIN .acemm canónico aún — se conservan como fallback
- * mientras no exista su manifiesto en modules/.
+ * mientras no exista su manifiesto en modules/. Los módulos canónicos (presentes
+ * en modules/) SIEMPRE tienen prioridad sobre los placeholders legacy.
  */
 import { OmegaLog } from '../RPC/omega_log.js';
 import { resolveRackTarget } from '../Logic/RackRouter.js';
@@ -99,11 +101,45 @@ const LEGACY_ACEMM_ENTRIES: Record<string, any> = {
   }
 };
 
-/** Catálogo combinado: canónico (generado desde modules/) + legacy planos. */
+/**
+ * Catálogo combinado: legacy (placeholders planos) como base + canónico
+ * (generado desde modules/). El orden importa: los módulos canónicos con
+ * .acemm real SIEMPRE ganan sobre los placeholders legacy del mismo id.
+ */
 export const ACEMM_CATALOG: Record<string, any> = {
-  ...GENERATED_ACEMM_CATALOG,
   ...LEGACY_ACEMM_ENTRIES,
+  ...GENERATED_ACEMM_CATALOG,
 };
+
+/**
+ * Hidrata ACEMM_CATALOG en vivo desde `GET /api/modules` (escaneo runtime de
+ * modules/ en el servidor). Permite añadir/quitar módulos en la carpeta sin
+ * regenerar el catálogo ni rebuildar bundle.js. El catálogo embebido queda como
+ * fallback si el endpoint no responde (p.ej. host-ui servido estáticamente).
+ */
+export async function hydrateCatalogFromServer(): Promise<void> {
+  try {
+    const res = await fetch('/api/modules', { cache: 'no-store' });
+    if (!res.ok) {
+      OmegaLog.warn('catalog', `hydrateCatalogFromServer: /api/modules -> HTTP ${res.status}; usando catálogo embebido.`);
+      return;
+    }
+    const raw = (await res.json()) as Record<string, any>;
+    const liveIds = Object.keys(raw);
+    if (liveIds.length === 0) return;
+    for (const id of liveIds) {
+      ACEMM_CATALOG[id] = raw[id];
+    }
+    // Los módulos canónicos (con .acemm) reemplazan cualquier placeholder legacy.
+    // Re-anuncia el catálogo hidratado para consumidores globales (window).
+    if (typeof window !== 'undefined') {
+      (window as any).ACEMM_CATALOG = ACEMM_CATALOG;
+    }
+    OmegaLog.info('catalog', `hydrateCatalogFromServer: ${liveIds.length} módulos en vivo (${liveIds.join(', ')})`);
+  } catch (e) {
+    OmegaLog.warn('catalog', `hydrateCatalogFromServer: fallback a catálogo embebido (${String((e as Error)?.message || e)})`);
+  }
+}
 
 /**
  * Canonical render components understood by omega-ui-core CellRenderer.
@@ -271,4 +307,9 @@ export async function getOrFetchManifest(id: string): Promise<any> {
 if (typeof window !== 'undefined') {
   (window as any).ACEMM_CATALOG = ACEMM_CATALOG;
   (window as any).getOrFetchManifest = getOrFetchManifest;
+  (window as any).hydrateCatalogFromServer = hydrateCatalogFromServer;
+  // Hidratación en vivo (fire-and-forget): módulos nuevos en modules/ aparecen
+  // sin rebuild. Los consumidores que necesiten el catálogo hidratado antes de
+  // renderizar pueden hacer `await hydrateCatalogFromServer()`.
+  void hydrateCatalogFromServer();
 }

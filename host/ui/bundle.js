@@ -888,6 +888,466 @@
         ]
       }
     },
+    "adsr": {
+      "id": "adsr",
+      "name": "Omega ADSR Envelope",
+      "description": "",
+      "metadata": {
+        "name": "Omega ADSR Envelope",
+        "family": "control",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 8,
+          "units": "3U",
+          "slot": "lower"
+        }
+      },
+      "rack": {
+        "slot": "lower",
+        "hp": 8
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "32146482ef8e649946c9c1becf1ade9c1d5e438f4c2fd6d149b190cfaeca01f9",
+        "size": 3255
+      },
+      "wasmUrl": "modules/adsr/adsr.wasm",
+      "manifestUrl": "modules/adsr/adsr.acemm",
+      "params": {
+        "attack": {
+          "label": "Attack",
+          "min": 0.5,
+          "max": 1e4,
+          "default": 5,
+          "exponent": 3,
+          "units": "ms"
+        },
+        "decay": {
+          "label": "Decay",
+          "min": 1,
+          "max": 1e4,
+          "default": 200,
+          "exponent": 3,
+          "units": "ms"
+        },
+        "sustain": {
+          "label": "Sustain",
+          "min": 0,
+          "max": 1,
+          "default": 0.6,
+          "exponent": 1,
+          "units": ""
+        },
+        "release": {
+          "label": "Release",
+          "min": 1,
+          "max": 1e4,
+          "default": 400,
+          "exponent": 3,
+          "units": "ms"
+        },
+        "depth": {
+          "label": "Depth",
+          "min": 0,
+          "max": 1,
+          "default": 1,
+          "exponent": 1,
+          "units": ""
+        }
+      },
+      "ui": {
+        "dimensions": {
+          "width": 120,
+          "height": 140
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "main",
+              "label": "ADSR",
+              "pos": {
+                "x": 5,
+                "y": 5
+              },
+              "size": {
+                "w": 110,
+                "h": 130
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "knob_attack",
+            "bind": "attack",
+            "pos": {
+              "x": 30,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "A"
+                }
+              ]
+            }
+          },
+          {
+            "id": "knob_decay",
+            "bind": "decay",
+            "pos": {
+              "x": 60,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "D"
+                }
+              ]
+            }
+          },
+          {
+            "id": "knob_sustain",
+            "bind": "sustain",
+            "pos": {
+              "x": 90,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "S"
+                }
+              ]
+            }
+          },
+          {
+            "id": "knob_release",
+            "bind": "release",
+            "pos": {
+              "x": 30,
+              "y": 55
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "R"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_gate",
+            "bind": "gate_in",
+            "pos": {
+              "x": 30,
+              "y": 110
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "GATE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_out",
+            "bind": "out",
+            "pos": {
+              "x": 60,
+              "y": 110
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "OUT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_depth",
+            "bind": "depth",
+            "pos": {
+              "x": 30,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          }
+        ]
+      }
+    },
+    "lfo": {
+      "id": "lfo",
+      "name": "Omega LFO",
+      "description": "",
+      "metadata": {
+        "name": "Omega LFO",
+        "family": "control",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 8,
+          "units": "3U",
+          "slot": "lower"
+        }
+      },
+      "rack": {
+        "slot": "lower",
+        "hp": 8
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "25440833bfe9a2e28e5faf229261e6d777423ccc1937de1cd6fb40fc0ce94598",
+        "size": 2664
+      },
+      "wasmUrl": "modules/lfo/lfo.wasm",
+      "manifestUrl": "modules/lfo/lfo.acemm",
+      "params": {
+        "rate": {
+          "label": "Rate",
+          "min": 0.01,
+          "max": 30,
+          "default": 2,
+          "exponent": 2,
+          "units": "hz"
+        },
+        "shape": {
+          "label": "Shape",
+          "min": 0,
+          "max": 4,
+          "default": 0,
+          "choices": [
+            {
+              "label": "Sine",
+              "value": 0
+            },
+            {
+              "label": "Triangle",
+              "value": 1
+            },
+            {
+              "label": "Saw",
+              "value": 2
+            },
+            {
+              "label": "Square",
+              "value": 3
+            },
+            {
+              "label": "S&H",
+              "value": 4
+            }
+          ]
+        },
+        "amount": {
+          "label": "Amount",
+          "min": 0,
+          "max": 1,
+          "default": 0.5,
+          "exponent": 2,
+          "units": ""
+        },
+        "sync_to_gate": {
+          "label": "Sync to Gate",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "choices": [
+            {
+              "label": "OFF",
+              "value": 0
+            },
+            {
+              "label": "ON",
+              "value": 1
+            }
+          ]
+        }
+      },
+      "ui": {
+        "dimensions": {
+          "width": 60,
+          "height": 140
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "main",
+              "label": "LFO",
+              "pos": {
+                "x": 5,
+                "y": 5
+              },
+              "size": {
+                "w": 50,
+                "h": 130
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "knob_rate",
+            "bind": "rate",
+            "pos": {
+              "x": 30,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "RATE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "knob_shape",
+            "bind": "shape",
+            "pos": {
+              "x": 30,
+              "y": 55
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "SHAPE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_out",
+            "bind": "out",
+            "pos": {
+              "x": 30,
+              "y": 110
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "OUT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_amount",
+            "bind": "amount",
+            "pos": {
+              "x": 30,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_sync",
+            "bind": "sync_to_gate",
+            "pos": {
+              "x": 30,
+              "y": 140
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          }
+        ]
+      }
+    },
     "midi_2_cv": {
       "id": "midi_2_cv",
       "name": "MIDI 2 CV",
@@ -1880,6 +2340,968 @@
           }
         ]
       }
+    },
+    "vca": {
+      "id": "vca",
+      "name": "Omega VCA",
+      "description": "",
+      "metadata": {
+        "name": "Omega VCA",
+        "family": "utility",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 8,
+          "units": "3U",
+          "slot": "lower"
+        }
+      },
+      "rack": {
+        "slot": "lower",
+        "hp": 8
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "0c3c1c71b684962c3e4aafda6ca79f193664a1d9e13b3e0024b400f23e92b7c5",
+        "size": 2379
+      },
+      "wasmUrl": "modules/vca/vca.wasm",
+      "manifestUrl": "modules/vca/vca.acemm",
+      "params": {
+        "level": {
+          "label": "Level",
+          "min": 0,
+          "max": 1,
+          "default": 0.8,
+          "exponent": 2,
+          "units": ""
+        },
+        "env_depth": {
+          "label": "Env Depth",
+          "min": 0,
+          "max": 1,
+          "default": 1,
+          "exponent": 1,
+          "units": ""
+        },
+        "curve": {
+          "label": "Curve",
+          "min": 0,
+          "max": 1,
+          "default": 0.5,
+          "exponent": 1,
+          "units": ""
+        },
+        "velocity": {
+          "label": "Velocity",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "exponent": 1,
+          "units": ""
+        }
+      },
+      "ui": {
+        "dimensions": {
+          "width": 120,
+          "height": 140
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "main",
+              "label": "VCA",
+              "pos": {
+                "x": 5,
+                "y": 5
+              },
+              "size": {
+                "w": 110,
+                "h": 130
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "knob_level",
+            "bind": "level",
+            "pos": {
+              "x": 30,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "LVL"
+                }
+              ]
+            }
+          },
+          {
+            "id": "knob_curve",
+            "bind": "curve",
+            "pos": {
+              "x": 60,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "CURVE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_in",
+            "bind": "in",
+            "pos": {
+              "x": 30,
+              "y": 110
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "IN"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_gate",
+            "bind": "gate_in",
+            "pos": {
+              "x": 90,
+              "y": 110
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "GATE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_out",
+            "bind": "out",
+            "pos": {
+              "x": 60,
+              "y": 110
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "OUT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_env_depth",
+            "bind": "env_depth",
+            "pos": {
+              "x": 30,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_velocity",
+            "bind": "velocity",
+            "pos": {
+              "x": 30,
+              "y": 140
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          }
+        ]
+      }
+    },
+    "vcf": {
+      "id": "vcf",
+      "name": "Omega VCF (ZDF Ladder)",
+      "description": "",
+      "metadata": {
+        "name": "Omega VCF (ZDF Ladder)",
+        "family": "filter",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 8,
+          "units": "3U",
+          "slot": "lower"
+        }
+      },
+      "rack": {
+        "slot": "lower",
+        "hp": 8
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "1fef7cb3144a666b6a764562e3f4e821526ac3747136bc65b8e877e29ebe1744",
+        "size": 5959
+      },
+      "wasmUrl": "modules/vcf/vcf.wasm",
+      "manifestUrl": "modules/vcf/vcf.acemm",
+      "params": {
+        "cutoff": {
+          "label": "Cutoff",
+          "min": 20,
+          "max": 2e4,
+          "default": 1e3,
+          "exponent": 3,
+          "units": "hz"
+        },
+        "resonance": {
+          "label": "Resonance",
+          "min": 0,
+          "max": 1,
+          "default": 0.25,
+          "exponent": 2,
+          "units": ""
+        },
+        "mode": {
+          "label": "Mode",
+          "min": 0,
+          "max": 3,
+          "default": 0,
+          "choices": [
+            {
+              "label": "LP",
+              "value": 0
+            },
+            {
+              "label": "HP",
+              "value": 1
+            },
+            {
+              "label": "BP",
+              "value": 2
+            },
+            {
+              "label": "Notch",
+              "value": 3
+            }
+          ]
+        },
+        "keytrack": {
+          "label": "Key Track",
+          "min": 0,
+          "max": 1,
+          "default": 0.5,
+          "exponent": 1,
+          "units": ""
+        },
+        "cutoff_cv": {
+          "label": "Cutoff CV",
+          "min": 0,
+          "max": 1,
+          "default": 0.5,
+          "exponent": 1,
+          "units": ""
+        },
+        "res_cv": {
+          "label": "Res CV",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "exponent": 1,
+          "units": ""
+        }
+      },
+      "ui": {
+        "dimensions": {
+          "width": 120,
+          "height": 140
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "main",
+              "label": "VCF",
+              "pos": {
+                "x": 5,
+                "y": 5
+              },
+              "size": {
+                "w": 110,
+                "h": 130
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "knob_cutoff",
+            "bind": "cutoff",
+            "pos": {
+              "x": 30,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "CUT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "knob_res",
+            "bind": "resonance",
+            "pos": {
+              "x": 60,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "RES"
+                }
+              ]
+            }
+          },
+          {
+            "id": "knob_mode",
+            "bind": "mode",
+            "pos": {
+              "x": 90,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "MODE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_in",
+            "bind": "in",
+            "pos": {
+              "x": 30,
+              "y": 110
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "IN"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_cutoff_cv",
+            "bind": "cutoff_cv",
+            "pos": {
+              "x": 60,
+              "y": 95
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "CV"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_res_cv",
+            "bind": "res_cv",
+            "pos": {
+              "x": 90,
+              "y": 95
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "RES"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_out",
+            "bind": "out",
+            "pos": {
+              "x": 60,
+              "y": 110
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "OUT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_keytrack",
+            "bind": "keytrack",
+            "pos": {
+              "x": 30,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_cutoff_cv",
+            "bind": "cutoff_cv",
+            "pos": {
+              "x": 30,
+              "y": 140
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_res_cv",
+            "bind": "res_cv",
+            "pos": {
+              "x": 30,
+              "y": 150
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          }
+        ]
+      }
+    },
+    "vco": {
+      "id": "vco",
+      "name": "Omega VCO (PolyBLEP)",
+      "description": "",
+      "metadata": {
+        "name": "Omega VCO (PolyBLEP)",
+        "family": "oscillator",
+        "version": "1.0.0",
+        "rack": {
+          "hp": 8,
+          "units": "3U",
+          "slot": "lower"
+        }
+      },
+      "rack": {
+        "slot": "lower",
+        "hp": 8
+      },
+      "assets": {
+        "source": true,
+        "wasm": true
+      },
+      "artifact": {
+        "sha256": "34bae781982024548b5d01cdc4aa8f2b3f61716152360b1e931e006b014d203b",
+        "size": 5718
+      },
+      "wasmUrl": "modules/vco/vco.wasm",
+      "manifestUrl": "modules/vco/vco.acemm",
+      "params": {
+        "waveform": {
+          "label": "Waveform",
+          "min": 0,
+          "max": 4,
+          "default": 0,
+          "choices": [
+            {
+              "label": "Sine",
+              "value": 0
+            },
+            {
+              "label": "Triangle",
+              "value": 1
+            },
+            {
+              "label": "Saw",
+              "value": 2
+            },
+            {
+              "label": "Square",
+              "value": 3
+            },
+            {
+              "label": "Pulse",
+              "value": 4
+            }
+          ]
+        },
+        "coarse": {
+          "label": "Coarse",
+          "min": -12,
+          "max": 12,
+          "default": 0,
+          "exponent": 1,
+          "units": "st"
+        },
+        "fine": {
+          "label": "Fine",
+          "min": -100,
+          "max": 100,
+          "default": 0,
+          "exponent": 1,
+          "units": "ct"
+        },
+        "pulse_width": {
+          "label": "Pulse Width",
+          "min": 0.05,
+          "max": 0.95,
+          "default": 0.5,
+          "exponent": 1,
+          "units": "pw"
+        },
+        "fm_amount": {
+          "label": "FM Amount",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "exponent": 2,
+          "units": ""
+        },
+        "pwm_amount": {
+          "label": "PWM Amount",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "exponent": 2,
+          "units": ""
+        },
+        "sub_on": {
+          "label": "Sub Osc",
+          "min": 0,
+          "max": 1,
+          "default": 1,
+          "choices": [
+            {
+              "label": "OFF",
+              "value": 0
+            },
+            {
+              "label": "ON",
+              "value": 1
+            }
+          ]
+        },
+        "drift": {
+          "label": "Drift",
+          "min": 0,
+          "max": 1,
+          "default": 0.15,
+          "exponent": 2,
+          "units": ""
+        }
+      },
+      "ui": {
+        "dimensions": {
+          "width": 120,
+          "height": 140
+        },
+        "skin": "industrial",
+        "layout": {
+          "containers": [
+            {
+              "id": "main",
+              "label": "VCO",
+              "pos": {
+                "x": 5,
+                "y": 5
+              },
+              "size": {
+                "w": 110,
+                "h": 130
+              },
+              "variant": "panel"
+            }
+          ]
+        },
+        "controls": [
+          {
+            "id": "knob_waveform",
+            "bind": "waveform",
+            "pos": {
+              "x": 30,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "WAVE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "knob_coarse",
+            "bind": "coarse",
+            "pos": {
+              "x": 60,
+              "y": 15
+            },
+            "presentation": {
+              "container": "main",
+              "component": "knob",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "COARSE"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_v_oct",
+            "bind": "v_oct",
+            "pos": {
+              "x": 30,
+              "y": 95
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "V/OCT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_fm",
+            "bind": "fm",
+            "pos": {
+              "x": 60,
+              "y": 95
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "FM"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_pwm",
+            "bind": "pwm",
+            "pos": {
+              "x": 90,
+              "y": 95
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "PWM"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_sync",
+            "bind": "sync",
+            "pos": {
+              "x": 30,
+              "y": 115
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "SYNC"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_out",
+            "bind": "out",
+            "pos": {
+              "x": 60,
+              "y": 115
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "OUT"
+                }
+              ]
+            }
+          },
+          {
+            "id": "port_sub_out",
+            "bind": "sub_out",
+            "pos": {
+              "x": 90,
+              "y": 115
+            },
+            "presentation": {
+              "container": "main",
+              "component": "port",
+              "variant": "cyan",
+              "size": {
+                "w": 24,
+                "h": 24
+              },
+              "attachments": [
+                {
+                  "type": "label",
+                  "text": "SUB"
+                }
+              ]
+            }
+          },
+          {
+            "id": "k_fine",
+            "bind": "fine",
+            "pos": {
+              "x": 30,
+              "y": 130
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_pulse_width",
+            "bind": "pulse_width",
+            "pos": {
+              "x": 30,
+              "y": 140
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_fm_amount",
+            "bind": "fm_amount",
+            "pos": {
+              "x": 30,
+              "y": 150
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_pwm_amount",
+            "bind": "pwm_amount",
+            "pos": {
+              "x": 30,
+              "y": 160
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_sub_on",
+            "bind": "sub_on",
+            "pos": {
+              "x": 30,
+              "y": 170
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          },
+          {
+            "id": "k_drift",
+            "bind": "drift",
+            "pos": {
+              "x": 30,
+              "y": 180
+            },
+            "presentation": {
+              "container": "main",
+              "component": "hidden",
+              "variant": "default"
+            }
+          }
+        ]
+      }
     }
   };
 
@@ -1962,9 +3384,30 @@
     }
   };
   var ACEMM_CATALOG = {
-    ...GENERATED_ACEMM_CATALOG,
-    ...LEGACY_ACEMM_ENTRIES
+    ...LEGACY_ACEMM_ENTRIES,
+    ...GENERATED_ACEMM_CATALOG
   };
+  async function hydrateCatalogFromServer() {
+    try {
+      const res = await fetch("/api/modules", { cache: "no-store" });
+      if (!res.ok) {
+        OmegaLog.warn("catalog", `hydrateCatalogFromServer: /api/modules -> HTTP ${res.status}; usando cat\xE1logo embebido.`);
+        return;
+      }
+      const raw = await res.json();
+      const liveIds = Object.keys(raw);
+      if (liveIds.length === 0) return;
+      for (const id of liveIds) {
+        ACEMM_CATALOG[id] = raw[id];
+      }
+      if (typeof window !== "undefined") {
+        window.ACEMM_CATALOG = ACEMM_CATALOG;
+      }
+      OmegaLog.info("catalog", `hydrateCatalogFromServer: ${liveIds.length} m\xF3dulos en vivo (${liveIds.join(", ")})`);
+    } catch (e) {
+      OmegaLog.warn("catalog", `hydrateCatalogFromServer: fallback a cat\xE1logo embebido (${String(e?.message || e)})`);
+    }
+  }
   var CONTROL_COMPONENTS = {
     knob: "knob",
     slider: "slider-v",
@@ -2076,6 +3519,8 @@
   if (typeof window !== "undefined") {
     window.ACEMM_CATALOG = ACEMM_CATALOG;
     window.getOrFetchManifest = getOrFetchManifest;
+    window.hydrateCatalogFromServer = hydrateCatalogFromServer;
+    void hydrateCatalogFromServer();
   }
 
   // src/Logic/module_manager.ts

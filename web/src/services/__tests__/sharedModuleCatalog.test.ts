@@ -27,11 +27,16 @@ describe('SharedModuleCatalogService — catalog derivation', () => {
     const ids = SHARED_MODULES_CATALOG.map((m) => m.id).sort();
     expect(ids).toEqual([
       '440demo',
+      'adsr',
+      'lfo',
       'midi_2_cv',
       'midi_in',
       'midi_trigger',
       'omega_lab_monitor',
       'test_parity',
+      'vca',
+      'vcf',
+      'vco',
     ]);
   });
 
@@ -133,5 +138,102 @@ describe('SharedModuleCatalogService — fetchSource', () => {
     await expect(SharedModuleCatalogService.fetchSource('midi_2_cv')).rejects.toThrow(
       /404/
     );
+  });
+});
+
+describe('SharedModuleCatalogService — loadCatalog (live /api/modules)', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    // Limpia la caché en vivo para no contaminar otros tests.
+    (SharedModuleCatalogService as any).liveCatalog = null;
+  });
+
+  it('loads the live catalog from GET /api/modules and caches it', async () => {
+    globalThis.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            vco: {
+              id: 'vco',
+              name: 'VCO',
+              metadata: { family: 'synth', version: '1.0.0' },
+              rack: { hp: 10 },
+              assets: { source: true, wasm: false },
+              ui: {
+                controls: [{ presentation: { component: 'knob' } }],
+              },
+            },
+            'midi_2_cv': {
+              id: 'midi_2_cv',
+              name: 'MIDI 2 CV',
+              metadata: { family: 'control', version: '1.0.0' },
+              rack: { hp: 8 },
+              assets: { source: true, wasm: false },
+              ui: {
+                controls: [
+                  { presentation: { component: 'port' } },
+                  { presentation: { component: 'port' } },
+                  { presentation: { component: 'knob' } },
+                ],
+              },
+            },
+          }),
+      } as unknown as Response)
+    ) as unknown as typeof fetch;
+
+    const entries = await SharedModuleCatalogService.loadCatalog();
+    expect(globalThis.fetch).toHaveBeenCalledWith('/api/modules', expect.any(Object));
+
+    const ids = entries.map((m) => m.id).sort();
+    expect(ids).toEqual(['midi_2_cv', 'vco']);
+
+    const vco = SharedModuleCatalogService.getModuleById('vco')!;
+    expect(vco.name).toBe('VCO');
+    expect(vco.family).toBe('synth');
+    expect(vco.hpWidth).toBe(10);
+
+    const midi2cv = SharedModuleCatalogService.getModuleById('midi_2_cv')!;
+    expect(midi2cv.portsCount).toBe(2);
+    expect(midi2cv.controlsCount).toBe(1);
+
+    // getCatalog devuelve la caché en vivo (no el catálogo generado).
+    expect(SharedModuleCatalogService.getCatalog()).toBe(entries);
+    expect(SharedModuleCatalogService.getCatalog()).not.toBe(SHARED_MODULES_CATALOG);
+  });
+
+  it('falls back to the generated catalog when /api/modules is unavailable', async () => {
+    globalThis.fetch = jest.fn(() =>
+      Promise.reject(new Error('network down'))
+    ) as unknown as typeof fetch;
+
+    const entries = await SharedModuleCatalogService.loadCatalog();
+    expect(entries).toBe(SHARED_MODULES_CATALOG);
+    expect(SharedModuleCatalogService.getCatalog()).toBe(SHARED_MODULES_CATALOG);
+  });
+
+  it('falls back when /api/modules returns an error status', async () => {
+    globalThis.fetch = jest.fn(() =>
+      Promise.resolve({ ok: false, status: 500 } as unknown as Response)
+    ) as unknown as typeof fetch;
+
+    const entries = await SharedModuleCatalogService.loadCatalog();
+    expect(entries).toBe(SHARED_MODULES_CATALOG);
+  });
+
+  it('falls back when the live catalog is empty', async () => {
+    globalThis.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({}),
+      } as unknown as Response)
+    ) as unknown as typeof fetch;
+
+    const entries = await SharedModuleCatalogService.loadCatalog();
+    expect(entries).toBe(SHARED_MODULES_CATALOG);
   });
 });

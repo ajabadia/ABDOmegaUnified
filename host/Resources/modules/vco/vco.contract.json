@@ -1,0 +1,110 @@
+{
+  "version": "7.0",
+  "id": "vco",
+  "name": "Omega VCO (PolyBLEP)",
+  "parameters": [
+    {
+      "id": "waveform",
+      "label": "Waveform",
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "unit": "idx"
+    },
+    {
+      "id": "coarse",
+      "label": "Coarse",
+      "min": -12,
+      "max": 12,
+      "default": 0,
+      "unit": "st"
+    },
+    {
+      "id": "fine",
+      "label": "Fine",
+      "min": -100,
+      "max": 100,
+      "default": 0,
+      "unit": "ct"
+    },
+    {
+      "id": "pulse_width",
+      "label": "Pulse W",
+      "min": 0.05,
+      "max": 0.95,
+      "default": 0.5,
+      "unit": "pw"
+    },
+    {
+      "id": "fm_amount",
+      "label": "FM Amount",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": "amp"
+    },
+    {
+      "id": "pwm_amount",
+      "label": "PWM Amount",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": "amp"
+    },
+    {
+      "id": "sub_on",
+      "label": "Sub Osc",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "unit": "bin"
+    },
+    {
+      "id": "drift",
+      "label": "Drift",
+      "min": 0,
+      "max": 1,
+      "default": 0.15,
+      "unit": "amp"
+    }
+  ],
+  "ports": [
+    {
+      "id": "v_oct",
+      "label": "V/Oct",
+      "direction": "input",
+      "type": "cv"
+    },
+    {
+      "id": "fm",
+      "label": "FM",
+      "direction": "input",
+      "type": "cv"
+    },
+    {
+      "id": "pwm",
+      "label": "PWM",
+      "direction": "input",
+      "type": "cv"
+    },
+    {
+      "id": "sync",
+      "label": "Sync",
+      "direction": "input",
+      "type": "gate"
+    },
+    {
+      "id": "out",
+      "label": "Out",
+      "direction": "output",
+      "type": "audio"
+    },
+    {
+      "id": "sub_out",
+      "label": "Sub Out",
+      "direction": "output",
+      "type": "audio"
+    }
+  ],
+  "family": "oscillator"
+}

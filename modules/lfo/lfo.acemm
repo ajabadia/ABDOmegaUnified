@@ -1,0 +1,97 @@
+schemaVersion: "7.2.3"
+id: lfo
+metadata:
+  name: Omega LFO
+  family: control
+  version: 1.0.0
+  rack: { hp: 8, height_mode: "3U" }
+params:
+  rate:
+    label: Rate
+    min: 0.01
+    max: 30.0
+    default: 2.0
+    exponent: 2
+    units: hz
+  shape:
+    label: Shape
+    min: 0
+    max: 4
+    default: 0
+    choices:
+      - { label: Sine, value: 0 }
+      - { label: Triangle, value: 1 }
+      - { label: Saw, value: 2 }
+      - { label: Square, value: 3 }
+      - { label: S&H, value: 4 }
+  amount:
+    label: Amount
+    min: 0.0
+    max: 1.0
+    default: 0.5
+    exponent: 2
+    units: ""
+  sync_to_gate:
+    label: Sync to Gate
+    min: 0
+    max: 1
+    default: 0
+    choices:
+      - { label: OFF, value: 0 }
+      - { label: ON, value: 1 }
+ports:
+  - { id: out, label: Out, direction: output, type: cv }
+ui:
+  dimensions: { width: 60, height: 140 }
+  skin: industrial
+  layout:
+    containers:
+      - id: main
+        label: LFO
+        pos: { x: 5, y: 5 }
+        size: { w: 50, h: 130 }
+        variant: panel
+  controls:
+    - id: knob_rate
+      bind: rate
+      pos: { x: 30, y: 15 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "RATE" }]
+    - id: knob_shape
+      bind: shape
+      pos: { x: 30, y: 55 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "SHAPE" }]
+    - id: port_out
+      bind: out
+      pos: { x: 30, y: 110 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "OUT" }]
+    - id: k_amount
+      bind: amount
+      pos: { x: 30, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+    - id: k_sync
+      bind: sync_to_gate
+      pos: { x: 30, y: 140 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+resources:
+  wasm: lfo.wasm

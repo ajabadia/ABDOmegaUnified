@@ -149,6 +149,54 @@ namespace {
     }
 
     /**
+     * @brief Host Import: get_voice_frequency
+     * [Phase A] Float-returning accessor for the owning voice's pitch (Hz).
+     * Preferred over omega_get_system_buffer("system.voice.frequency"): WAMR
+     * does not translate native return pointers into guest-usable addresses,
+     * so a float return is the only safe in-module channel for voice state.
+     */
+    float omega_get_voice_frequency(wasm_exec_env_t exec_env) {
+        auto& wasm = Omega::Core::Wasm::WasmModuleService::getInstance();
+        wasm_module_inst_t inst = wasm_runtime_get_module_inst(exec_env);
+        int idx = wasm.findVoiceIdxByInst(inst);
+        if (idx != -1) {
+            auto* state = (Omega::Core::Voice::VoiceState*)wasm.getVoiceState(idx);
+            if (state) return state->frequencyHz;
+        }
+        return 440.0f;
+    }
+
+    /**
+     * @brief Host Import: get_voice_gate
+     * [Phase A] Owning voice's gate state (1.0 open, 0.0 closed).
+     */
+    float omega_get_voice_gate(wasm_exec_env_t exec_env) {
+        auto& wasm = Omega::Core::Wasm::WasmModuleService::getInstance();
+        wasm_module_inst_t inst = wasm_runtime_get_module_inst(exec_env);
+        int idx = wasm.findVoiceIdxByInst(inst);
+        if (idx != -1) {
+            auto* state = (Omega::Core::Voice::VoiceState*)wasm.getVoiceState(idx);
+            if (state) return state->gate;
+        }
+        return 0.0f;
+    }
+
+    /**
+     * @brief Host Import: get_voice_velocity
+     * [Phase A] Owning voice's velocity (0..1).
+     */
+    float omega_get_voice_velocity(wasm_exec_env_t exec_env) {
+        auto& wasm = Omega::Core::Wasm::WasmModuleService::getInstance();
+        wasm_module_inst_t inst = wasm_runtime_get_module_inst(exec_env);
+        int idx = wasm.findVoiceIdxByInst(inst);
+        if (idx != -1) {
+            auto* state = (Omega::Core::Voice::VoiceState*)wasm.getVoiceState(idx);
+            if (state) return state->velocity;
+        }
+        return 0.8f;
+    }
+
+    /**
      * @brief Host Import: get_sample_rate
      */
     float omega_get_sample_rate(wasm_exec_env_t exec_env) {
@@ -221,6 +269,9 @@ namespace {
         { "omega_set_voice_gate", (void*)omega_set_voice_gate, "(f)", nullptr },
         { "omega_set_voice_vel", (void*)omega_set_voice_vel, "(f)", nullptr },
         { "omega_set_voice_at", (void*)omega_set_voice_at, "(f)", nullptr },
+        { "omega_get_voice_frequency", (void*)omega_get_voice_frequency, "()f", nullptr },
+        { "omega_get_voice_gate", (void*)omega_get_voice_gate, "()f", nullptr },
+        { "omega_get_voice_velocity", (void*)omega_get_voice_velocity, "()f", nullptr },
         { "omega_get_sample_rate", (void*)omega_get_sample_rate, "()f", nullptr },
         { "omega_get_block_size", (void*)omega_get_block_size, "()i", nullptr },
         { "omega_get_midi_protocol", (void*)omega_get_midi_protocol, "()i", nullptr },

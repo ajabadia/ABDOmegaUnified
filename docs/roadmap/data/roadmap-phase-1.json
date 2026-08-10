@@ -4,6 +4,7 @@
   "items": [
     {
       "id": "RM-101",
+      "project": "ABDOmegaUnified",
       "code": "ARCH-INIT",
       "title": "Creación de la Estructura Greenfield (3 Cajas + Host Nativo)",
       "category": "architecture",
@@ -18,6 +19,7 @@
     },
     {
       "id": "RM-126",
+      "project": "ABDOmegaUnified",
       "code": "BLUEPRINTS-MODULES-TAXONOMY-FIX",
       "title": "Aclaración de Taxonomía: Blueprints (Prefabs UI) vs Módulos (.acemm)",
       "category": "web",
@@ -32,6 +34,7 @@
     },
     {
       "id": "RM-125",
+      "project": "ABDOmegaUnified",
       "code": "EDITOR-SHELF-INTEGRATION",
       "title": "Integración de Módulos de /modules en ABDOmegaEditor",
       "category": "web",
@@ -46,6 +49,7 @@
     },
     {
       "id": "RM-113",
+      "project": "ABDOmegaUnified",
       "code": "HOST-MIGRATION",
       "title": "Integración del Host Nativo C++ (ABDOmega) en host/",
       "category": "host",
@@ -60,6 +64,7 @@
     },
     {
       "id": "RM-124",
+      "project": "ABDOmegaUnified",
       "code": "UI-FEEDBACK-AUTO-CLOSE",
       "title": "Cierre Automático de Modal & Notificación Toast al Añadir Módulos",
       "category": "host",
@@ -74,6 +79,7 @@
     },
     {
       "id": "RM-123",
+      "project": "ABDOmegaUnified",
       "code": "TS-COMPILATION-FIX",
       "title": "Compilación limpia de TypeScript dist/src/ para la UI de ABDOmega",
       "category": "host",
@@ -88,6 +94,7 @@
     },
     {
       "id": "RM-120",
+      "project": "ABDOmegaUnified",
       "code": "DSP-ENGINE-MIGRATION",
       "title": "Migración del Motor C++ VirtualAnalogEngine a engine/src/Modular/",
       "category": "engine",
@@ -102,6 +109,7 @@
     },
     {
       "id": "RM-122",
+      "project": "ABDOmegaUnified",
       "code": "MODULE-REGISTRY-FALLBACK",
       "title": "Catálogo de Módulos Web & Local para la Opción Add Module",
       "category": "host",
@@ -116,6 +124,7 @@
     },
     {
       "id": "RM-121",
+      "project": "ABDOmegaUnified",
       "code": "WEB-PRESETS-MANAGER",
       "title": "Gestor de Presets Web (Creación, Guardado Local & Explorador de Patches)",
       "category": "host",
@@ -130,6 +139,7 @@
     },
     {
       "id": "RM-117",
+      "project": "ABDOmegaUnified",
       "code": "HOST-WIN-DESKTOP",
       "title": "Ejecutable Nativo Windows (OMEGA_Synth.exe) & start_synth.bat",
       "category": "host",
@@ -144,6 +154,7 @@
     },
     {
       "id": "RM-114",
+      "project": "ABDOmegaUnified",
       "code": "WEB-LAUNCHER",
       "title": "Lanzador Web Central Portal en Puerto 6789",
       "category": "web",
@@ -158,6 +169,7 @@
     },
     {
       "id": "RM-118",
+      "project": "ABDOmegaUnified",
       "code": "PORTAL-4-CARDS",
       "title": "Ampliación del Portal Lanzador a 4 Tarjetas Independientes",
       "category": "web",
@@ -172,6 +184,7 @@
     },
     {
       "id": "RM-116",
+      "project": "ABDOmegaUnified",
       "code": "JUNCTION-LINK",
       "title": "Fuente Única de Verdad mediante Directory Junction (host/ui)",
       "category": "architecture",
@@ -186,6 +199,7 @@
     },
     {
       "id": "RM-115",
+      "project": "ABDOmegaUnified",
       "code": "HOST-UI-STANDALONE",
       "title": "Desbloqueo de Splash Screen para Ejecución Web Standalone de ABDOmega",
       "category": "host",
@@ -200,6 +214,7 @@
     },
     {
       "id": "RM-119",
+      "project": "ABDOmegaUnified",
       "code": "BUILD-PROD-GUARANTEE",
       "title": "Garantía de Compatibilidad de Despliegue en Producción Web",
       "category": "web",
@@ -214,6 +229,7 @@
     },
     {
       "id": "RM-102",
+      "project": "ABDOmegaUnified",
       "code": "SDK-HEADERS",
       "title": "Integración de Cabeceras C++ SDK & Mock WASM",
       "category": "engine",
@@ -228,6 +244,7 @@
     },
     {
       "id": "RM-103",
+      "project": "ABDOmegaUnified",
       "code": "MOD-MIGRATION",
       "title": "Migración de Módulos Preexistentes (midi_in, midi_trigger, omega_lab_monitor, test_parity)",
       "category": "modules",
@@ -242,6 +259,7 @@
     },
     {
       "id": "RM-104",
+      "project": "ABDOmegaUnified",
       "code": "WEB-MIGRATION",
       "title": "Migración de la App Web Next.js 16 desde ABDOmegaEditor",
       "category": "web",
@@ -256,6 +274,7 @@
     },
     {
       "id": "RM-105",
+      "project": "ABDOmegaUnified",
       "code": "GIT-IGNORE",
       "title": "Configuración de Gitignore y Limpieza de Entorno",
       "category": "tooling",
@@ -270,6 +289,7 @@
     },
     {
       "id": "RM-109",
+      "project": "ABDOmegaUnified",
       "code": "START-SCRIPT",
       "title": "Script de Inicio Automático start.bat en Puerto 6789",
       "category": "tooling",
@@ -284,6 +304,7 @@
     },
     {
       "id": "RM-106",
+      "project": "ABDOmegaUnified",
       "code": "WASM-BUILD-PIPE",
       "title": "Pipeline de Compilación Automática WASM",
       "category": "engine",
@@ -298,6 +319,7 @@
     },
     {
       "id": "RM-112",
+      "project": "ABDOmegaUnified",
       "code": "SHARED-CATALOG",
       "title": "Servicio de Lectura Dinámica de la Estantería (/modules)",
       "category": "web",
@@ -312,6 +334,7 @@
     },
     {
       "id": "RM-108",
+      "project": "ABDOmegaUnified",
       "code": "LEGACY-DISCARD",
       "title": "Descarte de ABDOmegaEditor___222 y Scripts de Sync Legados",
       "category": "cleanup",
@@ -321,11 +344,12 @@
       "updatedAt": "2026-08-04T12:00:00+02:00",
       "actor": "user",
       "description": "Se descarta la versión ___222 y los scripts sync_sdk.bat/sync_omega_ui.bat.",
-      "notes": "EJECUTADO 2026-08-04: eliminados host/sync_omega_ui.bat + sync_omega_ui.ps1; la llamada de build_auto.bat se quitó; los 135 headers 'Synced from ABDOmegaEditor' de omega-ui-core se reemplazaron por headers canónicos (fuente única web/src); .version/SPEC/map.md actualizados. Motivo: Reemplazado por la arquitectura de junctions (host/ui/omega-ui-core → web/src/omega-ui-core).",
+      "notes": "EJECUTADO 2026-08-04: eliminados host/sync_omega_ui.bat + host/sync_omega_ui.ps1; la llamada de build_auto.bat se quitó; los 135 headers 'Synced from ABDOmegaEditor' de omega-ui-core se reemplazaron por headers canónicos (fuente única web/src); .version/SPEC/map.md actualizados. Motivo: Reemplazado por la arquitectura de junctions (host/ui/omega-ui-core → web/src/omega-ui-core).",
       "tags": ["cleanup", "deprecated"]
     },
     {
       "id": "RM-127",
+      "project": "ABDOmegaUnified",
       "code": "UNIFIED-RENDERER-ENGINE",
       "title": "Motor de Renderizado Unificado (omega-ui-core Greenfield)",
       "category": "architecture",
@@ -340,6 +364,7 @@
     },
     {
       "id": "RM-128",
+      "project": "ABDOmegaUnified",
       "code": "PLAYER-SHOWCASE-RENDERER",
       "title": "Expositor de Módulos con UniversalRenderer en el Player",
       "category": "web",

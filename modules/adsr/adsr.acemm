@@ -1,0 +1,120 @@
+schemaVersion: "7.2.3"
+id: adsr
+metadata:
+  name: Omega ADSR Envelope
+  family: control
+  version: 1.0.0
+  rack: { hp: 8, height_mode: "3U" }
+params:
+  attack:
+    label: Attack
+    min: 0.5
+    max: 10000.0
+    default: 5.0
+    exponent: 3
+    units: ms
+  decay:
+    label: Decay
+    min: 1.0
+    max: 10000.0
+    default: 200.0
+    exponent: 3
+    units: ms
+  sustain:
+    label: Sustain
+    min: 0.0
+    max: 1.0
+    default: 0.6
+    exponent: 1
+    units: ""
+  release:
+    label: Release
+    min: 1.0
+    max: 10000.0
+    default: 400.0
+    exponent: 3
+    units: ms
+  depth:
+    label: Depth
+    min: 0.0
+    max: 1.0
+    default: 1.0
+    exponent: 1
+    units: ""
+ports:
+  - { id: gate_in, label: Gate In, direction: input, type: gate }
+  - { id: out, label: Out, direction: output, type: cv }
+ui:
+  dimensions: { width: 120, height: 140 }
+  skin: industrial
+  layout:
+    containers:
+      - id: main
+        label: ADSR
+        pos: { x: 5, y: 5 }
+        size: { w: 110, h: 130 }
+        variant: panel
+  controls:
+    - id: knob_attack
+      bind: attack
+      pos: { x: 30, y: 15 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "A" }]
+    - id: knob_decay
+      bind: decay
+      pos: { x: 60, y: 15 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "D" }]
+    - id: knob_sustain
+      bind: sustain
+      pos: { x: 90, y: 15 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "S" }]
+    - id: knob_release
+      bind: release
+      pos: { x: 30, y: 55 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "R" }]
+    - id: port_gate
+      bind: gate_in
+      pos: { x: 30, y: 110 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "GATE" }]
+    - id: port_out
+      bind: out
+      pos: { x: 60, y: 110 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "OUT" }]
+    - id: k_depth
+      bind: depth
+      pos: { x: 30, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+resources:
+  wasm: adsr.wasm

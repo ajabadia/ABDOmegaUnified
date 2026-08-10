@@ -3,10 +3,11 @@
  * Servicio centralizado que expone los manifiestos .acemm y contratos WASM
  * de los módulos de la estantería compartida (/modules).
  *
- * FUENTE ÚNICA: el catálogo se deriva de `acemmCatalog.generated.ts`, generado
- * por `scripts/generate_acemm_catalog.mjs` a partir de `modules/<id>/<id>.acemm`.
- * No hay listas hardcodeadas: añadir un módulo nuevo en modules/ basta para que
- * aparezca aquí, en el menú Open Shelf y en el Rack Player.
+ * FUENTE ÚNICA: el catálogo se deriva en runtime de `modules/<id>/<id>.acemm`
+ * vía `GET /api/modules` (escaneo en vivo). `acemmCatalog.generated.ts` queda
+ * como fallback offline/build-time si el endpoint no responde. Añadir un módulo
+ * nuevo en modules/ basta para que aparezca aquí, en el menú Open Shelf y en el
+ * Rack Player — sin regenerar catálogos ni rebuildar.
  */
 
 import { GENERATED_ACEMM_CATALOG } from './acemmCatalog.generated';
@@ -97,19 +98,55 @@ export const SHARED_MODULES_CATALOG: SharedModuleEntry[] = Object.entries(
   .filter((entry): entry is SharedModuleEntry => entry !== null)
   .sort((a, b) => a.id.localeCompare(b.id));
 
+/** Deriva la lista de SharedModuleEntry desde un catálogo bruto (generado o del endpoint). */
+function deriveCatalog(rawCatalog: Record<string, unknown>): SharedModuleEntry[] {
+  return Object.entries(rawCatalog)
+    .map(([id, raw]) => deriveEntry(id, raw as RawAcemmEntry))
+    .filter((entry): entry is SharedModuleEntry => entry !== null)
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
 export class SharedModuleCatalogService {
+  /** Caché de la última lista en vivo cargada desde /api/modules (si existe). */
+  private static liveCatalog: SharedModuleEntry[] | null = null;
+
   /**
-   * Obtiene todos los módulos registrados en el catálogo (derivado de modules/).
+   * Obtiene todos los módulos registrados en el catálogo. Prioridad: catálogo
+   * en vivo (de /api/modules si ya se cargó) → catálogo generado (build-time).
    */
   static getCatalog(): SharedModuleEntry[] {
-    return SHARED_MODULES_CATALOG;
+    return this.liveCatalog ?? SHARED_MODULES_CATALOG;
+  }
+
+  /**
+   * Carga el catálogo en vivo desde `GET /api/modules` (escaneo de modules/ en
+   * runtime). Si el endpoint no responde o devuelve vacío, mantiene el catálogo
+   * generado como fallback. Cachea el resultado para llamadas posteriores.
+   */
+  static async loadCatalog(): Promise<SharedModuleEntry[]> {
+    try {
+      const res = await fetch('/api/modules', { cache: 'no-store' });
+      if (!res.ok) {
+        console.warn(`[SharedModuleCatalogService] /api/modules -> HTTP ${res.status}; usando catálogo generado.`);
+        return SHARED_MODULES_CATALOG;
+      }
+      const raw = (await res.json()) as Record<string, unknown>;
+      const derived = deriveCatalog(raw);
+      if (derived.length === 0) return SHARED_MODULES_CATALOG;
+      this.liveCatalog = derived;
+      return derived;
+    } catch (e) {
+      console.warn('[SharedModuleCatalogService] fallback a catálogo generado:', e);
+      return SHARED_MODULES_CATALOG;
+    }
   }
 
   /**
    * Busca un módulo por su ID (coincidencia exacta o parcial por compatibilidad).
+   * Respeta el catálogo en vivo (si ya se cargó), si no el generado.
    */
   static getModuleById(id: string): SharedModuleEntry | undefined {
-    return SHARED_MODULES_CATALOG.find(m => m.id === id || m.id.includes(id));
+    return this.getCatalog().find(m => m.id === id || m.id.includes(id));
   }
 
   /**

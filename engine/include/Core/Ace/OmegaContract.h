@@ -29,6 +29,9 @@ extern "C" {
     extern int   omega_get_block_size();
     extern int   omega_get_midi_protocol();
     extern void* omega_get_system_buffer(const char* systemId);
+    extern float omega_get_voice_frequency();
+    extern float omega_get_voice_gate();
+    extern float omega_get_voice_velocity();
     extern void  omega_publish_telemetry(float val);
     extern void  omega_publish_midi(uint32_t port, uint8_t status, uint8_t d1, uint8_t d2);
     extern void  omega_log(const char* msg);

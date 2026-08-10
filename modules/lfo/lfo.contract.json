@@ -1,0 +1,48 @@
+{
+  "version": "7.0",
+  "id": "lfo",
+  "name": "Omega LFO",
+  "parameters": [
+    {
+      "id": "rate",
+      "label": "Rate",
+      "min": 0.01,
+      "max": 30,
+      "default": 2,
+      "unit": "hz"
+    },
+    {
+      "id": "shape",
+      "label": "Shape",
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "unit": "idx"
+    },
+    {
+      "id": "amount",
+      "label": "Amount",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "unit": "amp"
+    },
+    {
+      "id": "sync_to_gate",
+      "label": "Sync to Gate",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": "bin"
+    }
+  ],
+  "ports": [
+    {
+      "id": "out",
+      "label": "Out",
+      "direction": "output",
+      "type": "cv"
+    }
+  ],
+  "family": "control"
+}

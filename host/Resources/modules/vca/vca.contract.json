@@ -1,0 +1,60 @@
+{
+  "version": "7.0",
+  "id": "vca",
+  "name": "Omega VCA",
+  "parameters": [
+    {
+      "id": "level",
+      "label": "Level",
+      "min": 0,
+      "max": 1,
+      "default": 0.8,
+      "unit": "amp"
+    },
+    {
+      "id": "env_depth",
+      "label": "Env Depth",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "unit": "amp"
+    },
+    {
+      "id": "curve",
+      "label": "Curve",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "unit": "amp"
+    },
+    {
+      "id": "velocity",
+      "label": "Velocity",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": "amp"
+    }
+  ],
+  "ports": [
+    {
+      "id": "in",
+      "label": "In",
+      "direction": "input",
+      "type": "audio"
+    },
+    {
+      "id": "gate_in",
+      "label": "Gate",
+      "direction": "input",
+      "type": "gate"
+    },
+    {
+      "id": "out",
+      "label": "Out",
+      "direction": "output",
+      "type": "audio"
+    }
+  ],
+  "family": "utility"
+}

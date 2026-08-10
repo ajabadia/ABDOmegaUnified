@@ -218,6 +218,17 @@
     .status-in_progress { background: rgba(59, 130, 246, 0.15); color: var(--status-in_progress); border: 1px solid rgba(59, 130, 246, 0.3); }
     .status-discarded { background: rgba(100, 116, 139, 0.15); color: var(--status-discarded); border: 1px solid rgba(100, 116, 139, 0.3); }
 
+    .project-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-right: auto;
+    }
+    .project-abdeep { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.35); }
+    .project-abdomegaunified { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.35); }
+
     .card-title { font-size: 16px; font-weight: 600; color: #fff; }
     .card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
 
@@ -554,6 +565,10 @@
       <div class="controls-bar">
         <input type="text" class="search-input" id="search-input" placeholder="🔍 Buscar por código, título o descripción..." oninput="filterItems()">
         
+        <select class="select-filter" id="filter-project" onchange="filterItems()">
+          <option value="all">Todos los Proyectos</option>
+        </select>
+
         <select class="select-filter" id="filter-status" onchange="filterItems()">
           <option value="all">Todos los Estados</option>
           <option value="completed">Completado</option>
@@ -650,9 +665,17 @@
       }
 
       renderMetrics();
+      populateProjectFilter();
       renderItems(allItems);
       renderHandoff();
       renderPartitions();
+    }
+
+    function populateProjectFilter() {
+      const sel = document.getElementById('filter-project');
+      const projects = [...new Set(allItems.map(i => i.project || 'ABDOmegaUnified'))].sort();
+      sel.innerHTML = '<option value="all">Todos los Proyectos</option>' +
+        projects.map(p => `<option value="${p}">${p}</option>`).join('');
     }
 
     function loadEmbeddedFallback() {
@@ -686,6 +709,7 @@
             handoffData = data;
           }
           renderMetrics();
+          populateProjectFilter();
           renderItems(allItems);
           renderHandoff();
           renderPartitions();
@@ -730,6 +754,7 @@
         card.innerHTML = `
           <div class="card-top">
             <span class="card-code">${item.code || item.id}</span>
+            <span class="project-badge project-${(item.project || 'ABDOmegaUnified').toLowerCase().replace(/[^a-z0-9]/g, '')}">${item.project || 'ABDOmegaUnified'}</span>
             <span class="status-badge status-${item.status}">${item.status}</span>
           </div>
           <div class="card-title">${item.title}</div>
@@ -749,12 +774,14 @@
       const search = document.getElementById('search-input').value.toLowerCase();
       const status = document.getElementById('filter-status').value;
       const category = document.getElementById('filter-category').value;
+      const project = document.getElementById('filter-project').value;
 
       const filtered = allItems.filter(item => {
         const matchesSearch = (item.title + item.description + item.code + (item.notes || '')).toLowerCase().includes(search);
         const matchesStatus = status === 'all' || item.status === status;
         const matchesCategory = category === 'all' || item.category === category;
-        return matchesSearch && matchesStatus && matchesCategory;
+        const matchesProject = project === 'all' || (item.project || 'ABDOmegaUnified') === project;
+        return matchesSearch && matchesStatus && matchesCategory && matchesProject;
       });
 
       renderItems(filtered);

@@ -37,6 +37,12 @@ const MODULES = [
   { id: 'midi_trigger', file: 'web/public/wasm/midi_trigger.wasm' },
   { id: 'omega_lab_monitor', file: 'web/public/wasm/omega_lab_monitor.wasm' },
   { id: '440demo', file: 'web/public/wasm/440demo.wasm' },
+  // Phase A — analog-modeled voice chain (VCO/VCF/ADSR/VCA/LFO)
+  { id: 'vco', file: 'web/public/wasm/vco.wasm' },
+  { id: 'vcf', file: 'web/public/wasm/vcf.wasm' },
+  { id: 'adsr', file: 'web/public/wasm/adsr.wasm' },
+  { id: 'vca', file: 'web/public/wasm/vca.wasm' },
+  { id: 'lfo', file: 'web/public/wasm/lfo.wasm' },
 ];
 
 function readCString(memory, ptr) {

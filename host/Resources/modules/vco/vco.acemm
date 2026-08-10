@@ -1,0 +1,203 @@
+schemaVersion: "7.2.3"
+id: vco
+metadata:
+  name: Omega VCO (PolyBLEP)
+  family: oscillator
+  version: 1.0.0
+  rack: { hp: 8, height_mode: "3U" }
+params:
+  waveform:
+    label: Waveform
+    min: 0
+    max: 4
+    default: 0
+    choices:
+      - { label: Sine, value: 0 }
+      - { label: Triangle, value: 1 }
+      - { label: Saw, value: 2 }
+      - { label: Square, value: 3 }
+      - { label: Pulse, value: 4 }
+  coarse:
+    label: Coarse
+    min: -12
+    max: 12
+    default: 0
+    exponent: 1
+    units: st
+  fine:
+    label: Fine
+    min: -100
+    max: 100
+    default: 0
+    exponent: 1
+    units: ct
+  pulse_width:
+    label: Pulse Width
+    min: 0.05
+    max: 0.95
+    default: 0.5
+    exponent: 1
+    units: pw
+  fm_amount:
+    label: FM Amount
+    min: 0.0
+    max: 1.0
+    default: 0.0
+    exponent: 2
+    units: ""
+  pwm_amount:
+    label: PWM Amount
+    min: 0.0
+    max: 1.0
+    default: 0.0
+    exponent: 2
+    units: ""
+  sub_on:
+    label: Sub Osc
+    min: 0
+    max: 1
+    default: 1
+    choices:
+      - { label: OFF, value: 0 }
+      - { label: ON, value: 1 }
+  drift:
+    label: Drift
+    min: 0.0
+    max: 1.0
+    default: 0.15
+    exponent: 2
+    units: ""
+ports:
+  - { id: v_oct, label: V/Oct, direction: input, type: cv }
+  - { id: fm, label: FM, direction: input, type: cv }
+  - { id: pwm, label: PWM, direction: input, type: cv }
+  - { id: sync, label: Sync, direction: input, type: gate }
+  - { id: out, label: Out, direction: output, type: audio }
+  - { id: sub_out, label: Sub Out, direction: output, type: audio }
+ui:
+  dimensions: { width: 120, height: 140 }
+  skin: industrial
+  layout:
+    containers:
+      - id: main
+        label: VCO
+        pos: { x: 5, y: 5 }
+        size: { w: 110, h: 130 }
+        variant: panel
+  controls:
+    - id: knob_waveform
+      bind: waveform
+      pos: { x: 30, y: 15 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "WAVE" }]
+    - id: knob_coarse
+      bind: coarse
+      pos: { x: 60, y: 15 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "COARSE" }]
+    - id: port_v_oct
+      bind: v_oct
+      pos: { x: 30, y: 95 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "V/OCT" }]
+    - id: port_fm
+      bind: fm
+      pos: { x: 60, y: 95 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "FM" }]
+    - id: port_pwm
+      bind: pwm
+      pos: { x: 90, y: 95 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "PWM" }]
+    - id: port_sync
+      bind: sync
+      pos: { x: 30, y: 115 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "SYNC" }]
+    - id: port_out
+      bind: out
+      pos: { x: 60, y: 115 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "OUT" }]
+    - id: port_sub_out
+      bind: sub_out
+      pos: { x: 90, y: 115 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "SUB" }]
+    - id: k_fine
+      bind: fine
+      pos: { x: 30, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+    - id: k_pulse_width
+      bind: pulse_width
+      pos: { x: 30, y: 140 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+    - id: k_fm_amount
+      bind: fm_amount
+      pos: { x: 30, y: 150 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+    - id: k_pwm_amount
+      bind: pwm_amount
+      pos: { x: 30, y: 160 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+    - id: k_sub_on
+      bind: sub_on
+      pos: { x: 30, y: 170 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+    - id: k_drift
+      bind: drift
+      pos: { x: 30, y: 180 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+resources:
+  wasm: vco.wasm

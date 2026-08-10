@@ -1,0 +1,82 @@
+{
+  "version": "7.0",
+  "id": "vcf",
+  "name": "Omega VCF (ZDF Ladder)",
+  "parameters": [
+    {
+      "id": "cutoff",
+      "label": "Cutoff",
+      "min": 20,
+      "max": 20000,
+      "default": 1000,
+      "unit": "hz"
+    },
+    {
+      "id": "resonance",
+      "label": "Resonance",
+      "min": 0,
+      "max": 1,
+      "default": 0.25,
+      "unit": "amp"
+    },
+    {
+      "id": "mode",
+      "label": "Mode",
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "unit": "idx"
+    },
+    {
+      "id": "keytrack",
+      "label": "Key Track",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "unit": "amp"
+    },
+    {
+      "id": "cutoff_cv",
+      "label": "Cutoff CV",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "unit": "amp"
+    },
+    {
+      "id": "res_cv",
+      "label": "Res CV",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": "amp"
+    }
+  ],
+  "ports": [
+    {
+      "id": "in",
+      "label": "In",
+      "direction": "input",
+      "type": "audio"
+    },
+    {
+      "id": "cutoff_cv",
+      "label": "Cutoff",
+      "direction": "input",
+      "type": "cv"
+    },
+    {
+      "id": "res_cv",
+      "label": "Res",
+      "direction": "input",
+      "type": "cv"
+    },
+    {
+      "id": "out",
+      "label": "Out",
+      "direction": "output",
+      "type": "audio"
+    }
+  ],
+  "family": "filter"
+}

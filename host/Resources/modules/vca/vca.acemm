@@ -1,0 +1,112 @@
+schemaVersion: "7.2.3"
+id: vca
+metadata:
+  name: Omega VCA
+  family: utility
+  version: 1.0.0
+  rack: { hp: 8, height_mode: "3U" }
+params:
+  level:
+    label: Level
+    min: 0.0
+    max: 1.0
+    default: 0.8
+    exponent: 2
+    units: ""
+  env_depth:
+    label: Env Depth
+    min: 0.0
+    max: 1.0
+    default: 1.0
+    exponent: 1
+    units: ""
+  curve:
+    label: Curve
+    min: 0.0
+    max: 1.0
+    default: 0.5
+    exponent: 1
+    units: ""
+  velocity:
+    label: Velocity
+    min: 0.0
+    max: 1.0
+    default: 0.0
+    exponent: 1
+    units: ""
+ports:
+  - { id: in, label: In, direction: input, type: audio }
+  - { id: gate_in, label: Gate, direction: input, type: gate }
+  - { id: out, label: Out, direction: output, type: audio }
+ui:
+  dimensions: { width: 120, height: 140 }
+  skin: industrial
+  layout:
+    containers:
+      - id: main
+        label: VCA
+        pos: { x: 5, y: 5 }
+        size: { w: 110, h: 130 }
+        variant: panel
+  controls:
+    - id: knob_level
+      bind: level
+      pos: { x: 30, y: 15 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "LVL" }]
+    - id: knob_curve
+      bind: curve
+      pos: { x: 60, y: 15 }
+      presentation:
+        container: main
+        component: knob
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "CURVE" }]
+    - id: port_in
+      bind: in
+      pos: { x: 30, y: 110 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "IN" }]
+    - id: port_gate
+      bind: gate_in
+      pos: { x: 90, y: 110 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "GATE" }]
+    - id: port_out
+      bind: out
+      pos: { x: 60, y: 110 }
+      presentation:
+        container: main
+        component: port
+        variant: cyan
+        size: { w: 24, h: 24 }
+        attachments: [{ type: label, text: "OUT" }]
+    - id: k_env_depth
+      bind: env_depth
+      pos: { x: 30, y: 130 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+    - id: k_velocity
+      bind: velocity
+      pos: { x: 30, y: 140 }
+      presentation:
+        container: main
+        component: hidden
+        variant: default
+resources:
+  wasm: vca.wasm
