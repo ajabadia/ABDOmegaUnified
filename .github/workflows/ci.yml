@@ -1,0 +1,190 @@
+name: Verificación
+
+# =============================================================================
+# POR QUÉ ESTE FICHERO EXISTE
+# =============================================================================
+# Antes de esto, el proyecto no tenía NADA de integración continua: las pruebas
+# se ejecutaban solo cuando alguien se acordaba, en su máquina, en Windows. De
+# ahí que durante años hubiera pruebas rotas que nadie sabía (los 20 tests en
+# rojo que aparecieron al ejecutar los specs enteros) y atajos que anunciaban
+# algo que no hacia nada.
+#
+# Este workflow corre en cada cambio y es la puerta que se cierra sola.
+#
+# ALCANCE DELIMITADO A PROPÓSITO
+# ------------------------------
+# Cubre lo que está MEDIDO que funciona hoy. Deja fuera, a propósito:
+#   - Los guards de `.bat`/`.cmd`: solo tienen sentido con cmd.exe.
+#   - El motor de audio en navegador (rack.worklet + WASM): necesita compilar
+#     los `.wasm` con Emscripten, que no está en el runner.
+# Lo que sí queda fuera de la puerta y no dentro: ver "PENDIENTE" al final.
+#
+# IMPORTANTÍSIMO sobre `prepare_public_assets.mjs --check`
+# -------------------------------------------------------
+# Ese script NO se usa como puerta aquí, y es deliberado: pregunta "¿están los
+# assets disponibles AHORA?", y en un runner de Linux los junctions de Windows
+# no existen, así que fallaría siempre. Lo que de verdad importa es comprobar
+# el estado DESPUÉS de compilar, que es el paso `prebuild`. Eso es lo que hace
+# el job `verify` al final.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Dos pushes seguidos a main: el segundo invalida el primero. Sin esto, cada
+# commit encolaría 30 minutos de runner para un resultado que ya no importa.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # PUERTA RÁPIDA — tipos, pruebas unitarias y compilación. ~5 minutos.
+  # ───────────────────────────────────────────────────────────────────────────
+  verify:
+    name: Tipos, pruebas y compilación
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Guard de la raíz: falla si un literal canónico ('industrial', 1, 12…)
+      # reaparece fuera de su DEFAULT_*. Está pensado para esto —cover builds
+      # que NO corren tests— y en un runner siempre es un build así.
+      - name: Guard de defaults canónicos
+        run: node ../scripts/check_canonical_defaults.mjs
+
+      - name: Tipos
+        run: npx tsc --noEmit
+
+      - name: Pruebas unitarias
+        run: npx jest src/lib src/features/manifest-editor src/services/history.test.ts src/omega-ui-core
+
+      # Esto ejecuta `prebuild` (scripts/prepare_public_assets.mjs), que es la
+      # primera prueba real del script en Linux: en el runner no hay junctions,
+      # así que tiene que reconstruir public/ desde las rutas canónicas. Si eso
+      # se rompe, este paso falla —que es justo lo que queremos.
+      - name: Compilar para producción
+        run: npm run build
+
+      # La razón de ser de este workflow, en dos líneas: que un despliegue no
+      # pueda salir sin módulos de sonido ni sin el editor de texto. Los
+      # junctions de la máquina de desarrollo no existen aquí, así que si el
+      # `prebuild` no hizo su trabajo, estos ficheros no están y esto falla.
+      - name: Comprobar que public/ se materializó
+        run: |
+          set -euo pipefail
+          test -f public/modules/vco/vco.acemm   || { echo "::error::Falta public/modules (el catálogo de módulos)"; exit 1; }
+          test -f public/monaco/vs/loader.js     || { echo "::error::Falta public/monaco (el editor de código)"; exit 1; }
+          test -f public/worklets/rack.worklet.js || { echo "::error::Falta public/worklets/rack.worklet.js"; exit 1; }
+          echo "public/ materializado correctamente"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # PUERTA DE NAVEGADOR — ~30 minutos.
+  # ───────────────────────────────────────────────────────────────────────────
+  browser:
+    name: Pruebas en navegador real
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Los tests necesitan los assets de public/ (el editor de código sale de
+      # ahí, y sin internet el CDN no responde). El `prebuild` los deja.
+      - name: Preparar los assets de public/
+        run: npm run prebuild
+
+      # El cache va ANTES de instalar: si va después, no restaura nada y solo
+      # vuelve a subir lo que acaba de descargar (~150 MB por ejecución).
+      - name: Cachear los navegadores de Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('web/package-lock.json') }}
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      # ─────────────────────────────────────────────────────────────────────
+      # PASO 1 — LA PUERTA. Los specs que están verdes hoy (medido el
+      # 2 de octubre de 2026). Si uno de estos se rompe, el cambio no entra.
+      #
+      # `smoke-tests` entra aunque tenga 3 tests marcados `fixme`: esos no
+      # fallan nunca, se saltan a propósito y con su motivo escrito.
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Specs en verde (puerta)
+        run: >-
+          npx playwright test
+          e2e/accessibility.spec.ts
+          e2e/blueprint-injection.spec.ts
+          e2e/blueprint-store.spec.ts
+          e2e/bulk-upload-validation.spec.ts
+          e2e/command-palette.spec.ts
+          e2e/distilled-json-import.spec.ts
+          e2e/i18n-routing.spec.ts
+          e2e/layers-panel-filters.spec.ts
+          e2e/mini-map-visual.spec.ts
+          e2e/omega-project.spec.ts
+          e2e/shortcuts.spec.ts
+          e2e/smoke-tests.spec.ts
+          --reporter=line
+
+      # ─────────────────────────────────────────────────────────────────────
+      # PASO 2 — EL RESTO, SIN BLOQUEAR. Estos tres están en rojo por motivos
+      # ya medidos y conocidos, y mientras lo estén, hacerlos bloquear
+      # dejaría la puerta cerrada siempre y nadie miraría el informe.
+      #
+      #   connection-editor  13/22 — falla al pasar el ratón por la línea de
+      #                        conexión o pincharla. Causa SIN diagnosticar.
+      #   toolbar            27/30 — pide nodos en un rack que arranca vacío.
+      #   rack-features       1 rojo — verificado como anterior a este trabajo.
+      #
+      # Cuando uno se arregle, se sube a la lista del paso 1 y se quita de
+      # aquí. El `continue-on-error` es de ESTE PASO, no del job: si el paso 1
+      # falla, el job entero sigue fallando.
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Specs en rojo conocidos (informativo, no bloquea)
+        continue-on-error: true
+        run: >-
+          npx playwright test
+          e2e/connection-editor.spec.ts
+          e2e/rack-features.spec.ts
+          e2e/toolbar.spec.ts
+          --reporter=line

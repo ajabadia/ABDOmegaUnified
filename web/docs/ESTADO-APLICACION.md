@@ -7,8 +7,8 @@ qué no, y qué hay que hacer. Nada de aquí requiere leer código para actuar.
 
 ## 1. Lo que arreglé
 
-Todo lo de esta lista está **arreglado, probado y guardado en el historial de Git**
-(11 commits). No está subido a internet todavía; ver el punto 5.1.
+Todo lo de esta lista está **arreglado, probado y guardado en el historial de Git**.
+Está **subido a GitHub**: son 15 commits en la rama `main`.
 
 ### Cosas que mentían y ahora dicen la verdad
 
@@ -53,8 +53,9 @@ detectó una prueba que nunca se había ejecutado entera.
 |---|---|
 | Tipos y compilación | **Correcto** |
 | Compilación para producción | **Correcta** |
-| Pruebas automáticas | 1644 en total: 1643 pasan, **1 falla** (no es mía, ver 3.6) |
+| Pruebas automáticas | **1644 de 1644 pasan** |
 | Pruebas en navegador real | **Las 16 ejecutadas enteras al menos una vez.** Ahora **ninguna se hace pasar por buena si no funciona** |
+| Comprobación automática en cada cambio | **Montada** (sección 3.6) |
 
 ---
 
@@ -90,9 +91,8 @@ versión antigua.
 3. Pestaña **Settings** → **General** → **Root Directory** → escribe `web` y guarda.
 4. Conecta el repositorio `ajabadia/ABDOmegaUnified` y despliega desde `main`.
 
-**Aviso importante:** los arreglos de esta sesión están en tu ordenador, en 11 commits que
-**todavía no se han subido** a GitHub. Si conectas Vercel antes de subirlos, construirá
-una versión antigua.
+**Aviso importante:** los arreglos de esta sesión ya están subidos a GitHub, en la rama
+`main`. Cuando reconectes Vercel, él construirá esa versión.
 
 ### 3.2 Un fallo real que ha salido al mirar las pruebas de verdad
 
@@ -118,7 +118,7 @@ texto en un trozo de memoria que ya no estaba en pantalla,así que la aplicació
 
 Ahora:
 
-- **2 pruebas affirms de verdad y pasan.** Una comprueba que al escribir aparece el
+- **2 pruebas afirman de verdad y pasan.** Una comprueba que al escribir aparece el
   cartel de cambios sin guardar y que al guardar desaparece; la otra comprueba que al
   recargar la página sale el aviso de "¿seguro?". Esta última **nunca se había comprobado
   de verdad** y funciona.
@@ -147,14 +147,32 @@ intentan pasar el ratón por encima de la línea de conexión o pincharla para
 borrarla, y el elemento no aparece. **No está diagnosticado.** Puede ser que el
 ratón no alcance la línea, o que la línea no se dibuje; todavía no lo he medido.
 
-### 3.6 Una prueba en rojo que no es mía
+### 3.6 Lo que ahora se comprueba solo
 
-Falla una prueba de la **persistencia de sesión** (guardar y recuperar el trabajo al
-abrir la aplicación). Ese archivo lo está escribiendo **otra sesión de trabajo**, no yo:
-está sin guardar y no tiene nada que ver con nada de lo que he tocado hoy. Lo dejo dicho
-para que no se me atribuya.
+**Esto ya no depende de que alguien se acuerde.** Hay una puerta automática que se
+ejecuta en cada cambio que se sube, en [GitHub Actions](https://github.com/ajabadia/ABDOmegaUnified/actions):
 
-### 3.7 Pruebas de navegador — **cerrado**
+- **La puerta rápida** (unos 5 minutos): comprueba que los tipos están bien, que las
+  1.644 pruebas automáticas pasan, que la aplicación compila, y —esto es lo nuevo— que
+  las carpetas que se publican existen de verdad después de compilar. Esa última
+  comprobación es la que habría parado que se publicara una web **sin módulos de sonido
+  y sin editor de texto**, que es exactamente el problema del punto 3.1.
+- **La puerta del navegador** (unos 30 minutos): 12 de los 16 ficheros de pruebas de
+  navegador. Si uno de esos se rompe, el cambio no entra.
+
+**Lo que queda fuera, y por qué:**
+
+- Tres ficheros de pruebas que ya están en rojo por motivos conocidos
+  (editor de conexiones, barra de herramientas y rack) se ejecutan y se muestran, pero
+  **no bloquean**. Si bloquearan, la puerta estaría cerrada siempre y nadie leería el
+  informe. En cuanto uno se arregle, pasa a bloquear.
+- El motor de audio en el navegador, porque necesita un compilador que no está en el
+  servidor de GitHub.
+
+El detalle está en [scripts/README.md](../../scripts/README.md). Para comprobar que la
+puerta está sana sin depender de GitHub: `node scripts/verify_ci_workflow.cjs`.
+
+### 3.8 Pruebas de navegador — **cerrado**
 
 Las **16 pruebas de navegador del proyecto se han ejecutado enteras al menos una vez**,
 y eso ha cambiado el panorama: las que faltaban **pasaban todas**.
@@ -171,33 +189,39 @@ Lo que queda en rojo en el navegador, con lo medido:
 
 ---
 
-## 4. Trabajo de otras sesiones que sigue sin guardarse
+## 4. Trabajo de otras sesiones
 
-Hay **66 ficheros** modificados que pertenecen a otras sesiones (el motor de audio, el
-historial, el guardado de sesión, el reproductor). **No los he guardado** porque no son
-míos y no quiero mezclar trabajo a medio terminar.
+Había **66 ficheros** sin guardar que pertenecían a otras sesiones (persistencia de
+sesión, historial, reproductor del rack, puente WASM). **Tú decidiste subirlos también**,
+para que GitHub y Vercel dejaran de ver una versión antigua. Están en un commit aparte,
+deliberadamente mezclado y etiquetado como trabajo ajeno.
 
-Consecuencia práctica: **una copia nueva del proyecto, descargada de internet, no
-tendría todo lo que tiene tu ordenador ahora mismo.**
+Verificado justo antes de subirlo: tipos correctos, 1644 pruebas en verde, compilación
+correcta.
+
+Dos carpetas se quedaron fuera a propósito, con el motivo escrito en `.gitignore`:
+
+- `.freebuff/` — un identificador de esta máquina.
+- `web/wasm-runtime/` — 30 MB de código de terceros (WAMR) que verificado que nada del
+  proyecto usa.
 
 ---
 
 ## 5. Lo que propongo hacer ahora, por orden
 
-### 5.1 Subir los cambios a GitHub — es tuyo
+### 5.1 Subir los cambios a GitHub — **hecho**
 
-Los 11 commits de esta sesión y el trabajo de otras sesiones están solo en tu ordenador.
-Hasta que eso no pase, Vercel —y cualquier copia nueva— sigue viendo una versión
-antigua. **No subo nada a GitHub sin que me lo digas expresamente.**
+Los 15 commits están en `main` en GitHub. Los 66 ficheros de las otras sesiones también,
+en un commit aparte. Lo único que queda por tu cuenta es reconectar Vercel (3.1).
 
 ### 5.2 Lo siguiente, por orden
 
-1. **Investigar por qué "Reset Workspace" deja el documento sucio** (3.2). Es un fallo
-   real que afecta al uso diario.
+1. **Investigar por qué "Reset Workspace" deja el documento sucio** (3.2). Es el único
+   fallo real que afecta al uso diario.
 2. **Acabar con las 9 pruebas del editor de conexiones** que quedan en rojo (3.5). Ahora
    fallan por un motivo distinto y ya se pueden investigar de verdad.
-3. **Ejecutar las 5 pruebas de navegador que quedan** (3.7). — **Hecho: pasaban todas.**
-4. **Decidir qué hacemos con `ABDOmegaEditor`** (ver sección 8).
+3. **Arreglar los tres en rojo que hoy no bloquean** (editor de conexiones, barra de
+   herramientas, rack), para que la puerta de calidad pueda cerrarse del todo.
 
 ---
 
@@ -232,7 +256,7 @@ En la carpeta `web` salvo donde se dice otra cosa:
 
 - **"Las pruebas automáticas pasan"** →
   `npx jest src/lib src/features/manifest-editor src/services/history.test.ts src/omega-ui-core`
-  Deben salir `81 passed` y **1 failed** (la de la otra sesión, punto 3.6).
+  Deben salir **81 suites y 1644 pruebas, todas en verde**.
 
 - **"El editor no necesita internet"** → `npx jest configureMonacoLoader`. Comprueba que
   el editor se pide a `/monaco/vs` y que en ninguna parte se configura una dirección de
@@ -246,6 +270,9 @@ En la carpeta `web` salvo donde se dice otra cosa:
 
 - **"Las pruebas del editor no fingen"** → `npx playwright test e2e/smoke-tests.spec.ts`.
   Deben salir **2 aprobadas, 3 pendientes (fixme) y ninguna en rojo**.
+
+- **"La puerta automática está sana"** → desde la raíz del proyecto:
+  `node scripts/verify_ci_workflow.cjs`. Debe terminar con "El workflow está listo".
 
 Si alguno de esos falla, este documento está equivocado y quiero saberlo antes que nadie.
 
@@ -261,17 +288,18 @@ Lo he mirado por dentro. Esto es lo que hay y lo que no hay:
   pruebas antes que código, buenas prácticas de React, planificación. Son notas de
   trabajo, no código, y se pueden copiar tal cual.
 - **`AGENTS.md` y `CLAUDE.md`** — las instrucciones de trabajo.
-- **`tools/` y `.github/`** — dos comprobaciones automáticas que se ejecutan solas en
-  cada cambio. El proyecto bueno **no tiene nada de eso**: sus pruebas solo se ejecutan
-  cuando alguien se acuerda.
 - **Historial de cambios** (`CHANGELOG.md`, `ROADMAP.md`) y cuatro documentos de plan.
 
 **No hay que traer:**
 
+- `tools/` y `.github/`: sus dos comprobaciones automáticas. **Ya no hacen falta**: el
+  proyecto bueno acaba de montar su propia puerta automática (sección 3.6), y hace más.
 - `app/`, `src/`, `public/`, `e2e/`, `package.json`… Eso es **la misma aplicación pero
   en la carpeta de arriba**, y ya la tenemos (dentro de `web/`). Copiarlo sería tener dos
   copias distintas peleándose por lo mismo.
 
-**Mi recomendación:** traerse los cuatro primeros puntos, y **archivar** (no borrar) el
-repositorio antiguo una vez que Vercel apunte al bueno. Borrarlo sería tirar algo que
-nadie ha mirado en serio, y no soy quién para decidir eso.
+**Lo que decidiste:** no traer nada del repositorio antiguo. Es una decisión razonable —
+lo único que de verdad nos faltaba era la puerta automática, y esa ya la tiene el
+proyecto bueno. Queda pendiente una sola cosa: **archivar** el repositorio antiguo
+cuando Vercel apunte al bueno. No borrarlo: sería tirar algo que nadie ha mirado en
+serio, y eso no me corresponde decidirlo a mí.
