@@ -174,6 +174,7 @@ jobs:
           e2e/blueprint-store.spec.ts
           e2e/bulk-upload-validation.spec.ts
           e2e/command-palette.spec.ts
+          e2e/connection-editor.spec.ts
           e2e/distilled-json-import.spec.ts
           e2e/i18n-routing.spec.ts
           e2e/layers-panel-filters.spec.ts
@@ -184,14 +185,19 @@ jobs:
           --reporter=line
 
       # ─────────────────────────────────────────────────────────────────────
-      # PASO 2 — EL RESTO, SIN BLOQUEAR. Estos tres están en rojo por motivos
+      # PASO 2 — EL RESTO, SIN BLOQUEAR. Estos dos están en rojo por motivos
       # ya medidos y conocidos, y mientras lo estén, hacerlos bloquear
       # dejaría la puerta cerrada siempre y nadie miraría el informe.
       #
-      #   connection-editor  13/22 — falla al pasar el ratón por la línea de
-      #                        conexión o pincharla. Causa SIN diagnosticar.
-      #   toolbar            27/30 — pide nodos en un rack que arranca vacío.
-      #   rack-features       1 rojo — verificado como anterior a este trabajo.
+      #   toolbar       27/30 — pide nodos en un rack que arranca vacío.
+      #   rack-features  1 rojo — verificado como anterior a este trabajo.
+      #
+      # `connection-editor` salió de aquí y subió al paso 1 el 2 de octubre de
+      # 2026: sus 22 pruebas están en verde. Al arreglarlo se destapó un fallo
+      # REAL de la aplicación — el botón de borrar la conexión se
+      # desmontaba antes de que el puntero llegara, así que era imposible
+      # pulsarlo — que estaba escondido detrás de unas pruebas que pulsaban
+      # fuera de la línea.
       #
       # Cuando uno se arregle, se sube a la lista del paso 1 y se quita de
       # aquí. El `continue-on-error` es de ESTE PASO, no del job: si el paso 1
@@ -201,7 +207,6 @@ jobs:
         continue-on-error: true
         run: >-
           npx playwright test
-          e2e/connection-editor.spec.ts
           e2e/rack-features.spec.ts
           e2e/toolbar.spec.ts
           --reporter=line

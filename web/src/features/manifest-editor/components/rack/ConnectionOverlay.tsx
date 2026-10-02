@@ -7,9 +7,10 @@
  * @classification UI Component
  * @complexity Medium
  * @fingerprint exports:1,imports:5,sig:p3qiot
- * @lastUpdated 2026-06-20T09:43:45.418Z
+ * @lastUpdated 2026-10-02T00:00:00.000Z
  */
 
+import { useCallback, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import type { OMEGA_Manifest, OMEGA_Modulation } from '@/omega-ui-core/types/manifest';
 import { useConnectionPositions } from './useConnectionPositions';
@@ -49,6 +50,50 @@ export default function ConnectionOverlay({
     handleHandleMouseDown, handleLinkClick,
     ghostX, ghostY, sourceHandle, nearbyHandle,
   } = useConnectionDrag(containerRef, handles, manifest, onAddModulation, onRemoveModulation, refreshPositions);
+
+  /**
+   * Hover pegajoso para la información que aparece ENCIMA de la línea.
+   *
+   * MEDIDO (2 de octubre de 2026): el botón de borrar era IMPOSIBLE de
+   * pulsar. Al apartar el ratón de la línea para ir hacia él, la línea
+   * dispara su `onMouseLeave`, `hoveredLink` pasa a `null` y el botón se
+   * desmonta antes de que el puntero llegue. Medido en el navegador: con el
+   * puntero a 4 px de la curva (dentro del botón) el `div` ya no existía
+   * (`querySelector` devolvía `null` y no había ningún `<foreignObject>`), y
+   * el clic posterior no llegaba a `onRemoveModulation`.
+   *
+   * Es el mismo fallo que otros hover que dependen de su propio estado: al
+   * salir del elemento que los crea, desaparecen.
+   *
+   * El arreglo NO es montar el botón siempre (entonces sería un objetivo
+   * invisible que se puede pulsar sin querer). Es dejar de limpiar el hover al
+   * instante: se espera un momento a ver si el puntero entra en la pieza de
+   * información, y si entra, se cancela la limpieza. Es el mismo patrón que
+   * usan los menús desplegables, y por el mismo motivo: el puntero tiene que
+   * poder "cruzar" el hueco sin que el destino desaparezca.
+   */
+  const hoverClearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const keepHover = useCallback(() => {
+    if (hoverClearTimer.current) {
+      clearTimeout(hoverClearTimer.current);
+      hoverClearTimer.current = null;
+    }
+  }, []);
+
+  const clearHoverSoon = useCallback(() => {
+    keepHover();
+    hoverClearTimer.current = setTimeout(() => {
+      hoverClearTimer.current = null;
+      setHoveredLink(null);
+    }, 180);
+  }, [keepHover, setHoveredLink]);
+
+  // Si el componente se desmonta con una limpieza pendiente, no hay que dejar
+  // un temporizador vivo escribiendo en un estado que ya no existe.
+  useEffect(() => () => {
+    if (hoverClearTimer.current) clearTimeout(hoverClearTimer.current);
+  }, []);
 
   const getEntityLabel = (id: string): string => entityLabelMap.get(id) || id;
 
@@ -98,8 +143,8 @@ export default function ConnectionOverlay({
             {/* Invisible wide click target */}
             <path d={pathD} fill="none" stroke="transparent" strokeWidth={14}
               className="pointer-events-auto cursor-pointer"
-              onMouseEnter={() => setHoveredLink(link.id)}
-              onMouseLeave={() => setHoveredLink(null)}
+              onMouseEnter={() => { keepHover(); setHoveredLink(link.id); }}
+              onMouseLeave={clearHoverSoon}
               onClick={(e) => handleLinkClick(e, link.id)}
             />
             {/* Glow line */}
@@ -127,6 +172,8 @@ export default function ConnectionOverlay({
                   fill="rgba(5,5,5,0.92)" stroke={color} strokeWidth={0.5} strokeOpacity={0.5}
                   filter="url(#conn-glow-tooltip)"
                   className="pointer-events-auto cursor-pointer"
+                  onMouseEnter={keepHover}
+                  onMouseLeave={clearHoverSoon}
                   onClick={(e) => handleLinkClick(e, link.id)}
                 />
                 <text x={(link.sx + link.tx) / 2} y={(link.sy + link.ty) / 2 - 20}
@@ -152,6 +199,8 @@ export default function ConnectionOverlay({
             {isHovered && (
               <foreignObject x={(link.sx + link.tx) / 2 - 8} y={(link.sy + link.ty) / 2 + 4}
                 width={16} height={16} className="pointer-events-auto"
+                onMouseEnter={keepHover}
+                onMouseLeave={clearHoverSoon}
               >
                 <div onClick={() => onRemoveModulation(link.id)}
                   className="w-4 h-4 rounded-full bg-red-500/80 flex items-center justify-center hover:bg-red-500 transition-colors cursor-pointer"

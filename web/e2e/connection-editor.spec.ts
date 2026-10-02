@@ -352,6 +352,82 @@ async function getHandleBox(page: Page, handleId: string) {
 }
 
 /**
+ * Un punto REAL sobre la línea de conexión, en coordenadas de pantalla.
+ *
+ * POR QUÉ NO SE PUEDE USAR EL PUNTO MEDIO DE LOS RECTÁNGULOS
+ * -------------------------------------------------------
+ * La línea no es un segmento recto: es una curva de Bézier
+ * (`buildConnectionPath`, curva `M 75 75 C 105 75, 145 185, 175 185`).
+ * El punto medio del rectángulo que envuelve los dos handles NO está sobre la
+ * curva, está en el hueco que hay entre el arco y la diagonal.
+ *
+ * MEDIDO (2 de octubre de 2026): los tests 7, 8, 9, 19, 20 y 22 pulsaban o
+ * pasaban el ratón por `midX - 20`, `midY`, que caía fuera de la curva. En ese
+ * punto no había ningún `<path>`: el clic se lo quedaba un `<div>` del nodo
+ * (`uca-node uca-container`), que no tiene nada que ver con las conexiones.
+ * Por eso fallaban.
+ *
+ * Y conviene decirlo claro, porque es lo contrario de lo que parecía: la
+ * APLICACIÓN SÍ FUNCIONABA. Pulsando en un punto
+ * de verdad de la curva, la línea desaparece y la modulación se borra. El
+ * defecto estaba en la prueba, no en el editor.
+ *
+ * Se usa `getPointAtLength` sobre el path de clic invisible (el de
+ * `stroke="transparent"`, `strokeWidth 14`), que es el que recibe el clic, y
+ * se convierte a coordenadas de pantalla con su `getScreenCTM()`. Así el
+ * punto cae sobre la curva aunque los handles se muevan o cambien de tamaño.
+ */
+async function getPointOnConnectionLine(page: Page, fraction = 0.5) {
+  return page.evaluate((frac) => {
+    const svg = Array.from(document.querySelectorAll('svg')).find((s) =>
+      (s.getAttribute('class') || '').includes('z-[60]')
+    ) as SVGElement | undefined;
+    if (!svg) return null;
+    // El path con `stroke="transparent"` es el objetivo de clic invisible.
+    const path = svg.querySelector('path[stroke="transparent"]') as SVGPathElement | null;
+    if (!path) return null;
+    const len = path.getTotalLength();
+    if (!len) return null;
+    const pt = path.getPointAtLength(len * frac);
+    const matrix = path.getScreenCTM();
+    if (!matrix) return null;
+    return {
+      x: pt.x * matrix.a + pt.y * matrix.c + matrix.e,
+      y: pt.x * matrix.b + pt.y * matrix.d + matrix.f,
+    };
+  }, fraction);
+}
+
+/**
+ * Afirma que el cable fantasma ESTÁ (o ya no está) durante el arrastre.
+ *
+ * POR QUÉ NO SE USA `isVisible()`
+ * ------------------------------
+ * Playwright considera "no visible" cualquier elemento cuya caja tenga ancho
+ * o alto CERO. El cable fantasma es un `<line>` entre dos puntos, y en esta
+ * fixture los dos potenciómetros están a la misma altura (`layout.pos.y = 50`
+ * para los dos), así que arrastrar de uno a otro es un movimiento
+ * perfectamente horizontal: la caja del `<line>` sale 50x0 y `isVisible()`
+ * devuelve `false` con el cable dibujado delante de los ojos.
+ *
+ * MEDIDO (2 de octubre de 2026): el `<line>` existía con `stroke-dasharray
+ * "6 4"` y el "ghost cable" estaba en pantalla, pero los tests 5, 6, 16
+ * y 17 fallaban los cuatro por esto. La aplicación nunca estuvo rota aquí.
+ *
+ * Se afirma lo que importa de verdad: que el cable está en el DOM y que trae
+ * su trazo discontinuo característico del arrastre.
+ */
+async function expectGhostCable(page: Page, shouldExist: boolean) {
+  const line = page.locator(GHOST_LINE_SELECTOR).first();
+  if (shouldExist) {
+    await expect(line).toHaveCount(1, { timeout: 3_000 });
+    await expect(line).toHaveAttribute('stroke-dasharray', '6 4');
+  } else {
+    await expect(line).toHaveCount(0, { timeout: 3_000 });
+  }
+}
+
+/**
  * Check if the ConnectionOverlay SVG is visible in the DOM.
  */
 async function isOverlayVisible(page: Page): Promise<boolean> {
@@ -498,10 +574,8 @@ test.describe('P11 — Visual Connection Editor', () => {
       await pageWithBlueprint.mouse.move(snapX, snapY);
       await pageWithBlueprint.waitForTimeout(200);
 
-      // Ghost line should be visible during drag
-      const ghostLine = pageWithBlueprint.locator(GHOST_LINE_SELECTOR).first();
-      const ghostVisible = await ghostLine.isVisible().catch(() => false);
-      expect(ghostVisible).toBe(true);
+      // Ghost line should be present during drag
+      await expectGhostCable(pageWithBlueprint, true);
 
       // Complete the drop
       await pageWithBlueprint.mouse.up();
@@ -530,9 +604,11 @@ test.describe('P11 — Visual Connection Editor', () => {
       await pageWithBlueprint.mouse.move(sx + 50, sy);
       await pageWithBlueprint.waitForTimeout(200);
 
-      // Ghost line should be visible
+      // Ghost cable present during drag (ver `expectGhostCable`: `isVisible()` da
+      // falso en un `<line>` horizontal, que es justo lo que produce esta
+      // fixture).
+      await expectGhostCable(pageWithBlueprint, true);
       const ghostLine = pageWithBlueprint.locator(GHOST_LINE_SELECTOR).first();
-      await expect(ghostLine).toBeVisible({ timeout: 3000 });
 
       // Verify dashed appearance and color
       const strokeDash = await ghostLine.getAttribute('stroke-dasharray');
@@ -566,20 +642,13 @@ test.describe('P11 — Visual Connection Editor', () => {
       let mods = await getModulations(pageWithBlueprint);
       expect(mods.some((m: any) => m.id === 'mod_del_test')).toBe(true);
 
-      // Click on the connection line using an offset from the midpoint
-      // to avoid hitting overlapping handle circles (which have pointer-events-auto)
-      const sourceBox = await getHandleBox(pageWithBlueprint, KNOB_ID);
-      const targetBox = await getHandleBox(pageWithBlueprint, AUDIO_OUT_ID);
-      if (!sourceBox || !targetBox) throw new Error('Handle not found');
+      // Un punto real de la curva, no el punto medio del rectángulo (ver
+      // `getPointOnConnectionLine`: la línea es una Bézier y el punto medio de
+      // su caja cae en el hueco entre el arco y la diagonal).
+      const linePoint = await getPointOnConnectionLine(pageWithBlueprint, 0.5);
+      if (!linePoint) throw new Error('No se encontró la línea de conexión en el DOM');
 
-      // Calculate midpoint, then offset slightly toward the source
-      // (away from the midpoint where handle circles are more likely to overlap)
-      const midX = (sourceBox.x + sourceBox.width / 2 + targetBox.x + targetBox.width / 2) / 2;
-      const midY = (sourceBox.y + sourceBox.height / 2 + targetBox.y + targetBox.height / 2) / 2;
-      const offsetX = midX - 20; // Shift 20px toward source to avoid target handle circle
-      const offsetY = midY;
-
-      await pageWithBlueprint.mouse.click(offsetX, offsetY);
+      await pageWithBlueprint.mouse.click(linePoint.x, linePoint.y);
       await pageWithBlueprint.waitForTimeout(1000);
 
       // Verify modulation was removed
@@ -601,15 +670,12 @@ test.describe('P11 — Visual Connection Editor', () => {
         type: 'unipolar',
       });
 
-      // Hover near the midpoint of the connection (offset from handle circles)
-      const sourceBox = await getHandleBox(pageWithBlueprint, KNOB_ID);
-      const targetBox = await getHandleBox(pageWithBlueprint, AUDIO_OUT_ID);
-      if (!sourceBox || !targetBox) throw new Error('Handle not found');
+      // Hover sobre un punto real de la curva (el punto medio del rectángulo
+      // quedaba fuera de ella y el hover no llegaba a dispararse).
+      const linePoint = await getPointOnConnectionLine(pageWithBlueprint, 0.5);
+      if (!linePoint) throw new Error('No se encontró la línea de conexión en el DOM');
 
-      const midX = (sourceBox.x + sourceBox.width / 2 + targetBox.x + targetBox.width / 2) / 2 - 20;
-      const midY = (sourceBox.y + sourceBox.height / 2 + targetBox.y + targetBox.height / 2) / 2;
-
-      await pageWithBlueprint.mouse.move(midX, midY);
+      await pageWithBlueprint.mouse.move(linePoint.x, linePoint.y);
       await pageWithBlueprint.waitForTimeout(500);
 
       // The delete button (foreignObject with title="Delete connection") should appear
@@ -635,15 +701,11 @@ test.describe('P11 — Visual Connection Editor', () => {
         type: 'unipolar',
       });
 
-      // Hover over the connection line
-      const sourceBox = await getHandleBox(pageWithBlueprint, KNOB_ID);
-      const targetBox = await getHandleBox(pageWithBlueprint, AUDIO_OUT_ID);
-      if (!sourceBox || !targetBox) throw new Error('Handle not found');
+      // Hover sobre un punto real de la curva.
+      const linePoint = await getPointOnConnectionLine(pageWithBlueprint, 0.5);
+      if (!linePoint) throw new Error('No se encontró la línea de conexión en el DOM');
 
-      const midX = (sourceBox.x + sourceBox.width / 2 + targetBox.x + targetBox.width / 2) / 2 - 20;
-      const midY = (sourceBox.y + sourceBox.height / 2 + targetBox.y + targetBox.height / 2) / 2;
-
-      await pageWithBlueprint.mouse.move(midX, midY);
+      await pageWithBlueprint.mouse.move(linePoint.x, linePoint.y);
       await pageWithBlueprint.waitForTimeout(500);
 
       // The tooltip renders SVG <text> elements with amount (e.g. "0.75") and type label ("UNI")
@@ -869,8 +931,8 @@ test.describe('P11 — Visual Connection Editor', () => {
       const ty = targetBox.y + targetBox.height / 2;
 
       // Verify ghost is NOT visible before drag
-      const ghostBefore = await pageWithBlueprint.locator(GHOST_LINE_SELECTOR).first().isVisible().catch(() => false);
-      expect(ghostBefore).toBe(false);
+      const ghostBefore = await pageWithBlueprint.locator(GHOST_LINE_SELECTOR).count();
+      expect(ghostBefore).toBe(0);
 
       // Start drag and move toward target
       await pageWithBlueprint.mouse.move(sx, sy);
@@ -879,16 +941,14 @@ test.describe('P11 — Visual Connection Editor', () => {
       await pageWithBlueprint.waitForTimeout(200);
 
       // Ghost should be visible during drag
-      const ghostDuring = await pageWithBlueprint.locator(GHOST_LINE_SELECTOR).first().isVisible().catch(() => false);
-      expect(ghostDuring).toBe(true);
+      await expectGhostCable(pageWithBlueprint, true);
 
       // Complete the drop
       await pageWithBlueprint.mouse.up();
       await pageWithBlueprint.waitForTimeout(800);
 
       // Ghost should NOT be visible after drop
-      const ghostAfter = await pageWithBlueprint.locator(GHOST_LINE_SELECTOR).first().isVisible().catch(() => false);
-      expect(ghostAfter).toBe(false);
+      await expectGhostCable(pageWithBlueprint, false);
     });
 
     test('17. ghost cable should disappear after cancel (mouse up on empty space)', async ({
@@ -910,16 +970,14 @@ test.describe('P11 — Visual Connection Editor', () => {
       await pageWithBlueprint.waitForTimeout(200);
 
       // Ghost should be visible during drag
-      const ghostDuring = await pageWithBlueprint.locator(GHOST_LINE_SELECTOR).first().isVisible().catch(() => false);
-      expect(ghostDuring).toBe(true);
+      await expectGhostCable(pageWithBlueprint, true);
 
       // Cancel by releasing on empty space
       await pageWithBlueprint.mouse.up();
       await pageWithBlueprint.waitForTimeout(800);
 
       // Ghost should NOT be visible after cancel
-      const ghostAfter = await pageWithBlueprint.locator(GHOST_LINE_SELECTOR).first().isVisible().catch(() => false);
-      expect(ghostAfter).toBe(false);
+      await expectGhostCable(pageWithBlueprint, false);
     });
   });
 
@@ -981,15 +1039,11 @@ test.describe('P11 — Visual Connection Editor', () => {
       expect(beforeMod.amount).toBe(0.33);
       expect(beforeMod.type).toBe('bipolar');
 
-      // Click on the connection line to delete
-      const sourceBox = await getHandleBox(pageWithBlueprint, KNOB_ID);
-      const targetBox = await getHandleBox(pageWithBlueprint, AUDIO_OUT_ID);
-      if (!sourceBox || !targetBox) throw new Error('Handle not found');
+      // Click sobre un punto real de la curva para borrar.
+      const linePoint = await getPointOnConnectionLine(pageWithBlueprint, 0.5);
+      if (!linePoint) throw new Error('No se encontró la línea de conexión en el DOM');
 
-      const midX = (sourceBox.x + sourceBox.width / 2 + targetBox.x + targetBox.width / 2) / 2 - 20;
-      const midY = (sourceBox.y + sourceBox.height / 2 + targetBox.y + targetBox.height / 2) / 2;
-
-      await pageWithBlueprint.mouse.click(midX, midY);
+      await pageWithBlueprint.mouse.click(linePoint.x, linePoint.y);
       await pageWithBlueprint.waitForTimeout(1000);
 
       // Verify modulation is completely gone
@@ -1018,15 +1072,11 @@ test.describe('P11 — Visual Connection Editor', () => {
       let mods = await getModulations(pageWithBlueprint);
       expect(mods.some((m: any) => m.id === 'mod_xbtn_test')).toBe(true);
 
-      // Hover near the midpoint to trigger delete button
-      const sourceBox = await getHandleBox(pageWithBlueprint, KNOB_ID);
-      const targetBox = await getHandleBox(pageWithBlueprint, AUDIO_OUT_ID);
-      if (!sourceBox || !targetBox) throw new Error('Handle not found');
+      // Hover sobre un punto real de la curva para que aparezca el botón.
+      const linePoint = await getPointOnConnectionLine(pageWithBlueprint, 0.5);
+      if (!linePoint) throw new Error('No se encontró la línea de conexión en el DOM');
 
-      const midX = (sourceBox.x + sourceBox.width / 2 + targetBox.x + targetBox.width / 2) / 2 - 20;
-      const midY = (sourceBox.y + sourceBox.height / 2 + targetBox.y + targetBox.height / 2) / 2;
-
-      await pageWithBlueprint.mouse.move(midX, midY);
+      await pageWithBlueprint.mouse.move(linePoint.x, linePoint.y);
       await pageWithBlueprint.waitForTimeout(500);
 
       // Click the delete button
@@ -1109,15 +1159,11 @@ test.describe('P11 — Visual Connection Editor', () => {
           .length
       ).toBe(2);
 
-      // Remove one modulation via ConnectionOverlay
-      const sourceBox = await getHandleBox(pageWithBlueprint, KNOB_ID);
-      const targetBox = await getHandleBox(pageWithBlueprint, FREQ_ID);
-      if (!sourceBox || !targetBox) throw new Error('Handle not found');
+      // Quitar una modulación desde la línea de conexión.
+      const linePoint = await getPointOnConnectionLine(pageWithBlueprint, 0.5);
+      if (!linePoint) throw new Error('No se encontró la línea de conexión en el DOM');
 
-      const midX = (sourceBox.x + sourceBox.width / 2 + targetBox.x + targetBox.width / 2) / 2 - 20;
-      const midY = (sourceBox.y + sourceBox.height / 2 + targetBox.y + targetBox.height / 2) / 2;
-
-      await pageWithBlueprint.mouse.click(midX, midY);
+      await pageWithBlueprint.mouse.click(linePoint.x, linePoint.y);
       await pageWithBlueprint.waitForTimeout(1500);
 
       // Verify only 1 modulation remains

@@ -152,7 +152,7 @@ Ahora:
 Fallan al pedir que aparezcan cosas en un módulo vacío. Comportamiento real sin
 investigar.
 
-### 3.5 El editor de conexiones — **arreglado en parte**
+### 3.5 El editor de conexiones — **arreglado del todo**
 
 Al ejecutar por fin estas pruebas encontré que fallaban **todas** (22). La causa era de las
 pruebas, no de la aplicación:
@@ -164,10 +164,31 @@ pruebas, no de la aplicación:
   interno de la aplicación por un nombre que ya no existe, y cuando no lo encontraban
   devolvían "nada" en silencio. Es decir: no estaban comprobando nada.
 
-**Resultado: de 0 pruebas en verde a 13.** Quedan **9 en rojo**, todas del mismo tipo:
-intentan pasar el ratón por encima de la línea de conexión o pincharla para
-borrarla, y el elemento no aparece. **No está diagnosticado.** Puede ser que el
-ratón no alcance la línea, o que la línea no se dibuje; todavía no lo he medido.
+**Resultado: de 0 pruebas en verde a 22, todas en verde.** Para llegar ahí hubo tres
+cosas distintas, y conviene separarlas porque son de naturaleza distinta:
+
+**1. Seis pruebas pulsaban en el sitio equivocado (fallo de la prueba).** La línea de
+conexión no es recta: es una curva. Las pruebas pinchaban en el punto medio del
+rectángulo que la rodea, menos 20 píxeles, y ese punto **no está sobre la curva**: cae en
+el hueco que hay entre el arco y la diagonal. Ahí no hay ninguna línea, solo el panel de
+detrás. Ahora eligen un punto de verdad de la curva.
+
+**2. La aspa de borrar no se podía pulsar (esto SÍ era un fallo real).** Al apartar el
+ratón de la línea para ir hacia la aspa, la línea avisaba de que ya no la estás tocando,
+y eso **borraba la aspa de la pantalla antes de llegar a ella**. Con el ratón de verdad
+era imposible pulsarla. Es el mismo error que cometen otros muchos botones que dependen de
+estar encima: al salir del elemento que los ha creado, desaparecen. Ahora hay una espera
+muy breve para que el puntero pueda cruzar el hueco.
+
+**3. Cuatro pruebas pedían que se viera un cable que sí estaba en pantalla.** El cable
+fantasma durante un arrastre es una línea recta, y en estas pruebas el arrastre es
+perfectamente horizontal, así que su caja mide de alto cero píxeles. El programa de
+pruebas da por "no visible" cualquier cosa con la caja vacía, aunque esté dibujada.
+Ahora se comprueba que el cable existe y que lleva su trazo, que es lo que importa.
+
+Lo de 2 es el único de los tres que era un fallo de la aplicación, y es de los que nota
+un usuario: el botón se veía, se podía apuntar con el ratón, y al acercarse se
+desvanecía.
 
 ### 3.6 Lo que ahora se comprueba solo
 
@@ -184,10 +205,12 @@ ejecuta en cada cambio que se sube, en [GitHub Actions](https://github.com/ajaba
 
 **Lo que queda fuera, y por qué:**
 
-- Tres ficheros de pruebas que ya están en rojo por motivos conocidos
-  (editor de conexiones, barra de herramientas y rack) se ejecutan y se muestran, pero
+- Dos ficheros de pruebas que ya están en rojo por motivos conocidos
+  (barra de herramientas y rack) se ejecutan y se muestran, pero
   **no bloquean**. Si bloquearan, la puerta estaría cerrada siempre y nadie leería el
   informe. En cuanto uno se arregle, pasa a bloquear.
+- El editor de conexiones **ya no está entre ellos**: está arreglado y verde, así que
+  ahora sí bloquea.
 - El motor de audio en el navegador, porque necesita un compilador que no está en el
   servidor de GitHub.
 
@@ -204,7 +227,6 @@ Las últimas cinco (`importar .json`, `rutas de idioma`, `filtros del panel de c
 
 Lo que queda en rojo en el navegador, con lo medido:
 
-- **9** del editor de conexiones (3.5) — causa sin diagnosticar.
 - **3** de la barra de herramientas — piden cosas en un rack que arranca vacío.
 - **1** del rack — verificada como anterior a todo este trabajo.
 - **7** marcadas como *pendiente* con su motivo escrito (3.3). No son rojas: son medidas y
@@ -239,13 +261,12 @@ en un commit aparte. Lo único que queda por tu cuenta es reconectar Vercel (3.1
 
 ### 5.2 Lo siguiente, por orden
 
-1. **Acabar con las 9 pruebas del editor de conexiones** que quedan en rojo (3.5). Ahora
-   fallan por un motivo distinto y ya se pueden investigar de verdad.
-2. **Arreglar los tres en rojo que hoy no bloquean** (editor de conexiones, barra de
-   herramientas, rack), para que la puerta de calidad pueda cerrarse del todo.
-3. **Cerrar la puerta de calidad del todo**: hoy los trabajos de navegador que fallan
-   están marcados como "no bloquean". Si los tres de arriba quedan verdes, esa excepción se
-   puede quitar y el fallo sePara en la puerta, no en un informe.
+1. **Arreglar las tres pruebas de la barra de herramientas**, que piden cosas en un rack
+   que arranca vacío.
+2. **Arreglar la del rack**, verificada como anterior a todo este trabajo.
+3. **Cerrar la puerta de calidad del todo**: en cuanto los dos de arriba queden verdes se
+   puede quitar la excepción de "no bloquean" y el fallo se para en la puerta, no en un
+   informe que hay que ir a leer.
 
 ---
 

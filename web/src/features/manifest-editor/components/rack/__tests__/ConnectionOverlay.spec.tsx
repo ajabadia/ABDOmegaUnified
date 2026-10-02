@@ -6,7 +6,7 @@
  * Mirrors the same edge cases covered in the P11 E2E test suite.
  */
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import type { OMEGA_Manifest, OMEGA_Modulation, ManifestEntity } from '@/omega-ui-core/types/manifest';
 import ConnectionOverlay from '../ConnectionOverlay';
@@ -577,9 +577,63 @@ describe('ConnectionOverlay — click-to-delete', () => {
     fireEvent.mouseEnter(clickTarget!);
     expect(container.querySelector('[title="Delete connection"]')).not.toBeNull();
 
-    // Hover off → delete button hidden
+    // Hover off → el botón NO se borra al instante, pero sí poco después.
+    //
+    // MEDIDO en el navegador (2 de octubre de 2026): antes se limpiaba el
+    // hover en el acto y el botón de borrar era IMPOSIBLE de pulsar. Al
+    // apartar el ratón de la línea para ir hacia él, la línea dispara su
+    // `onMouseLeave`, el estado de hover se limpia y el botón se desmonta
+    // antes de que el puntero llegue. Ahora hay una espera breve para que el
+    // puntero pueda cruzar el hueco; si entra en el botón, la espera se
+    // cancela (ver el test siguiente).
     fireEvent.mouseLeave(clickTarget!);
+    expect(container.querySelector('[title="Delete connection"]')).not.toBeNull();
+
+    // `act` porque la espera dispara un `setState`: sin él, React no aplica
+    // el re-render y el botón parece seguir ahí para siempre.
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
     expect(container.querySelector('[title="Delete connection"]')).toBeNull();
+  });
+
+  it('should KEEP the delete button when the pointer enters it while leaving the line', () => {
+    // El caso que hacia imposible pulsar la aspa: sale de la línea (que
+    // programa la limpieza) y entra en el botón (que la cancela).
+    const onRemove = jest.fn();
+    const manifest = createMockManifest([
+      { id: 'mod_keep', source: KNOB_ID, target: AUDIO_OUT_ID, amount: 0.6, type: 'unipolar' } as OMEGA_Modulation,
+    ]);
+
+    const { container } = render(
+      <ConnectionOverlay
+        manifest={manifest}
+        containerRef={createMockRef(createMockContainer())}
+        onAddModulation={jest.fn()}
+        onRemoveModulation={onRemove}
+      />
+    );
+    jest.advanceTimersByTime(100);
+
+    const clickTarget = container.querySelector('path[stroke="transparent"]');
+    fireEvent.mouseEnter(clickTarget!);
+    expect(container.querySelector('[title="Delete connection"]')).not.toBeNull();
+
+    // Sale de la línea...
+    fireEvent.mouseLeave(clickTarget!);
+
+    // ...y entra en el botón antes de que venza la espera.
+    const deleteBtn = container.querySelector('[title="Delete connection"]')!;
+    fireEvent.mouseEnter(deleteBtn);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    // Sigue ahí, y se puede pulsar.
+    const stillThere = container.querySelector('[title="Delete connection"]');
+    expect(stillThere).not.toBeNull();
+    fireEvent.click(stillThere!);
+    expect(onRemove).toHaveBeenCalledWith('mod_keep');
   });
 });
 
