@@ -19,7 +19,7 @@ import { computeScaleUpdates, getOriginalNodeSize } from '@/omega-ui-core/render
 export type EditorAction =
   | 'select_all' | 'copy' | 'cut' | 'paste' | 'duplicate' | 'delete'
   | 'undo' | 'redo' | 'deselect' | 'toggle_grid' | 'toggle_guides'
-  | 'rename' | 'command_palette';
+  | 'rename' | 'open_project' | 'command_palette';
 
 export const DEFAULT_BINDINGS: Record<string, string> = {
   select_all: 'ctrl+a',
@@ -34,6 +34,15 @@ export const DEFAULT_BINDINGS: Record<string, string> = {
   toggle_grid: 'ctrl+shift+g',
   toggle_guides: 'ctrl+shift+u',
   rename: 'f2',
+  // `Ctrl+O` venía de un SEGUNDO registro de teclado (`useWorkbenchKeyboard`)
+  // que escuchaba en `document` mientras este escucha en `window`. Como el
+  // bubbling va de document a window y el otro hacía `stopPropagation()`, la
+  // rama de este registro nunca se ejecutaba para estos dos atajos.
+  //
+  // Consolidarlos aquí elimina la condición de doble-dispatch: dos toggles
+  // sobre el mismo estado se anulan solos, y eso es justo lo que el e2e
+  // `shortcuts.spec.ts` reproduce a propósito para vigilarlo.
+  open_project: 'ctrl+o',
   command_palette: 'ctrl+k',
 };
 
@@ -105,6 +114,7 @@ export interface ShortcutCallbacks {
   onSelectItem?: (id: string | null) => void;
   onToggleCommandPalette?: () => void;
   onRenameItem?: (id: string) => void;
+  onLoadOmegaProject?: () => void;
 }
 
 /**
@@ -180,6 +190,13 @@ export function createHandleKeyDown(
           return;
         case 'rename':
           if (!skipDueToInput && selectedItemId) { e.preventDefault(); callbacks?.onRenameItem?.(selectedItemId); }
+          return;
+        case 'open_project':
+          // SIN `skipDueToInput` a propósito: `Ctrl+O` debe abrir el selector
+          // también con el foco en un campo. El registro anterior no tenía ese
+          // guard, y añadirlo aquí cambiaría el comportamiento.
+          e.preventDefault();
+          callbacks?.onLoadOmegaProject?.();
           return;
         case 'command_palette':
           if (!skipDueToInput) { e.preventDefault(); callbacks?.onToggleCommandPalette?.(); }

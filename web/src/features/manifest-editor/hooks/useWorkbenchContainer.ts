@@ -17,6 +17,7 @@ import type { OMEGA_Contract, OmegaNode } from '@/omega-ui-core/types/manifest';
 import type { GhostItem } from '@/features/manifest-editor/utils/alignmentConstants';
 import type { WorkbenchContainerLogic } from '../types/workbenchTypes';
 import type { WorkbenchTabType } from './useWorkbenchState';
+import { createNewManifest } from '../utils/newDocument';
 import { useAlignment } from './useAlignment';
 import { useTransformClipboard } from './useTransformClipboard';
 import { useWorkbenchDragHandlers } from './useWorkbenchDragHandlers';
@@ -44,7 +45,7 @@ import { useWorkbenchUIState } from './useWorkbenchUIState';
 import { useWorkbenchDirtyTracker } from './useWorkbenchDirtyTracker';
 import { useWorkbenchGrid } from './useWorkbenchGrid';
 import { useWorkbenchOnboarding } from './useWorkbenchOnboarding';
-import { useWorkbenchKeyboard } from './useWorkbenchKeyboard';
+
 import { useWorkbenchTabSync } from './useWorkbenchTabSync';
 import { useWorkbenchBlueprintActions } from './useWorkbenchBlueprintActions';
 import { useWorkbenchGhostCoordination } from './useWorkbenchGhostCoordination';
@@ -82,7 +83,16 @@ export function useWorkbenchContainer(
   const { handleImportDistilledJson, handleLoadOmegaProject, handleFileDrop } = useWorkbenchFileOperations(editor);
 
   // ── Keyboard Shortcuts ────────────────────────────────────────────────
-  useWorkbenchKeyboard(handleLoadOmegaProject, ui.setIsCommandPaletteOpen);
+  //
+  // `Ctrl+O` y `Ctrl+K` se atienden AHORA en el registro grande
+  // (`shortcutHandlers.ts`), dentro de `DEFAULT_BINDINGS`. Antes se
+  // escuchaban en un SEGUNDO hook (`useWorkbenchKeyboard`) montado sobre
+  // `document`, mientras el grande escucha sobre `window`; como el bubbling va
+  // de document a window y aquel hacía `stopPropagation()`, la rama del
+  // registro grande para esos dos atajos era código muerto.
+  //
+  // Un único registro elimina la clase de bug que ya costó un hint eliminado
+  // por error y un `Ctrl+Shift+C` mal dirigido.
 
   // ── Blueprints ────────────────────────────────────────────────────────
   const { userBlueprints, handleSaveGroupAsBlueprint, handleSaveGroupAsBlueprintFromNodeId, addUserBlueprintEntry } = useGroupBlueprint(editor);
@@ -167,6 +177,28 @@ export function useWorkbenchContainer(
   const { handleAddEntity, handleDuplicateItem, handleRemoveItem } = useEntityCrud(
     editor, selection.handleSelectItem, selection.selectedItemId,
   );
+
+  // ── New Document ──────────────────────────────────────────────────────
+  /**
+   * POR QUÉ ESTO EXISTE AHORA
+   *
+   * `orchestrator.openDocument` llevaba toda la vida exportado y sin un solo
+   * llamador en producción: solo lo usaban los tests. Con `CLOSE_DOCUMENT`
+   * protegido contra el cierre del último documento, la app quedaba con
+   * exactamente un documento para siempre, y la superficie multi-pestañas de
+   * `DocumentTabBar` era inalcanzable — un botón de cerrar que solo podía
+   * explicar por qué no hacía nada.
+   *
+   * El id lo genera `nextDocumentId()` y el manifiesto lo clona
+   * `createNewManifest()`: ambos viven en `utils/newDocument.ts`, donde está
+   * documentado por qué `Date.now()` no sirve y por qué clonar en profundidad
+   * no es opcional.
+   */
+  const handleNewDocument = useCallback(() => {
+    const manifest = createNewManifest();
+    editor.orchestrator.openDocument(manifest.id, manifest);
+    editor.addLog(`[SYSTEM] New document opened: ${manifest.metadata?.name ?? manifest.id}`);
+  }, [editor]);
 
   // ── Clipboard (Copy/Cut/Paste) ──────────────────────────────────────
   const clipboardIds = useMemo(() => {
@@ -354,6 +386,7 @@ export function useWorkbenchContainer(
       onSelectItem: selection.handleSelectItem,
       onToggleCommandPalette: () => ui.setIsCommandPaletteOpen(prev => !prev),
       onRenameItem: handleRenameItem,
+      onLoadOmegaProject: handleLoadOmegaProject,
     },
     preferences.shortcutBindings,
   );
@@ -371,8 +404,16 @@ export function useWorkbenchContainer(
   // ── Available Binds ───────────────────────────────────────────────────
   const availableBinds = useWorkbenchAvailableBinds(contract);
 
-  // ── Cell Library (no-op) ──────────────────────────────────────────────
-  const setIsCellLibraryOpen = (_open: boolean) => {};
+  // ── Cell Library ─────────────────────────────────────────────────────
+  // Antes vivía aquí un `const setIsCellLibraryOpen = (_open) => {}`: un no-op
+  // expuesto en la API pública que llegaba hasta `EntityListSection` y hacía que
+  // el botón "Library" pareciera funcionar sin hacer nada.
+  //
+  // Se ha quitado en lugar de cablearlo porque `UniversalCellLibraryModal` ya no
+  // existe: su import y su JSX están comentados en `EditorModals.tsx` y el
+  // fichero no está en el árbol. `useWorkbenchModals` ya trae su propio estado
+  // local para cuando no se le pase la prop, así que no hace falta nada aquí.
+  // Reengancharlo cuando vuelva el modal es una línea.
 
   // ── Drag Handlers ─────────────────────────────────────────────────────
   const dragHandlers = useWorkbenchDragHandlers(
@@ -403,6 +444,7 @@ export function useWorkbenchContainer(
     setShowNumericResize: ui.setShowNumericResize, setShowNumericRotate: ui.setShowNumericRotate,
     isCommandPaletteOpen: ui.isCommandPaletteOpen, setIsCommandPaletteOpen: ui.setIsCommandPaletteOpen,
     isDirty, lastSavedTime,
+    hasActiveDocument: editor.hasActiveDocument,
     gridVisible: grid.gridVisible, showGuides: grid.showGuides,
     auditResult, totalErrors, totalWarnings,
     batchHistory, selectedItemId: selection.selectedItemId, isGalleryOpen,
@@ -417,6 +459,7 @@ export function useWorkbenchContainer(
     handleGhostMouseMove: ghostCoordination.handleGhostMouseMove,
     handleGhostCancel: ghostCoordination.handleGhostCancel,
     handleSelectItem: selection.handleSelectItem, handleAddEntity, handleDuplicateItem, handleRemoveItem,
+    handleNewDocument,
     handleExportOmegaRack, handleExportContract,
     handleOpenConfig: selection.handleOpenConfig, handleOpenAudit: selection.handleOpenAudit,
     handleOpenCellEditor: selection.handleOpenCellEditor,
@@ -435,7 +478,7 @@ export function useWorkbenchContainer(
     commandNodes: cmd.commandNodes, commandActions: cmd.commandActions,
     handleCommandPaletteSelectNode: cmd.handleCommandPaletteSelectNode,
     setIsGalleryOpen, selectedItem: selection.selectedItem,
-    studioCell: selection.studioCell, availableBinds, setIsCellLibraryOpen,
+    studioCell: selection.studioCell, availableBinds,
     rackSections, handleToggleRackSection,
     handleDragRatio: dragHandlers.handleDragRatio,
     handleDragPrimarySplitRatio: dragHandlers.handleDragPrimarySplitRatio,
@@ -467,6 +510,7 @@ export function useWorkbenchContainer(
     ghostPreview, ghostCoordination.handleGhostClick,
     ghostCoordination.handleGhostMouseMove, ghostCoordination.handleGhostCancel,
     handleAddEntity, handleDuplicateItem, handleRemoveItem,
+    handleNewDocument,
     handleExportOmegaRack, handleExportContract,
     onDeploy, onReset,
     handleOpenNumericResize, handleOpenNumericRotate,
@@ -480,7 +524,7 @@ export function useWorkbenchContainer(
     alignGhostItems, alignGhostType, handleGhostPreviewChange,
     isDragOver, fileDropHandlers,
     cmd.commandNodes, cmd.commandActions, cmd.handleCommandPaletteSelectNode,
-    setIsGalleryOpen, availableBinds, setIsCellLibraryOpen,
+    setIsGalleryOpen, availableBinds,
     rackSections, handleToggleRackSection,
     dragHandlers.handleDragRatio, dragHandlers.handleDragPrimarySplitRatio,
     dragHandlers.handleDragSecondarySplitRatio, dragHandlers.handleDragRatioEnd,

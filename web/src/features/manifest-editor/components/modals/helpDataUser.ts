@@ -175,7 +175,11 @@ export const USER_SECTIONS: HelpSection[] = [
         technical_params: [
           'Ctrl+Z — Deshacer (Undo)',
           'Ctrl+Y — Rehacer (Redo)',
-          'Ctrl+Shift+Z — Rehacer (Redo alternativo)',
+          // `Ctrl+Shift+Z` se anunciaba aquí como "Redo alternativo" y en el badge del
+          // footer, pero NO estaba enlazado a nada. Ahora el único atajo de redo
+          // documentado es el que existe de verdad. Si algún día se enlaza
+          // `ctrl+shift+z`, esta línea debe volver a listarlo — y el badge, a
+          // mostrarlo.
           'Ctrl+C — Copiar elemento seleccionado',
           'Ctrl+X — Cortar elemento seleccionado',
           'Ctrl+V — Pegar elemento',

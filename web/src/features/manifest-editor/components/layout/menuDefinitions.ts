@@ -14,7 +14,7 @@ import type { MenuCategory, MenuItemData } from './menuTypes';
 import type { MenuBarProps } from './MenuBar';
 import { SharedModuleCatalogService } from '@/services/sharedModuleCatalog';
 import {
-  FileCode, Package, Layers, Camera, Zap, FolderOpen,
+  FileCode, Package, Layers, Camera, Zap, FolderOpen, FilePlus,
   Cpu, Database, Image as ImageIcon, LogOut, Undo2,
   Redo2, Terminal, HelpCircle, Shield, Settings, Layout, History,
   Sliders, Grid3X3, Ruler, Download, Map,
@@ -59,6 +59,21 @@ export function buildMenuItems(props: MenuBarProps): MenuCategory[] {
       label: 'File',
       items: [
         {
+          // Primer ítem del menú File: abrir un documento nuevo es la acción
+          // más frecuente del editor, y era inalcanzable — `openDocument` no
+          // tenía ningún llamador en producción.
+          //
+          // SIN ATAJO, y es deliberado. Se quitó `Ctrl+N` porque no
+          // existe: `shortcutHandlers.ts` no tiene un handler para `n`, y
+          // aunque lo tuviera no serviría de nada, porque Ctrl+N está reservado
+          // por el navegador (Chrome/Firefox abren una ventana nueva con él) y
+          // nunca llega a la página. Un hint que además de no funcionar no
+          // podría funcionar es peor que ningún hint.
+          label: 'New Document',
+          icon: FilePlus,
+          onClick: props.onNewDocument || (() => {}),
+        },
+        {
           label: props.isDirectoryLinked ? 'Linked Workspace ✓' : 'Link Workspace Folder',
           icon: FolderOpen,
           onClick: props.onLinkDirectory || (() => {}),
@@ -68,7 +83,17 @@ export function buildMenuItems(props: MenuBarProps): MenuCategory[] {
           label: 'Load',
           icon: FolderOpen,
           submenu: [
-            { label: 'Open .omega Project', icon: Package, onClick: () => (window as unknown as { __omegaLoadProject?: () => void }).__omegaLoadProject?.(), shortcut: 'Ctrl+O' },
+            // `Ctrl+O` SÍ funciona. Vivía en un SEGUNDO hook de teclado
+            // (`useWorkbenchKeyboard.ts`) y no en `shortcutHandlers.ts`, así que
+            // una pasada anterior quitó este hint por no encontrarlo en el
+            // registro que se había mirado: fue un error de búsqueda, no un
+            // hint falso.
+            //
+            // Los dos registros se consolidaron el 2026-10-02: `Ctrl+O` y
+            // `Ctrl+K` salen ahora de `DEFAULT_BINDINGS` en `shortcutHandlers`.
+            // El hint se queda. Este comentario está para que nadie lo vuelva a
+            // dudar, ni a buscarlo en el fichero equivocado.
+            { label: 'Open .omega Project', icon: Package, onClick: () => props.onLoadOmegaProject?.(), shortcut: 'Ctrl+O' },
             { label: 'Open Shelf Module (/modules)', icon: Cpu, submenu: buildShelfSubmenu() },
             { label: 'Import Distilled .json', icon: FileCode, onClick: () => props.onImportDistilledJson?.() },
             { label: 'Ingest Module Folder', icon: FolderOpen, onClick: () => props.onTriggerUpload('folder-upload') },
@@ -130,8 +155,13 @@ export function buildMenuItems(props: MenuBarProps): MenuCategory[] {
             { label: 'Numeric Resize...', icon: Ruler, onClick: () => props.onOpenNumericResize?.(), shortcut: 'Ctrl+Alt+R' },
             { label: 'Numeric Rotate...', icon: Rotate3D, onClick: () => props.onOpenNumericRotate?.(), shortcut: 'Ctrl+Alt+T' },
             { type: 'divider' },
-            { label: 'Copy Transform', icon: ClipboardCopy, onClick: () => props.onCopyTransform?.(), shortcut: 'Ctrl+Shift+C' },
-            { label: 'Paste Transform', icon: ClipboardPaste, onClick: () => props.onPasteTransform?.(), shortcut: 'Ctrl+Shift+V' },
+            // El hint decía Ctrl+Shift+C / Ctrl+Shift+V, pero esos combos NO
+            // llegan aquí: el bloque de paneles de `shortcutHandlers.ts` (que
+            // corre antes) se queda con Ctrl+Shift+<letra> y abre una ventana.
+            // Ctrl+Shift+C abría el panel de logs, no copiaba la transformación.
+            // Los combos reales son Ctrl+Alt+C y Ctrl+Alt+V.
+            { label: 'Copy Transform', icon: ClipboardCopy, onClick: () => props.onCopyTransform?.(), shortcut: 'Ctrl+Alt+C' },
+            { label: 'Paste Transform', icon: ClipboardPaste, onClick: () => props.onPasteTransform?.(), shortcut: 'Ctrl+Alt+V' },
             { type: 'divider' },
             { label: 'Align Left', icon: AlignStartVertical, onClick: () => props.onAlign?.('left') },
             { label: 'Center Horizontally', icon: AlignStartVertical, onClick: () => props.onAlign?.('center-h') },

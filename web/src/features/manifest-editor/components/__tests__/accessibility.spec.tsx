@@ -688,7 +688,9 @@ describe('P10 — WorkbenchFooter accessibility attributes', () => {
     );
     // ShortcutBadge now has aria-label derived from title
     expect(screen.queryByTitle('Undo (Ctrl+Z)')).not.toBeNull();
-    expect(screen.queryByTitle('Redo (Ctrl+Shift+Z)')).not.toBeNull();
+    // El rótulo real de Redo. Antes decía `Ctrl+Shift+Z`, que no estaba enlazado
+    // a nada; `redo` es `ctrl+y`. Ver `footerShortcutHints.spec.tsx`.
+    expect(screen.queryByTitle('Redo (Ctrl+Y)')).not.toBeNull();
     expect(screen.queryByTitle('Command Palette (Ctrl+K)')).not.toBeNull();
     expect(screen.queryByTitle('Save OmegaPack (Ctrl+S)')).not.toBeNull();
   });

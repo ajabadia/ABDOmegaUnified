@@ -346,10 +346,10 @@ exports[`WorkbenchFooter — snapshots should match snapshot for all props set (
         </kbd>
       </button>
       <button
-        aria-label="Redo (Ctrl+Shift+Z)"
+        aria-label="Redo (Ctrl+Y)"
         class="hidden md:flex items-center gap-1 px-1 py-0.5 rounded-xs border text-[6px] font-mono font-bold tracking-wider shrink-0 transition-all border-white/5 bg-transparent text-white/10 cursor-not-allowed"
         disabled=""
-        title="Redo (Ctrl+Shift+Z)"
+        title="Redo (Ctrl+Y)"
       >
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
@@ -364,17 +364,7 @@ exports[`WorkbenchFooter — snapshots should match snapshot for all props set (
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
         >
-          Shift
-        </kbd>
-        <span
-          class="text-white/20"
-        >
-          +
-        </span>
-        <kbd
-          class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
-        >
-          Z
+          Y
         </kbd>
       </button>
       <button
@@ -836,10 +826,10 @@ exports[`WorkbenchFooter — snapshots should match snapshot for clean state wit
         </kbd>
       </button>
       <button
-        aria-label="Redo (Ctrl+Shift+Z)"
+        aria-label="Redo (Ctrl+Y)"
         class="hidden md:flex items-center gap-1 px-1 py-0.5 rounded-xs border text-[6px] font-mono font-bold tracking-wider shrink-0 transition-all border-white/5 bg-transparent text-white/10 cursor-not-allowed"
         disabled=""
-        title="Redo (Ctrl+Shift+Z)"
+        title="Redo (Ctrl+Y)"
       >
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
@@ -854,17 +844,7 @@ exports[`WorkbenchFooter — snapshots should match snapshot for clean state wit
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
         >
-          Shift
-        </kbd>
-        <span
-          class="text-white/20"
-        >
-          +
-        </span>
-        <kbd
-          class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
-        >
-          Z
+          Y
         </kbd>
       </button>
       <button
@@ -1324,10 +1304,10 @@ exports[`WorkbenchFooter — snapshots should match snapshot for default state (
         </kbd>
       </button>
       <button
-        aria-label="Redo (Ctrl+Shift+Z)"
+        aria-label="Redo (Ctrl+Y)"
         class="hidden md:flex items-center gap-1 px-1 py-0.5 rounded-xs border text-[6px] font-mono font-bold tracking-wider shrink-0 transition-all border-white/5 bg-transparent text-white/10 cursor-not-allowed"
         disabled=""
-        title="Redo (Ctrl+Shift+Z)"
+        title="Redo (Ctrl+Y)"
       >
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
@@ -1342,17 +1322,7 @@ exports[`WorkbenchFooter — snapshots should match snapshot for default state (
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
         >
-          Shift
-        </kbd>
-        <span
-          class="text-white/20"
-        >
-          +
-        </span>
-        <kbd
-          class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
-        >
-          Z
+          Y
         </kbd>
       </button>
       <button
@@ -1780,10 +1750,10 @@ exports[`WorkbenchFooter — snapshots should match snapshot for dirty state wit
         </kbd>
       </button>
       <button
-        aria-label="Redo (Ctrl+Shift+Z)"
+        aria-label="Redo (Ctrl+Y)"
         class="hidden md:flex items-center gap-1 px-1 py-0.5 rounded-xs border text-[6px] font-mono font-bold tracking-wider shrink-0 transition-all border-white/5 bg-transparent text-white/10 cursor-not-allowed"
         disabled=""
-        title="Redo (Ctrl+Shift+Z)"
+        title="Redo (Ctrl+Y)"
       >
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
@@ -1798,17 +1768,7 @@ exports[`WorkbenchFooter — snapshots should match snapshot for dirty state wit
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
         >
-          Shift
-        </kbd>
-        <span
-          class="text-white/20"
-        >
-          +
-        </span>
-        <kbd
-          class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
-        >
-          Z
+          Y
         </kbd>
       </button>
       <button
@@ -2290,10 +2250,10 @@ exports[`WorkbenchFooter — snapshots should match snapshot for error watchdog 
         </kbd>
       </button>
       <button
-        aria-label="Redo (Ctrl+Shift+Z)"
+        aria-label="Redo (Ctrl+Y)"
         class="hidden md:flex items-center gap-1 px-1 py-0.5 rounded-xs border text-[6px] font-mono font-bold tracking-wider shrink-0 transition-all border-white/5 bg-transparent text-white/10 cursor-not-allowed"
         disabled=""
-        title="Redo (Ctrl+Shift+Z)"
+        title="Redo (Ctrl+Y)"
       >
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
@@ -2308,17 +2268,7 @@ exports[`WorkbenchFooter — snapshots should match snapshot for error watchdog 
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
         >
-          Shift
-        </kbd>
-        <span
-          class="text-white/20"
-        >
-          +
-        </span>
-        <kbd
-          class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
-        >
-          Z
+          Y
         </kbd>
       </button>
       <button
@@ -2404,7 +2354,7 @@ exports[`WorkbenchFooter — snapshots should match snapshot for error watchdog 
     </span>
     <div
       class="w-1.5 h-1.5 rounded-full border transition-all duration-500 shrink-0 bg-red-400/30 border-red-400/50"
-      title="Watchdog error"
+      title="Watchdog error — retrying"
     />
   </div>
 </footer>
@@ -2729,10 +2679,10 @@ exports[`WorkbenchFooter — snapshots should match snapshot for saved with time
         </kbd>
       </button>
       <button
-        aria-label="Redo (Ctrl+Shift+Z)"
+        aria-label="Redo (Ctrl+Y)"
         class="hidden md:flex items-center gap-1 px-1 py-0.5 rounded-xs border text-[6px] font-mono font-bold tracking-wider shrink-0 transition-all border-white/5 bg-transparent text-white/10 cursor-not-allowed"
         disabled=""
-        title="Redo (Ctrl+Shift+Z)"
+        title="Redo (Ctrl+Y)"
       >
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
@@ -2747,17 +2697,7 @@ exports[`WorkbenchFooter — snapshots should match snapshot for saved with time
         <kbd
           class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
         >
-          Shift
-        </kbd>
-        <span
-          class="text-white/20"
-        >
-          +
-        </span>
-        <kbd
-          class="text-[5px] px-0.5 py-px rounded-[1px] bg-white/10 text-white/40 font-mono font-black uppercase leading-none"
-        >
-          Z
+          Y
         </kbd>
       </button>
       <button

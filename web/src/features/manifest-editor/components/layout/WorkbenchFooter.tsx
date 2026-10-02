@@ -13,11 +13,15 @@ import { Layers, Cpu, FileCode, History, Columns, Save, AlertTriangle, Circle, U
 import ShortcutBadge from './ShortcutBadge';
 import ToolbarIconButton from './ToolbarIconButton';
 import UndoTimelinePopover from './UndoTimelinePopover';
-import type { HistoryEntry } from '@/omega-ui-core/types/history';
+import type { HistoryEntry, HistoryState } from '@/omega-ui-core/types/history';
 import type { HistoryEntry as BatchHistoryEntry } from '@/features/manifest-editor/hooks/useBatchHistory';
+import type { WatchdogStatus } from '@/features/manifest-editor/hooks/useWatchdog';
 
 interface WorkbenchFooterProps {
-  watchdogStatus?: 'idle' | 'connected' | 'error';
+  // `unavailable` es terminal: el watchdog dejó de reintentar tras varios
+  // intentos. Se declara aquí explícitamente (en vez de derivarlo del hook)
+  // porque este componente también se renderiza en tests con estados sueltos.
+  watchdogStatus?: WatchdogStatus;
   watchdogTime?: string | null;
   activeTabType?: 'orbital' | 'rack' | 'source' | 'history';
   onTabFocus?: (type: 'orbital' | 'rack' | 'source' | 'history') => void;
@@ -35,6 +39,12 @@ interface WorkbenchFooterProps {
   /** History entries for Undo Timeline */
   historyPast?: HistoryEntry[];
   historyFuture?: HistoryEntry[];
+  /**
+   * Historial completo del documento activo, para que el timeline pueda
+   * derivar el punto de guardado (`lastSavedIndex`) y marcar los cambios sin
+   * guardar. Opcional: si no viene, el timeline no muestra marcadores.
+   */
+  history?: HistoryState;
   onUndo?: () => void;
   onRedo?: () => void;
   onUndoTo?: (index: number) => void;
@@ -68,6 +78,7 @@ const WorkbenchFooter = ({
   lastSavedTime,
   historyPast = [],
   historyFuture = [],
+  history,
   onUndo,
   onRedo,
   onUndoTo,
@@ -101,6 +112,15 @@ const WorkbenchFooter = ({
         ) : watchdogStatus === 'error' ? (
           <div className="flex items-center gap-2 text-red-400/60 whitespace-nowrap">
             <span className="w-1 h-1 rounded-full bg-red-400/60" />
+            <span className="font-black hidden md:inline">WATCHDOG OFFLINE</span>
+          </div>
+        ) : watchdogStatus === 'unavailable' ? (
+          // Estado terminal: el watchdog lleva varios intentos sin servicio y
+          // ha dejado de reintentar. Se distingue de `error` a propósito —
+          // `error` significa "se está reintentando", `unavailable` significa
+          // "ya no va a pasar". El editor funciona igual sin él.
+          <div className="flex items-center gap-2 text-amber-400/50 whitespace-nowrap">
+            <span className="w-1 h-1 rounded-full bg-amber-400/50" />
             <span className="font-black hidden md:inline">WATCHDOG OFFLINE</span>
           </div>
         ) : (
@@ -199,14 +219,21 @@ const WorkbenchFooter = ({
             title="Undo (Ctrl+Z)"
           />
 
-          {/* Redo (Ctrl+Shift+Z) — hidden below md */}
+          {/* Redo (Ctrl+Y) — hidden below md
+           *
+           * Los CHIPS (`keys`) son lo que el usuario lee en pantalla; el
+           * `title` solo sale en el tooltip. Antes los chips decían
+           * Ctrl+Shift+Z, que NO estaba enlazado a nada: `redo` es `ctrl+y`.
+           * Pulsar Redo y que no ocurra nada hace pensar que la función está
+           * rota, cuando lo roto era el rótulo.
+           * `footerShortcutHints.spec.tsx` fija que ambos coincidan. */}
           <ShortcutBadge
-            keys={['Ctrl', 'Shift', 'Z']}
+            keys={['Ctrl', 'Y']}
             onClick={() => onRedo?.()}
             active={hasRedo}
             disabled={!hasRedo}
             responsive="hidden md:flex"
-            title="Redo (Ctrl+Shift+Z)"
+            title="Redo (Ctrl+Y)"
           />
 
           {/* Command Palette (Ctrl+K) — always visible */}
@@ -265,14 +292,21 @@ const WorkbenchFooter = ({
         <div className={`w-1.5 h-1.5 rounded-full border transition-all duration-500 shrink-0 ${
           watchdogStatus === 'connected' ? 'bg-green-400/40 border-green-400/60 shadow-[0_0_6px_rgba(34,197,94,0.3)]' :
           watchdogStatus === 'error' ? 'bg-red-400/30 border-red-400/50' :
+          watchdogStatus === 'unavailable' ? 'bg-amber-400/25 border-amber-400/40' :
           'bg-white/5 border-white/10'
-        }`} title={watchdogStatus === 'connected' ? 'Watchdog connected' : watchdogStatus === 'error' ? 'Watchdog error' : 'Watchdog idle'} />
+        }`} title={
+          watchdogStatus === 'connected' ? 'Watchdog connected' :
+          watchdogStatus === 'error' ? 'Watchdog error — retrying' :
+          watchdogStatus === 'unavailable' ? 'Watchdog unavailable — no live reload' :
+          'Watchdog idle'
+        } />
       </div>
 
       {/* ── Undo Timeline Popover ── */}
       <UndoTimelinePopover
         past={historyPast}
         future={historyFuture}
+        history={history}
         batchEntries={batchEntries}
         onUndoBatchEntry={onUndoBatchEntry}
         onUndoTo={(index) => { onUndoTo?.(index); setIsHistoryOpen(false); }}
