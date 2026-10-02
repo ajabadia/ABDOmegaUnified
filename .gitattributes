@@ -1,4 +1,10 @@
 # Batch scripts (Windows): convención CRLF (fix #714 — build_wasm.bat).
 # El repo almacena LF (text normalization); el checkout produce CRLF.
 *.bat text eol=crlf
+
+# Los `.cmd` comparten el motivo con los `.bat` —los dos los ejecuta
+# cmd.exe, con la misma cuadricula de fallos cuando el fichero trae LF—, pero
+# se repiten aqui a proposito: las reglas se declaran una a una y cada una
+# dice la suya. Si las dos se declaran juntas, la justificacion de la primera
+# no tendria por que hablar de la segunda.
 *.cmd text eol=crlf
