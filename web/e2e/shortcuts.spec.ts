@@ -7,26 +7,27 @@ import type { Page } from '@playwright/test';
  * POR QUÉ ESTE FICHERO, CUANDO YA HAY UN TEST UNITARIO
  * -----------------------------------------------------
  * `menuShortcutHints.spec.ts` dispara los atajos contra los manejadores en un
- * entorno de test, con un único registro. Aquí ocurre algo que ninguna suite de
- * Jest puede reproducir: **hay DOS registros de teclado**, y compiten.
+ * entorno de test. Aquí ocurre algo que ninguna suite de Jest puede
+ * reproducir: **son atajos de verdad, en un navegador de verdad**, con la
+ * jerarquía de eventos real — y dos registros en cuanto se duplique el
+ * manejo de un mismo atajo.
+ *
+ * HUBO DOS REGISTROS. CONSOLIDADOS EL 2026-10-02.
  *
  *   useWorkbenchShortcuts → window.addEventListener('keydown', …)
  *   useWorkbenchKeyboard  → document.addEventListener('keydown', …)
  *
- * En el burbujeo, `document` va antes que `window`, y el handler de document
- * llama a `stopPropagation()`. Medido en jsdom
- * (`scripts/probe-shortcut-shadowing.cjs`):
+ * En el burbujeo `document` va antes que `window`, y el handler de document
+ * llamaba a `stopPropagation()`, así que la rama del registro grande para
+ * `Ctrl+K` y `Ctrl+O` **nunca se ejecutaba**: era código muerto. Medido en
+ * jsdom (`scripts/probe-shortcut-shadowing.cjs`): con stopPropagation el
+ * handler de window recibía 0 invocaciones; sin él, 1.
  *
- *   con stopPropagation → window: 0 invocaciones
- *   sin stopPropagation → window: 1 invocación
- *
- * Es decir: para los atajos que cubre el registro pequeño (Ctrl+K, Ctrl+O), la
- * rama del registro grande **nunca se ejecuta**. Eso esPw fragile por sí solo,
- * pero es la razón por la que `Ctrl+K` depende hoy de un accidente de orden de
- * listeners: si alguien "arregla" el registro pequeño y lo mueve a `window`,
- * los dos toggles caerían sobre el MISMO estado y se anularían solos.
- *
- * Estos tests existen para que ese segundo escenario falle ruidosamente.
+ * Los dos registros ya no existen. Estos tests siguen aquí porque vigilan el
+ * fallo concreto que pueden volver: si alguien reintroduce un segundo
+ * registro sobre el mismo estado, los dos toggles se anulan, la paleta no
+ * aparece nunca y el síntoma —"el atajo está roto"— es indistinguible de un
+ * fallo real. Estos tests hacen que ese escenario falle ruidosamente.
  */
 
 /** Suelta el foco para que los guards de `isInputFocused` no corten el atajo. */
