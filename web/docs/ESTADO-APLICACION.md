@@ -54,7 +54,7 @@ detectó una prueba que nunca se había ejecutado entera.
 | Tipos y compilación | **Correcto** |
 | Compilación para producción | **Correcta** |
 | Pruebas automáticas | 1644 en total: 1643 pasan, **1 falla** (no es mía, ver 3.6) |
-| Pruebas en navegador real | Las que he ejecutado. Ahora **ninguna se hace pasar por buena si no funciona** |
+| Pruebas en navegador real | **Las 16 ejecutadas enteras al menos una vez.** Ahora **ninguna se hace pasar por buena si no funciona** |
 
 ---
 
@@ -154,11 +154,20 @@ abrir la aplicación). Ese archivo lo está escribiendo **otra sesión de trabaj
 está sin guardar y no tiene nada que ver con nada de lo que he tocado hoy. Lo dejo dicho
 para que no se me atribuya.
 
-### 3.7 Pruebas de navegador que siguen sin ejecutar
+### 3.7 Pruebas de navegador — **cerrado**
 
-Quedan **5** sin ejecutar de las 16 que hay. No es un problema de la aplicación: es un
-hueco en lo que yo he podido comprobar. Cada tanda tarda entre 5 y 9 minutos y mi tiempo
-de trabajo tiene un límite.
+Las **16 pruebas de navegador del proyecto se han ejecutado enteras al menos una vez**,
+y eso ha cambiado el panorama: las que faltaban **pasaban todas**.
+
+Las últimas cinco (`importar .json`, `rutas de idioma`, `filtros del panel de capas`,
+`minimapa` y `proyectos .omega`) suman **34 pruebas, todas en verde**, sin tocar nada.
+
+Lo que queda en rojo en el navegador, con lo medido:
+
+- **9** del editor de conexiones (3.5) — causa sin diagnosticar.
+- **3** de la barra de herramientas — piden cosas en un rack que arranca vacío.
+- **1** del rack — verificada como anterior a todo este trabajo.
+- **3** de los de humo, marcadas como *pendiente* con su motivo escrito (3.3).
 
 ---
 
@@ -187,7 +196,7 @@ antigua. **No subo nada a GitHub sin que me lo digas expresamente.**
    real que afecta al uso diario.
 2. **Acabar con las 9 pruebas del editor de conexiones** que quedan en rojo (3.5). Ahora
    fallan por un motivo distinto y ya se pueden investigar de verdad.
-3. **Ejecutar las 5 pruebas de navegador que quedan** (3.7).
+3. **Ejecutar las 5 pruebas de navegador que quedan** (3.7). — **Hecho: pasaban todas.**
 4. **Decidir qué hacemos con `ABDOmegaEditor`** (ver sección 8).
 
 ---
@@ -206,6 +215,11 @@ distingue siempre entre **"comprobado"** y **"sospechado"**. Si en algún punto 
 Un ejemplo de por qué importa: el editor de texto que no aparecía. Podía haber dicho
 "el editor no funciona". Midiendo, descubrí que **el editor funcionaba perfectamente**
 y que lo que estaba mal eran las pruebas que lo comprobaban.
+
+Otro, de hoy: el editor de conexiones dibujaba la mitad de los tiradores de conexión y
+parecía un fallo de la aplicación. No lo era: las pruebas declaraban unos jacks que
+nunca se dibujaban, y **21 de ellas leían una lista vacía sin avisar**. Estaban rotas
+las pruebas, y por eso la aplicación parecía peor de lo que es.
 
 ---
 
