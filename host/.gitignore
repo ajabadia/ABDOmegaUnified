@@ -7,7 +7,11 @@
 !/docs/
 !/scripts/
 !/README.md
-!/ROADMAP.md
+# Los corchetes no son aqui adorno: sin ellos esta regla no exime nada en
+# Linux. El fichero se llama roadmap.md en minusculas y el sistema de
+# ficheros de la maquina de desarrollo (core.ignorecase) tapa la diferencia,
+# asi que el fallo solo sale en CI, que corre en Linux.
+!/[Rr][Oo][Aa][Dd][Mm][Aa][Pp].md
 !/changelog.md
 !/build_no.txt
 !/CMakeLists.txt
