@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures/omegaFixtures';
 import type { Page } from '@playwright/test';
 import { injectBlueprint } from './helpers/blueprintInjection';
+import { gotoWorkbench } from './helpers/navigation';
 
 /**
  * OMEGA ERA 7.2.3 - RACK FEATURES E2E TEST SUITE
@@ -215,10 +216,10 @@ test.describe('RackStartupAssistant Matrix (v9.1.8-dev)', () => {
     await injectBlueprint(rackPage);
     await expect(rackPage.locator(OVERLAY)).not.toBeVisible({ timeout: 5000 });
 
-    // Reload to reset rack state
-    await rackPage.goto('/en');
-    await rackPage.waitForTimeout(8000);
-    await switchToRackView(rackPage);
+    // Reload to reset rack state.
+    // La recarga se hace sobre el WORKBENCH, no sobre el portal: volver a `/en`
+    // tras inyectar el blueprint dejaba la página fuera del editor.
+    await gotoWorkbench(rackPage, { view: 'rack', waitMs: 8000 });
 
     const overlay = rackPage.locator(OVERLAY);
     await expect(overlay).toBeVisible({ timeout: 5000 });

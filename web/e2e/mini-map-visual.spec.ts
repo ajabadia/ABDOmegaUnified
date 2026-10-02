@@ -16,14 +16,16 @@ import type { Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 import { injectBlueprint } from './helpers/blueprintInjection';
+import { gotoWorkbench, switchView } from './helpers/navigation';
 
 const SCREENSHOT_DIR = path.resolve(__dirname, '../test-results/mini-map-screenshots');
 
 // ── Setup ─────────────────────────────────────────────────────────────
 
 async function setupRackWithBlueprint(page: Page): Promise<void> {
-  await page.goto('/en');
-  await page.waitForTimeout(4000);
+  // Entra al editor y a la vista de rack. Antes iba a `/en` (el portal), donde
+  // el rack no existe: este spec no probaba el minimapa, probaba el portal.
+  await gotoWorkbench(page, { view: 'rack', waitMs: 4000 });
 
   const createBtn = page.locator('button:has-text("Create from Scratch")');
   if (await createBtn.isVisible({ timeout: 3000 }).catch(() => false)) {

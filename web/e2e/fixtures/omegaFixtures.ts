@@ -4,6 +4,13 @@ import { test as base, expect as baseExpect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  gotoWorkbench,
+  suppressOnboarding as addInitScriptOnboarding,
+} from '../helpers/navigation';
+
+// Re-exportado para quien ya importaba la supresión desde aquí.
+export { gotoWorkbench, gotoPortal, switchView } from '../helpers/navigation';
 
 const BP_DIR = path.resolve(__dirname, '../../public/blueprints/v2');
 
@@ -26,7 +33,13 @@ function preloadBlueprints(): BpCache {
 
 const BP_CACHE = preloadBlueprints();
 
-const STORAGE_KEY = 'omega_onboarding_completed';
+/**
+ * Clave con la que el tour de onboarding se marca como ya visto.
+ *
+ * @deprecated La clave vive en `helpers/navigation.ts`, dentro de
+ * `suppressOnboarding`, para que una sola definición gobierne todos los specs.
+ */
+export const STORAGE_KEY = 'omega_onboarding_completed';
 
 /**
  * Mark onboarding tour as completed in localStorage BEFORE the page loads.
@@ -34,13 +47,9 @@ const STORAGE_KEY = 'omega_onboarding_completed';
  * blocking clicks on the underlying UI during E2E tests.
  */
 async function suppressOnboarding(page: Page) {
-  await page.addInitScript(`
-    (function() {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('${STORAGE_KEY}', 'true');
-      }
-    })();
-  `);
+  // @deprecated El onboarding lo suprime `gotoWorkbench` en cada navegación.
+  // Se conserva el nombre solo para no romper importaciones externas.
+  await addInitScriptOnboarding(page);
 }
 
 async function interceptBlueprints(page: Page) {
@@ -54,15 +63,21 @@ async function interceptBlueprints(page: Page) {
   });
 }
 
+/**
+ * El fixture NO decide la navegación: delega en `helpers/navigation.ts`.
+ *
+ * Antes este fichero iba a `/en` y buscaba la pestaña "Virtual Rack", que solo
+ * existe DENTRO del editor. El `if (... .catch(() => false))` envolviendo el
+ * clic convertía esa navegación rota en un setup "exitoso", y los tests
+ * continuaban contra el PORTAL. El síntoma salía mucho más lejos del origen:
+ * los tests de la paleta de comandos fallaban con "la paleta no se abre con
+ * Ctrl+K" cuando lo que pasaba era que nunca se había entrado al editor.
+ *
+ * Ahora la decisión vive en un único sitio —`gotoWorkbench`— y falla fuerte si
+ * el editor no aparece.
+ */
 async function navigateToRack(page: Page, { waitMs = 2000 }: { waitMs?: number } = {}) {
-  await suppressOnboarding(page);
-  await page.goto('/en');
-  await page.waitForTimeout(waitMs);
-  const rackTab = page.getByTitle('Virtual Rack');
-  if (await rackTab.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await rackTab.click();
-    await page.waitForTimeout(1500);
-  }
+  await gotoWorkbench(page, { view: 'rack', waitMs });
 }
 
 /**

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { gotoWorkbench } from './helpers/navigation';
 
 /**
  * OMEGA v9.9.1 — Toolbar E2E Test Suite
@@ -18,15 +19,8 @@ import type { Page } from '@playwright/test';
 const ONBOARDING_KEY = 'omega_onboarding_completed';
 
 /** Mark onboarding tour as completed before page load. */
-async function suppressOnboarding(page: Page) {
-  await page.addInitScript(`
-    (function() {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('${ONBOARDING_KEY}', 'true');
-      }
-    })();
-  `);
-}
+// La supresión del onboarding y la entrada al editor viven en
+// `helpers/navigation.ts`; este spec las usa a través de `gotoWorkbench`.
 
 /** Toolbar selectors */
 const TOOLBAR = 'div[role="toolbar"][aria-label="Floating tools"]';
@@ -47,9 +41,7 @@ const FLYOUT_HEADER = 'text=Inject Component';
 
 test.describe('Toolbar — Tool Selection', () => {
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    await page.waitForTimeout(4000);
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('should render the floating toolbar with role="toolbar"', async ({ page }) => {
@@ -108,9 +100,7 @@ test.describe('Toolbar — Tool Selection', () => {
 
 test.describe('Toolbar — Add Flyout', () => {
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    await page.waitForTimeout(4000);
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('should open the add flyout when clicking the Add button', async ({ page }) => {
@@ -177,9 +167,7 @@ test.describe('Toolbar — Add Flyout', () => {
 
 test.describe('Toolbar — Keyboard Shortcuts', () => {
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    await page.waitForTimeout(4000);
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('should switch to Marquee via "M" key', async ({ page }) => {
@@ -211,9 +199,7 @@ test.describe('Toolbar — Keyboard Shortcuts', () => {
 
 test.describe('Toolbar — Live Mode Toggle', () => {
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    await page.waitForTimeout(4000);
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('should toggle live mode on click without crashing', async ({ page }) => {
@@ -235,9 +221,7 @@ test.describe('Toolbar — Live Mode Toggle', () => {
 
 test.describe('Toolbar — Zen Mode Toggle', () => {
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    await page.waitForTimeout(4000);
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('should toggle zen mode on click', async ({ page }) => {
@@ -274,9 +258,7 @@ test.describe('Toolbar — Zen Mode Toggle', () => {
 
 test.describe('Toolbar — Customize Popover', () => {
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    await page.waitForTimeout(4000);
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('should open the customize popover when clicking the gear icon', async ({ page }) => {
@@ -364,9 +346,7 @@ test.describe('Toolbar — Customize Popover', () => {
 
 test.describe('Toolbar — Draggable Repositioning', () => {
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    await page.waitForTimeout(4000);
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('should be draggable to a new position', async ({ page }) => {
@@ -401,9 +381,7 @@ test.describe('Toolbar — Draggable Repositioning', () => {
 
 test.describe('Toolbar — Blueprints & Config Buttons', () => {
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    await page.waitForTimeout(4000);
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('should open Blueprint Library panel when clicking Blueprints button', async ({ page }) => {
@@ -426,9 +404,7 @@ test.describe('Toolbar — Blueprints & Config Buttons', () => {
 
 test.describe('Toolbar — Selection-Gated Buttons', () => {
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    await page.waitForTimeout(4000);
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('should not show Studio/Numeric buttons when nothing is selected', async ({ page }) => {

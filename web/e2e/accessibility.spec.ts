@@ -511,7 +511,10 @@ test.describe('P10 — WCAG AA Accessibility', () => {
         '[title*="Ctrl+Z"]',
         '[title*="Ctrl+K"]',
         '[title*="Ctrl+S"]',
-        '[title*="Ctrl+Shift+Z"]',
+        // Redo. Antes era `Ctrl+Shift+Z`, un atajo que no estaba enlazado a
+        // nada; `redo` está enlazado a `ctrl+y`. Ver
+        // `footerShortcutHints.spec.tsx`.
+        '[title*="Ctrl+Y"]',
       ];
 
       let found = 0;

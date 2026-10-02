@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { gotoWorkbench, switchView, type EditorView } from './helpers/navigation';
 
 /**
  * OMEGA ERA 9.2.0 — INDUSTRIAL SMOKE TEST SUITE
@@ -8,32 +9,14 @@ import type { Page } from '@playwright/test';
  * v9.2.0-dev: Fixed Monaco async loading timing, updated to footer-based view switching.
  */
 
-const ONBOARDING_KEY = 'omega_onboarding_completed';
-
-/** Mark onboarding tour as completed in localStorage BEFORE the page loads. */
-async function suppressOnboarding(page: Page) {
-  await page.addInitScript(`
-    (function() {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('${ONBOARDING_KEY}', 'true');
-      }
-    })();
-  `);
-}
+// La supresión del onboarding ya no se duplica aquí: vive en
+// `helpers/navigation.ts` y `gotoWorkbench` la aplica en cada navegación.
 
 test.describe('Phase 6 Critical Flows', () => {
 
-  /** Helper: switch to rack view via the footer tab. */
-  async function switchToView(page: Page, view: 'rack' | 'source' | 'history' | 'orbital') {
-    const titles: Record<string, string> = {
-      rack: 'Virtual Rack',
-      source: 'Source View',
-      history: 'Timeline / History',
-      orbital: 'Orbital View'
-    };
-    const btn = page.getByTitle(titles[view]);
-    await expect(btn).toBeVisible({ timeout: 10000 });
-    await btn.click();
+  /** Helper: switch view via the footer. Delegates to the shared helper. */
+  async function switchToView(page: Page, view: EditorView) {
+    await switchView(page, view);
     // Wait for the view to settle (Monaco needs extra time for source view)
     await page.waitForTimeout(1500);
   }
@@ -81,10 +64,11 @@ test.describe('Phase 6 Critical Flows', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    await suppressOnboarding(page);
-    await page.goto('/en');
-    // Wait for the initial settle period (app bootstrap, i18n, etc.)
-    await page.waitForTimeout(4000);
+    // `gotoWorkbench` entra al editor (NO al portal) y falla fuerte si no llega.
+    // Antes esto era `page.goto('/en')`, que dejaba los tests de este spec
+    // ejecutándose contra el portal, donde los controles del footer no existen:
+    // los cinco Flows fallaban por un destino equivocado, no por su contenido.
+    await gotoWorkbench(page, { waitMs: 4000 });
   });
 
   test('Flow 1: Load -> Edit -> Dirty -> Save -> Clean', async ({ page }) => {
