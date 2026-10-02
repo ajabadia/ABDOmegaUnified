@@ -39,6 +39,7 @@ Guías estéticas y operativas para el desarrollo del editor.
 - [INSPECTOR_LEVELS.md](file:///d:/desarrollos/ABDSynths/ABDOmegaEditor/docs/guides-and-standards/INSPECTOR_LEVELS.md) - Criterios y directrices funcionales de los niveles de complejidad (Simple, Medium, Advanced) en los menús de propiedades.
 - [handoff.md](file:///d:/desarrollos/ABDSynths/ABDOmegaEditor/docs/guides-and-standards/handoff.md) - Handoff Briefing técnico general para desarrolladores y agentes que asumen el repositorio.
 - [README_E2E.md](file:///d:/desarrollos/ABDSynths/ABDOmegaEditor/docs/guides-and-standards/README_E2E.md) - Guía de ejecución y mantenimiento de pruebas de extremo a extremo (E2E) con Playwright.
+- [MEASURING_RELOAD_IN_BROWSER.md](docs/guides-and-standards/MEASURING_RELOAD_IN_BROWSER.md) - Cómo comprobar qué sobrevive a una recarga real sin falsos positivos de pérdida de sesión.
 
 ---
 

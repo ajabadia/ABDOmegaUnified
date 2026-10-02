@@ -75,3 +75,8 @@ web/public/host-ui/
 # host/Resources consumen vía junction NTFS, nunca como copia.
 web/public/modules/
 host/Resources/modules/
+
+# Vercel: `vercel link` guarda el projectId/orgId del proyecto. La propia CLI
+# pide no compartirlo y añadirlo aquí — hoy era un untracked que podía colarse
+# en cualquier commit.
+web/.vercel/
