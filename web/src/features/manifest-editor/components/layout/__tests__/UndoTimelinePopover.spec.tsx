@@ -3,12 +3,55 @@
  *
  * Tests for UndoTimelinePopover component — History timeline popover (v9.4.0)
  */
-import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, jest, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { createRef } from 'react';
 import UndoTimelinePopover from '../UndoTimelinePopover';
 import type { HistoryEntry } from '@/omega-ui-core/types/history';
 import type { HistoryEntry as BatchHistoryEntry } from '@/features/manifest-editor/hooks/useBatchHistory';
+
+/**
+ * Las horas del reloj no deben depender de la máquina que ejecuta las pruebas.
+ *
+ * =============================================================================
+ * POR QUÉ (medido, no supuesto)
+ * =============================================================================
+ * `UndoTimelinePopover` pinta cada entrada con
+ *
+ *     new Date(entry.time).toLocaleTimeString([], { hour, minute, second })
+ *
+ * El array de idioma VACÍO significa "el idioma del sistema". El mismo código,
+ * en el mismo instante, escribe:
+ *
+ *     en este portátil (es-ES):  13:59:30
+ *     en el runner (en-US):     01:59:30 PM
+ *
+ * Eso es lo que hacía que este test estuviera verde en el portátil y rojo en la
+ * integración continua. Fijar `TZ=UTC` en `jest.config.js` quita la diferencia
+ * de zona horaria, pero NO la de idioma: por eso el arreglo de `TZ` no bastó.
+ *
+ * Se probó antes con `expect.addSnapshotSerializer`, y NO sirve: el serializador
+ * de DOM de `pretty-format` imprime el texto de los nodos por su cuenta y nunca
+ * consulta los serializadores de cadena. Por eso la hora seguía en el snapshot
+ * tal cual.
+ *
+ * El arreglo que sí funciona es sustituir el reloj por un valor fijo mientras se
+ * renderiza. Estas pruebas no van de la hora: van de que las entradas por lotes
+ * se pintan bien. Un snapshot debe fallar cuando cambia lo que se quiere
+ * comprobar, no cuando cambia el idioma o el reloj de quien lo ejecuta.
+ */
+const RELOJ_FIJO = '00:00:00';
+const toLocaleTimeStringReal = Date.prototype.toLocaleTimeString;
+
+beforeAll(() => {
+  Date.prototype.toLocaleTimeString = function relojFijo() {
+    return RELOJ_FIJO;
+  } as typeof Date.prototype.toLocaleTimeString;
+});
+
+afterAll(() => {
+  Date.prototype.toLocaleTimeString = toLocaleTimeStringReal;
+});
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 

@@ -689,7 +689,7 @@ exports[`UndoTimelinePopover — snapshots should match snapshot with batch entr
       <span
         class="shrink-0 text-[6px] font-mono opacity-50"
       >
-        11:59:30
+        00:00:00
       </span>
     </button>
     <button
@@ -714,7 +714,7 @@ exports[`UndoTimelinePopover — snapshots should match snapshot with batch entr
       <span
         class="shrink-0 text-[6px] font-mono opacity-50"
       >
-        11:59:40
+        00:00:00
       </span>
     </button>
     <button
@@ -739,7 +739,7 @@ exports[`UndoTimelinePopover — snapshots should match snapshot with batch entr
       <span
         class="shrink-0 text-[6px] font-mono opacity-50"
       >
-        11:59:50
+        00:00:00
       </span>
     </button>
     <button
@@ -765,7 +765,7 @@ exports[`UndoTimelinePopover — snapshots should match snapshot with batch entr
       <span
         class="shrink-0 text-[6px] font-mono opacity-50"
       >
-        11:59:55
+        00:00:00
       </span>
     </button>
   </div>
