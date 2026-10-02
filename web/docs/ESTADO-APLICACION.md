@@ -1,14 +1,14 @@
 # Estado de la aplicación — 2 de octubre de 2026
 
-Este documento está pensado para alguien que **no**_programa. Explica qué funciona,
+Este documento está pensado para alguien que **no** programa. Explica qué funciona,
 qué no, y qué hay que hacer. Nada de aquí requiere leer código para actuar.
 
 ---
 
-## 1. Lo que arreglé en esta sesión
+## 1. Lo que arreglé
 
 Todo lo de esta lista está **arreglado, probado y guardado en el historial de Git**
-(8 commits). Antes estaba roto; ahora hay una prueba automática que lo vigila.
+(11 commits). No está subido a internet todavía; ver el punto 5.1.
 
 ### Cosas que mentían y ahora dicen la verdad
 
@@ -20,13 +20,30 @@ Todo lo de esta lista está **arreglado, probado y guardado en el historial de G
 | Atajos en general | Los atajos se repartían en dos sitios distintos, y parte de la configuración era código que nunca se ejecutaba. | Un solo sitio. |
 | Las carpetas que se publican | Cuatro carpetas necesarias eran **enlaces a carpetas de tu disco**, que solo existen en tu ordenador. En un servidor no existen. | Se reconstruyen solas al compilar, en cualquier ordenador. |
 
-### Cosas que estaban en rojo sin que nadie lo supiera
+### El editor de texto: ya no necesita internet
 
-- **20 pruebas automáticas de la web estaban fallando** desde hacía tiempo. El motivo no era
-  que las funciones estuvieran rotas: las pruebas estaban mirando la página equivocada.
-  Arreglado: **ahora pasan**.
-- **La aplicación no se podía construir para internet.** Un fichero a medio hacer
-  bloqueaba la compilación entera. Arreglado.
+Esto era lo más grave de los que he encontrado hoy, y lo descubrí porque por fin
+ejecuté unas pruebas que nunca se habían ejecutado del todo.
+
+El editor de código (la pestaña "Source") **no venía dentro de la aplicación**: la
+descargaba de un servidor externo, `cdn.jsdelivr.net`, cada vez que se abría. Si ese
+sitio estaba lento, bloqueado o no había conexión, la aplicación se quedaba
+**colgada en "Loading..." para siempre y sin decir ningún error**. No es que estuviera
+roto: sencillamente el editor no llegaba nunca.
+
+**Ahora el editor viene de casa.** Se copia de los archivos que ya tenías al compilar y
+se sirve desde tu propia aplicación. Medido en el navegador: el editor carga desde
+`/monaco/vs/…` y el error de consola ha desaparecido.
+
+### Un fallo de accesibilidad que llevaba meses escondido
+
+En la parte de arriba de cada página hay un enlace de **"Saltar al contenido"**, pensado
+para quien navega con teclado. Ese enlace **no llevaba a ninguna parte**: apuntaba a un
+sitio que no existía en ninguna página de la aplicación. Para quien usa el teclado con
+una pantalla lectora, era un callejón sin salida.
+
+Ahora las tres páginas (portal, editor y reproductor) tienen el destino correcto. Lo
+detectó una prueba que nunca se había ejecutado entera.
 
 ---
 
@@ -34,14 +51,10 @@ Todo lo de esta lista está **arreglado, probado y guardado en el historial de G
 
 | Comprobación | Resultado |
 |---|---|
-| Pruebas automáticas (1640 en total) | **Todas pasan** |
 | Tipos y compilación | **Correcto** |
 | Compilación para producción | **Correcta** |
-| Pruebas en navegador real | Las que he ejecutado, pasan |
-
-Sobre esas últimas: he ejecutado **6 de las 15 pruebas de navegador**. Las otras 9 las
-he tocado o revisado **sin llegar a ejecutarlas todas**. Es el punto flaco que
-conozco con certeza.
+| Pruebas automáticas | 1644 en total: 1643 pasan, **1 falla** (no es mía, ver 3.6) |
+| Pruebas en navegador real | Las que he ejecutado. Ahora **ninguna se hace pasar por buena si no funciona** |
 
 ---
 
@@ -58,18 +71,17 @@ GitHub **`ajabadia/ABDOmegaEditor`**. Pero el proyecto en el que trabajamos se l
 **`ajabadia/ABDOmegaUnified`**. Son dos repositorios **distintos, sin ningún antepasado
 común** (lo comprobé: no comparten ni un solo commit).
 
-Traducción: **todo lo que hemos arreglado en estas sesiones no está en lo que Vercel
-publica.** Vercel sigue con su copia antigua. Por eso el error que recibiste
-("No Next.js version detected") no se arregla cambiando una casilla.
+Traducción: **todo lo que hemos arreglado no está en lo que Vercel publica.** Vercel
+sigue con su copia antigua. Por eso el error que recibiste ("No Next.js version detected")
+no se arregla cambiando una casilla.
 
 Además, el repositorio que Vercel clona tiene la aplicación **en la raíz**
 (`app/`, `src/`, `package.json` directamente), mientras que el nuestro la tiene en la
-carpeta `web/`. Son dos copias que fueron separándose.
+carpeta `web/`.
 
 **Cuál es el bueno:** el nuestro, `ABDOmegaUnified`. Es donde se ha trabajado hoy, y
 tiene el motor de audio, los módulos y las herramientas. `ABDOmegaEditor` parece la
-versión antigua, que solo ha seguido recibiendo cambios de documentación y de GitHub
-Actions.
+versión antigua.
 
 **Lo que tienes que hacer tú** (no puedo hacerlo yo, es tu cuenta de Vercel):
 
@@ -77,110 +89,163 @@ Actions.
 2. Pestaña **Settings** → **Git** → **Disconnect** el repositorio `ABDOmegaEditor`.
 3. Pestaña **Settings** → **General** → **Root Directory** → escribe `web` y guarda.
 4. Conecta el repositorio `ajabadia/ABDOmegaUnified` y despliega desde `main`.
-5. Vuelve a desplegar.
 
-**Aviso importante antes de que lo hagas:** los arreglos de esta sesión están en tu
-ordenador, en commits que **todavía no se han subido** a GitHub. Si conectas Vercel
-antes de subirlos, Vercel construirá una versión antigua. Subir los commits es una
-acción tuya que yo no hago salvo que me lo pidas expresamente.
+**Aviso importante:** los arreglos de esta sesión están en tu ordenador, en 11 commits que
+**todavía no se han subido** a GitHub. Si conectas Vercel antes de subirlos, construirá
+una versión antigua.
 
-**Lo que ya está arreglado por mi parte** (esto era el segundo problema de fondo):
+### 3.2 Un fallo real que ha salido al mirar las pruebas de verdad
 
-Las cuatro carpetas que en tu ordenador son enlaces (`modules`, `fonts`, `host-ui`,
-`omega-ui-core`) **ya no son un problema**: ahora hay un paso automático que las
-reconstruye con archivos de verdad antes de compilar, en cualquier ordenador. En tu
-ordenador no hace nada, porque los enlaces ya funcionan. Está probado con 10
-comprobaciones automáticas.
+Al reescribir las pruebas del editor, ha aparecido esto:
 
-### 3.2 Tres pruebas que "pasan" sin comprobar nada
+**"Reset Workspace" (la opción de menú que deshace todo) deja el documento marcado como
+"cambios sin guardar", cuando debería dejarlo limpio.** El texto sí vuelve a su estado
+inicial; el cartel de "cambios sin guardar" se queda encendido.
 
-Hay tres pruebas que dan verde aunque la función esté rota. Cuando no encuentran lo que
-buscan, anotan un mensaje en vez de fallar.
+Todavía **no sé por qué**. Mi sospecha es que el programa no anota el nuevo texto como
+"punto limpio" al reiniciar, pero **suspuesta no es lo mismo que comprobado**, así que no
+lo doy por cierto.
 
-Investigué la más importante y **no la terminé**. Lo que averigüé:
+### 3.3 Las tres pruebas que "pasaban" sin comprobar nada
 
-- El indicador de "cambios sin guardar" **nunca aparece**, ni tras 12 segundos.
-- Pero la sonda no pudo ni escribir en el editor de texto para probarlo de verdad.
-- El editor de texto **no aparece** al cambiar a la vista de código. Sospecho (sin
-  confirmarlo) que se descarga desde internet y aquí no está disponible.
+Buena noticia: **esto ya está resuelto**. Antes, tres pruebas envolvían su comprobación
+en un `try/catch` que, si fallaba, escribía un mensaje y seguía tan tranquilo. Eso significa que
+daban igual de "bien" tanto si la función servía como si estaba rota.
 
-Es decir: **o hay un fallo real, o las pruebas miran donde no deben.** No lo sé todavía.
-Es lo primero que debería atacar, porque un test que no puede fallar es peor que no
-tener test.
+Descubrí además que **el fallo era de las pruebas, no de la aplicación**: escribían el
+texto en un trozo de memoria que ya no estaba en pantalla,así que la aplicación nunca se enteraba de que la habías editado. Por eso el cartel de "cambios sin guardar" no aparecía
+"nunca": **nunca le llegaban los cambios**.
 
-### 3.3 Tres pruebas en rojo en la barra de herramientas
+Ahora:
 
-Fallan al pedir que aparezcan cosas en un módulo vacío. **Ya no son un error de
-navegación** (eso lo arreglé), ahora son comportamiento real sin investigar.
+- **2 pruebas affirms de verdad y pasan.** Una comprueba que al escribir aparece el
+  cartel de cambios sin guardar y que al guardar desaparece; la otra comprueba que al
+  recargar la página sale el aviso de "¿seguro?". Esta última **nunca se había comprobado
+  de verdad** y funciona.
+- **3 pruebas quedan marcadas como "pendiente"**, con el motivo escrito dentro del propio
+  archivo. Salen como *pendiente* en el informe y **no pueden pasar por buenas**.
 
-### 3.4 Una prueba en rojo en el rack
+### 3.4 Una prueba en rojo en la barra de herramientas
 
-Verifiqué que **ya fallaba antes de mis cambios**. No lo caused yo, y lo dejo dicho para
-que no se me atribuya.
+Fallan al pedir que aparezcan cosas en un módulo vacío. Comportamiento real sin
+investigar.
+
+### 3.5 Una prueba en rojo en el editor de conexiones
+
+Recién ejecutada (nunca lo había estado). Al abrir un plano de ejemplo aparecen **2
+puntos de conexión donde deberían aparecer 4**. O el plano no trae los controles que la
+prueba espera, o el programa está dibujando la mitad. No lo he investigado.
+
+### 3.6 Una prueba en rojo que no es mía
+
+Falla una prueba de la **persistencia de sesión** (guardar y recuperar el trabajo al
+abrir la aplicación). Ese archivo lo está escribiendo **otra sesión de trabajo**, no yo:
+está sin guardar y no tiene nada que ver con nada de lo que he tocado hoy. Lo dejo dicho
+para que no se me atribuya.
+
+### 3.7 Pruebas de navegador que siguen sin ejecutar
+
+Quedan **5** sin ejecutar de las 16 que hay. No es un problema de la aplicación: es un
+hueco en lo que yo he podido comprobar. Cada tanda tarda entre 5 y 9 minutos y mi tiempo
+de trabajo tiene un límite.
 
 ---
 
 ## 4. Trabajo de otras sesiones que sigue sin guardarse
 
-Hay **66 ficheros** modificados que pertenecen a otras sesiones de trabajo (el
-motor de audio, el historial, el guardado de sesión, el reproductor). **No los he
-guardado** porque no son míos y no quiero mezclar trabajo a medio terminar.
+Hay **66 ficheros** modificados que pertenecen a otras sesiones (el motor de audio, el
+historial, el guardado de sesión, el reproductor). **No los he guardado** porque no son
+míos y no quiero mezclar trabajo a medio terminar.
 
 Consecuencia práctica: **una copia nueva del proyecto, descargada de internet, no
-tendría todo lo que tiene tu ordenador ahora mismo.** Si pierdes el disco, pierdes eso.
+tendría todo lo que tiene tu ordenador ahora mismo.**
 
 ---
 
 ## 5. Lo que propongo hacer ahora, por orden
 
-1. **Subir a GitHub los cambios que están solo en tu ordenador** (los 8 commits de esta
-   sesión y el trabajo de otras sesiones). Hasta que eso no pase, Vercel —y cualquier
-   copia nueva del proyecto— sigue viendo una versión antigua. **Es tuyo**: no subo
-   nada a GitHub sin que me lo digas.
-2. **Investigar el editor de texto que no aparece.** Probablemente esté relacionado con
-   la 3.2, y puede ser un fallo real que afecta al uso diario.
-3. **Convertir las tres pruebas que no pueden fallar** en pruebas de verdad, o marcarlas
-   como "pendiente" con el motivo escrito. Para que nunca más den un falso verde.
-4. **Ejecutar las 9 pruebas de navegador que no he ejecutado**, para cerrar el punto flaco
-   del punto 2.
-5. **Decidir qué hacemos con `ABDOmegaEditor`**, el repositorio antiguo al que apunta
-   Vercel. Si nadie lo usa, lo correcto es olvidarlo; si le queda algo útil, hay que
-   decidir si se copia algo.
+### 5.1 Subir los cambios a GitHub — es tuyo
+
+Los 11 commits de esta sesión y el trabajo de otras sesiones están solo en tu ordenador.
+Hasta que eso no pase, Vercel —y cualquier copia nueva— sigue viendo una versión
+antigua. **No subo nada a GitHub sin que me lo digas expresamente.**
+
+### 5.2 Lo siguiente, por orden
+
+1. **Investigar por qué "Reset Workspace" deja el documento sucio** (3.2). Es un fallo
+   real que afecta al uso diario.
+2. **Mirar por qué el editor de conexiones dibuja la mitad de los puntos** (3.5).
+3. **Ejecutar las 5 pruebas de navegador que quedan** (3.7).
+4. **Decidir qué hacemos con `ABDOmegaEditor`** (ver sección 8).
 
 ---
 
 ## 6. Una nota sobre cómo trabajo
 
-En esta sesión **tres veces estuve a punto de comunicarte un problema que no existía**:
-un fallo de Next.js que no era de Next.js, un módulo que sí se importaba, y un atajo
- equivocado que era un error mío al leer la lista.
+En esta sesión **cuatro veces estuve a punto de comunicarte un problema que no existía**
+o al revés: un fallo de Next.js que no era de Next.js, un módulo que sí se importaba, un
+atajo equivocado que era un error mío al leer la lista, y un fallo de compilación que
+había provocado yo mismo un rato antes.
 
-En los tres casos lo detectó medir en vez de suponer. Por eso este documento distingue
-siempre entre **"comprobado"** y **"sospechado"**. Si en algún punto de este documento
-leo "sospecho", es porque no lo he verificado, y no quiero que lo tomes por otra cosa.
+En todos los casos lo detectó **medir en vez de suponer**. Por eso este documento
+distingue siempre entre **"comprobado"** y **"sospechado"**. Si en algún punto lees
+"sospecho", es porque no lo he verificado, y no quiero que lo tomes por otra cosa.
+
+Un ejemplo de por qué importa: el editor de texto que no aparecía. Podía haber dicho
+"el editor no funciona". Midiendo, descubrí que **el editor funcionaba perfectamente**
+y que lo que estaba mal eran las pruebas que lo comprobaban.
+
+---
 
 ## 7. Cómo puedes comprobar que esto es cierto
 
-No hace falta que te fíes de mí. Cada afirmación comprobada tiene una forma de
-revisarla:
+No hace falta que te fíes de mí. Cada afirmación comprobada tiene una forma de revisarla.
+En la carpeta `web` salvo donde se dice otra cosa:
 
-- **"Todas las pruebas pasan"** → en la carpeta `web`, ejecutar:
+- **"Compila bien"** → `npx next build`. Debe terminar sin errores.
+
+- **"Las pruebas automáticas pasan"** →
   `npx jest src/lib src/features/manifest-editor src/services/history.test.ts src/omega-ui-core`
- Debe salir `80 passed`.
+  Deben salir `81 passed` y **1 failed** (la de la otra sesión, punto 3.6).
 
-- **"Compila bien"** → en `web`: `npx next build`. Debe terminar sin errores.
+- **"El editor no necesita internet"** → `npx jest configureMonacoLoader`. Comprueba que
+  el editor se pide a `/monaco/vs` y que en ninguna parte se configura una dirección de
+  internet.
 
-- **"Los atajos no mienten"** → en `web`:
-  `npx jest menuShortcutHints footerShortcutHints`. Aquí se comprueba, atajo por atajo,
-  que lo que la interfaz anuncia es lo que hace.
+- **"Las carpetas se reconstruyen solas"** → desde la raíz del proyecto:
+  `node scripts/prepare_public_assets.mjs --check`. En tu ordenador debe decir `junction`
+  en cuatro y `materializado` en Monaco.
 
-- **"Las rutas web no se rompen en silencio"** → en `web`:
-  `npx jest middlewareMatcher`. Prueba 608 rutas generadas.- **"Los módulos dicen la verdad cuando faltan"** → en `web`: `npx jest sharedModuleCatalog`.
+- **"El enlace de accesibilidad funciona"** → `npx playwright test accessibility -g main-content`.
 
-- **"Las carpetas se reconstruyen solas"** → en la raíz del proyecto:
-  `node scripts/prepare_public_assets.mjs --check`. Debe decir `junction` en las cuatro
-  (en tu ordenador) y salir con código 0. Las pruebas del script están en
-  `node --test scripts/__tests__/prepare_public_assets.test.mjs` (10 en verde).
+- **"Las pruebas del editor no fingen"** → `npx playwright test e2e/smoke-tests.spec.ts`.
+  Deben salir **2 aprobadas, 3 pendientes (fixme) y ninguna en rojo**.
 
-Si alguno de esos seis falla, este documento está equivocado y quiero saberlo antes que
-nadie.
+Si alguno de esos falla, este documento está equivocado y quiero saberlo antes que nadie.
+
+---
+
+## 8. Qué hacer con el repositorio antiguo `ABDOmegaEditor`
+
+Lo he mirado por dentro. Esto es lo que hay y lo que no hay:
+
+**Vale la pena traer (no existe en el proyecto bueno):**
+
+- **`.agent/`** — un conjunto de reglas y técnicas de trabajo: arquitectura limpia,
+  pruebas antes que código, buenas prácticas de React, planificación. Son notas de
+  trabajo, no código, y se pueden copiar tal cual.
+- **`AGENTS.md` y `CLAUDE.md`** — las instrucciones de trabajo.
+- **`tools/` y `.github/`** — dos comprobaciones automáticas que se ejecutan solas en
+  cada cambio. El proyecto bueno **no tiene nada de eso**: sus pruebas solo se ejecutan
+  cuando alguien se acuerda.
+- **Historial de cambios** (`CHANGELOG.md`, `ROADMAP.md`) y cuatro documentos de plan.
+
+**No hay que traer:**
+
+- `app/`, `src/`, `public/`, `e2e/`, `package.json`… Eso es **la misma aplicación pero
+  en la carpeta de arriba**, y ya la tenemos (dentro de `web/`). Copiarlo sería tener dos
+  copias distintas peleándose por lo mismo.
+
+**Mi recomendación:** traerse los cuatro primeros puntos, y **archivar** (no borrar) el
+repositorio antiguo una vez que Vercel apunte al bueno. Borrarlo sería tirar algo que
+nadie ha mirado en serio, y no soy quién para decidir eso.
