@@ -348,10 +348,34 @@ export const orchestratorReducer = (state: OrchestratorState, action: Orchestrat
           ...state.documentsById,
           [action.id]: {
             ...resetDoc,
-            manifest: DEFAULT_MANIFEST,
+            // Clon, no la referencia del módulo: dos documentos reseteados
+            // compartían el MISMO objeto `DEFAULT_MANIFEST`, así que cualquier
+            // mutación in situ de uno contaminaba al otro y al propio módulo.
+            manifest: cloneManifest(DEFAULT_MANIFEST),
             isDirty: false,
             lastStableHash: '',
-            history: { past: [], future: [], lastSavedIndex: -1 }
+            history: { past: [], future: [], lastSavedIndex: -1 },
+            // MEDIDO (2 de octubre de 2026): sin esto, "Reset Workspace"
+            // devolvía el texto a su estado original y aun así el documento
+            // se quedaba marcado como "cambios sin guardar" para siempre.
+            //
+            // La causa era dejar `lastStableHash: ''` como línea base. El
+            // watcher compara `hash(manifest)` contra ese campo con un debounce
+            // de 200 ms, y el hash de un manifiesto real nunca es la cadena
+            // vacía, así que la comparación daba "distinto" y el watcher
+            // despachaba `SET_DIRTY` sobre un documento que este mismo reducer
+            // acababa de limpiar. Medido en `resetWorkspaceDirty.spec.tsx`:
+            // justo tras el reset `isDirty=false`, y 200 ms después `true`.
+            //
+            // El arreglo NO es dejar sin limpiar el flag (dejaría al documento sucio
+            // durante la ventana de 200 ms), sino reconducir el re-baselining
+            // por el camino que ya existe y está probado: `isInitializing`
+            // hace que el watcher recapture el hash del manifiesto restaurado
+            // con `CAPTURE_HASH`, que es exactamente lo que hace al abrir un
+            // documento. Es el mismo truco que `repairPersistedDocument`
+            // aplica al restaurar desde disco, y por el mismo motivo: un
+            // contenido nuevo necesita una línea base nueva.
+            isInitializing: true
           }
         }
       };

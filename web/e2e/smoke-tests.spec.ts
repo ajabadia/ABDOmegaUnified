@@ -280,18 +280,26 @@ test.describe('Phase 6 Critical Flows', () => {
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
     await page.waitForTimeout(400);
     await page.getByText('Reset Workspace', { exact: true }).click();
-    await page.waitForTimeout(4000);
 
-    // MEDIDO, Y ES UN FALLO REAL: después de "Reset Workspace" el documento
-    // sigue marcado como sucio. El texto sí vuelve al original, pero el
-    // indicador no se apaga. Sospecha (sin comprobar): `lastStableHash` no se
-    // actualiza al reiniciar. Antes de que este test lo afirmara en duro, el
-    // `catch` lo silenciaba y daba verde.
-    test.fixme(
-      (await page.locator(DIRTY_INDICATOR).first().isVisible()) === false ? false : true,
-      'Reset Workspace deja el documento marcado como sucio. FALLO REAL medido el 2 de octubre de 2026, causa sin diagnosticar. Antes era un console.log: verde falso.'
-    );
-
-    await expect(page.locator(DIRTY_INDICATOR).first()).not.toBeVisible({ timeout: 10_000 });
+    // MEDIDO Y CORREGIDO (2 de octubre de 2026): esto era un `test.fixme`
+    // porque "Reset Workspace" dejaba el documento marcado como sucio. La
+    // causa eran dos defectos delcódigo, ya arreglados, y ahora el test lo
+    // afirma en duro.
+    //
+    // POR QUÉ NO BASTA UN ÚNICO `not.toBeVisible()`
+    // ------------------------------------------
+    // Porque el fallo tenía DOS fases y este test las confundía en una. Al
+    // pulsar Reset el indicador se apagaba al instante (el reducer limpia) y
+    // ~200 ms después volvía a encenderse (el watcher lo re-marca sucio). Un
+    // `expect(...).not.toBeVisible()` con `timeout` sondea hasta que encuentra
+    // un instante en que está apagado: ese instante EXISTÍA, y el test pasaba
+    // con el bug puesto. Medido: sin el arreglo, este test daba verde 3 de 3.
+    //
+    // Por eso ahora se espera a que el ciclo del watcher haya terminado
+    // (debounce de 200 ms + re-baselining de 500 ms) y se comprueba que NO hay
+    // ningún indicador. Si el documento se vuelve a ensuciar un instante más
+    // tarde, este assert lo pilla; el anterior no.
+    await page.waitForTimeout(3_000);
+    await expect(page.locator(DIRTY_INDICATOR)).toHaveCount(0);
   });
 });

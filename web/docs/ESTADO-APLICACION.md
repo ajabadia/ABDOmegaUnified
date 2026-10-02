@@ -94,17 +94,32 @@ versión antigua.
 **Aviso importante:** los arreglos de esta sesión ya están subidos a GitHub, en la rama
 `main`. Cuando reconectes Vercel, él construirá esa versión.
 
-### 3.2 Un fallo real que ha salido al mirar las pruebas de verdad
+### 3.2 "Reset Workspace" ya no deja el documento sucio (ARREGLADO)
 
-Al reescribir las pruebas del editor, ha aparecido esto:
+**"Reset Workspace" (la opción de menú que deshace todo) dejaba el documento marcado como
+"cambios sin guardar", cuando debería dejarlo limpio.** El texto sí volvía a su estado
+inicial; el cartel de "cambios sin guardar" se quedaba encendido. **Ya está arreglado.**
 
-**"Reset Workspace" (la opción de menú que deshace todo) deja el documento marcado como
-"cambios sin guardar", cuando debería dejarlo limpio.** El texto sí vuelve a su estado
-inicial; el cartel de "cambios sin guardar" se queda encendido.
+Cómo se mide el fallo, porque es lo importante: el cartel no se quedaba encendido todo el
+rato. Al pulsar "Reset Workspace" se apagaba al instante y **se volvía a encender unos
+200 milisegundos después**, y a partir de ahí ya no se apagaba nunca. Por eso la prueba de
+navegador que lo cubría daba verde con el fallo puesto: comprobaba el cartel en un único
+momento, y ese momento (justo tras pulsar) era el único en que estaba apagado. La prueba
+daba verde 3 de 3 con el fallo presente. Ahora espera a que el programa termine su ciclo
+interno y comprueba que el cartel no aparece en ningún momento; **falla 3 de 3 sin el
+arreglo y pasa 3 de 3 con él.**
 
-Todavía **no sé por qué**. Mi sospecha es que el programa no anota el nuevo texto como
-"punto limpio" al reiniciar, pero **suspuesta no es lo mismo que comprobado**, así que no
-lo doy por cierto.
+Había dos causas, ambas medidas y ninguna era la que yo sospechaba:
+
+1. Al reiniciar, el programa vaciaba el "punto limpio" del documento y lo dejaba en blanco.
+   El cartel se decide comparando el texto actual con ese punto: un texto nunca es igual a
+   una cadena vacía, así que el programa concluía "ha cambiado" y lo volvía a marcar.
+2. El cálculo del texto tarda una fracción de milisegundo, y el resultado se guardaba
+   aunque mientras tanto el documento ya hubiera cambiado otra vez. Un cálculo que empezó
+   antes del reinicio se guardaba después, y volvía a manchar el documento recién limpio.
+
+Ahora al reiniciar el programa vuelve a marcar el texto como "punto limpio" (el mismo camino
+que ya usa al abrir un documento) y descarta los cálculos que quedaron viejos.
 
 ### 3.3 Las pruebas que "pasaban" sin comprobar nada
 
@@ -224,12 +239,13 @@ en un commit aparte. Lo único que queda por tu cuenta es reconectar Vercel (3.1
 
 ### 5.2 Lo siguiente, por orden
 
-1. **Investigar por qué "Reset Workspace" deja el documento sucio** (3.2). Es el único
-   fallo real que afecta al uso diario.
-2. **Acabar con las 9 pruebas del editor de conexiones** que quedan en rojo (3.5). Ahora
+1. **Acabar con las 9 pruebas del editor de conexiones** que quedan en rojo (3.5). Ahora
    fallan por un motivo distinto y ya se pueden investigar de verdad.
-3. **Arreglar los tres en rojo que hoy no bloquean** (editor de conexiones, barra de
+2. **Arreglar los tres en rojo que hoy no bloquean** (editor de conexiones, barra de
    herramientas, rack), para que la puerta de calidad pueda cerrarse del todo.
+3. **Cerrar la puerta de calidad del todo**: hoy los trabajos de navegador que fallan
+   están marcados como "no bloquean". Si los tres de arriba quedan verdes, esa excepción se
+   puede quitar y el fallo sePara en la puerta, no en un informe.
 
 ---
 
@@ -237,7 +253,7 @@ en un commit aparte. Lo único que queda por tu cuenta es reconectar Vercel (3.1
 
 En esta sesión **cuatro veces estuve a punto de comunicarte un problema que no existía**
 o al revés: un fallo de Next.js que no era de Next.js, un módulo que sí se importaba, un
-atajo equivocado que era un error mío al leer la lista, y un fallo de compilación que
+atajo equivocado que era un error mío al leer la lista, un fallo de compilación que
 había provocado yo mismo un rato antes.
 
 En todos los casos lo detectó **medir en vez de suponer**. Por eso este documento
