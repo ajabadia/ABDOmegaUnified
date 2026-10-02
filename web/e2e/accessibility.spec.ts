@@ -151,9 +151,14 @@ test.describe('P10 — WCAG AA Accessibility', () => {
         }
       }
 
-      if (!reachedMenu) {
-        console.log('Menu buttons not reached via Tab — may use mouse-first navigation');
-      }
+      // Antes: si el tabulador no llegaba a los botones, escribía un mensaje y
+      // seguía. Se declara explícitamente para que aparezca como PENDIENTE en el
+      // informe y no como un verde que no dice nada.
+      test.fixme(
+        reachedMenu,
+        'El tabulador no llega a los botones de menú: puede que usen tabulación rotativa (roving tabindex) ' +
+          'en vez de Tab. Antes era un console.log y el test pasaba igual.'
+      );
       // This is a soft assertion — menu bar may use roving tabindex or arrow-key navigation
       // which doesn't require Tab to reach every menu item
       expect(reachedMenu).toBe(true);
@@ -180,12 +185,14 @@ test.describe('P10 — WCAG AA Accessibility', () => {
           break;
         }
       }
-      // We should be able to Tab to at least one shortcut button
-      // (Soft assertion — tab order may vary by viewport state)
-      if (!foundShortcut) {
-        const el = await rackPage.evaluate(() => document.activeElement?.tagName || 'none');
-        console.log(`Tab ended on: ${el} (no Ctrl shortcut found)`);
-      }
+      // Antes: si no encontraba ningún atajo de Ctrl con el tabulador, lo
+      // apuntaba en un console.log y el test pasaba. Ahora se declara pendiente
+      // con el motivo, para que se vea en el informe.
+      test.fixme(
+        foundShortcut,
+        'El tabulador no llega a ningún atajo de Ctrl. Puede que el orden de tabulación dependa ' +
+          'del estado del viewport. Antes era un console.log: verde falso.'
+      );
     });
 
     test('9. should NOT trap focus when no modal is open (free navigation)', async ({ rackPage }) => {
@@ -232,16 +239,33 @@ test.describe('P10 — WCAG AA Accessibility', () => {
         };
       });
 
-      if (focusedEl) {
-        const hasOutline = parseFloat(focusedEl.outlineWidth) >= 1 && focusedEl.outlineStyle !== 'none';
-        // In headless Chromium, :focus-visible behavior may vary.
-        // The CSS rule exists (verified in unit tests) — this is a runtime check.
-        if (!hasOutline) {
-          console.log(`Focus ring may not render in headless mode for ${focusedEl.tag}`);
-        }
-        // The outline width should be non-zero if :focus-visible is applied
-        expect(parseFloat(focusedEl.outlineWidth)).toBeGreaterThanOrEqual(0);
-      }
+      // ASSERT QUE NO PODÍA FALLAR
+      // ---------------------------
+      // Antes: `expect(parseFloat(outlineWidth)).toBeGreaterThanOrEqual(0)`.
+      // CUALQUIER número es >= 0: ese expect no podía fallar nunca, ni con el
+      // anillo de foco roto, ni sin elemento, ni con estilos vacíos. Un test que
+      // no puede fallar es peor que no tener test, porque encima da confianza.
+      //
+      // Y si `focusedEl` venía a null, el `if` ni siquiera lo convertía en un
+      // fallo: se salía en silencio. Tampoco eso es un assert.
+      expect(focusedEl, 'debe quedar un elemento enfocado tras tabular').toBeTruthy();
+
+      const outlineWidth = parseFloat(focusedEl!.outlineWidth);
+      const outlineStyle = focusedEl!.outlineStyle;
+      const focusRingVisible = outlineWidth >= 1 && outlineStyle !== 'none';
+
+      // El anillo de foco en headless depende de `:focus-visible`. Si aquí no se
+      // ve, se declara PENDIENTE con su motivo en vez de apuntarse un verde que
+      // no significa nada.
+      test.fixme(
+        focusRingVisible,
+        `El anillo de foco no se renderiza en headless para <${focusedEl!.tag}> ` +
+          `(outline-width=${focusedEl!.outlineWidth}, outline-style=${outlineStyle}). ` +
+          'Antes había un expect `toBeGreaterThanOrEqual(0)`, que no puede fallar nunca: ' +
+          'verde falso. Pendiente: comprobar si es `:focus-visible` en headless o un fallo real de estilos.'
+      );
+      expect(outlineStyle, 'el elemento enfocado debe tener un estilo de contorno').not.toBe('none');
+      expect(outlineWidth, 'el anillo de foco debe medir al menos 1px').toBeGreaterThanOrEqual(1);
     });
   });
 

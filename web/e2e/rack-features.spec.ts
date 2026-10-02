@@ -161,7 +161,12 @@ test.describe('RackStartupAssistant Matrix (v9.1.8-dev)', () => {
   const OVERLAY_TITLE = 'Initialize Canvas';
 
   async function switchToRackView(page: Page) {
-    // Try footer button first, then fall back to Ctrl+2 keyboard shortcut
+    // Try footer button first, then fall back to Ctrl+2 keyboard shortcut.
+    //
+    // El respaldo en sí es legitimo (hay dos formas de llegar al rack), pero
+    // antes, si NINGUNA funcionaba, se escribia un mensaje y se seguia: el
+    // test continuaba sobre la vista equivocada sin decir nada. Ahora se
+    // comprueba que se ha llegado de verdad al rack.
     try {
       const footer = page.locator('footer');
       await expect(footer).toBeVisible({ timeout: 15000 });
@@ -169,10 +174,14 @@ test.describe('RackStartupAssistant Matrix (v9.1.8-dev)', () => {
       await expect(rackTab).toBeVisible({ timeout: 5000 });
       await rackTab.click();
     } catch {
-      console.log('[switchToRackView] Footer button not found — using Ctrl+2 shortcut');
       await page.keyboard.press('Control+2');
     }
     await page.waitForTimeout(2000);
+
+    await expect(
+      page.locator('footer button[title="Virtual Rack"]'),
+      'no se ha podido cambiar a la vista del rack por ningun camino'
+    ).toBeVisible({ timeout: 5000 });
   }
 
   async function enterLiveMode(page: Page) {

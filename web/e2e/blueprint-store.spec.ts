@@ -142,29 +142,39 @@ test.describe('Blueprint Store — Group Drag, Overlap, Export/Import & Ungroup'
       return 'OK';
     });
 
-    console.log(`[TEST] Export result: ${exportResult}`);
-
     expect(exportResult).toBe('OK');
 
-    // Wait for the download event to fire
-    let download;
-    try {
-      download = await downloadPromise;
-    } catch {
-      console.log('[TEST] Download event timed out — export may not have triggered download');
-    }
-
-    if (!download) {
-      console.log('[TEST] No download triggered — skipping re-import assertions');
-      return;
-    }
+    // MEDIDO el 2 de octubre de 2026: la descarga NO ocurre. `waitForEvent
+    // ('download')` se agota a los 20 s y el test nunca llegaba a comprobar ni el
+    // nombre del fichero ni la reimportación.
+    //
+    // ANTES de esto, ese mismo caso escribía un mensaje y salía con `return`, y
+    // el test daba verde. Es decir, llevaba tiempo en verde sin exportar nada:
+    // el fallo estaba tapado justo debajo de la puerta de calidad.
+    //
+    // No se puede afirmar que la exportación esté rota: puede que el panel lo
+    // genere por otra vía (Blob + enlace) y Playwright no lo vea como
+    // `download`. Lo que sí es certo es que hoy no se puede comprobar por esta
+    // puerta, y por eso se declara pendiente con su motivo en vez de dejarse
+    // en verde.
+    //
+    // Cuando alguien investigate por qué no salta el evento, se quita esta
+    // línea y las comprobaciones de abajo empiezan a correr de verdad.
+    const download = await downloadPromise.catch(() => null);
+    test.fixme(
+      download === null,
+      'La exportación a .acepack no dispara el evento `download` de Playwright en 20 s. ' +
+        'Sin él no hay forma de comprobar ni el nombre del fichero ni la reimportación. ' +
+        'Pendiente: averiguar si la exportación usa otra vía (Blob/enlace) o si está rota. ' +
+        'Antes era un console.log con `return`: verde falso.'
+    );
+    expect(download, 'la exportación debe lanzar una descarga real').toBeTruthy();
 
     const suggestedName = download.suggestedFilename();
     expect(suggestedName).toContain('.acepack');
 
     const tempPath = `test-results/test-acepack-${Date.now()}.acepack`;
     await download.saveAs(tempPath);
-    console.log(`[TEST] Blueprint exported and saved to ${tempPath}`);
 
     await openBlueprintPanel(rackPage);
 
@@ -204,7 +214,7 @@ test.describe('Blueprint Store — Group Drag, Overlap, Export/Import & Ungroup'
 
     const containersBefore = await rackPage.locator(STRUCTURAL_SEL).count();
     const cellsBefore = await rackPage.locator('.uca-node.uca-cell').count();
-    console.log(`[TEST] Before ungroup: ${containersBefore} structural, ${cellsBefore} cells`);
+    
 
     // Right-click on the second structural node (index 1) to hit the injected
     // container, not the root (index 0) which also matches the selector.
@@ -214,20 +224,20 @@ test.describe('Blueprint Store — Group Drag, Overlap, Export/Import & Ungroup'
     await rackPage.waitForTimeout(500);
 
     const ungroupBtn = rackPage.locator('button', { hasText: 'Ungroup' });
-    const ungroupVisible = await ungroupBtn.isVisible({ timeout: 3000 }).catch(() => false);
-    const ungroupDisabled = await ungroupBtn.isDisabled().catch(() => true);
-    console.log(`[TEST] Ungroup button visible: ${ungroupVisible}, disabled: ${ungroupDisabled}`);
 
-    if (!ungroupVisible || ungroupDisabled) {
-      console.log('[TEST] Ungroup not available — cannot test');
-      return;
-    }
+    // ANTES: si el botón no estaba o estaba deshabilitado, se escribía un
+    // mensaje y se salía del test con `return` → verde sin comprobar nada.
+    // Ahora se afirma. Si el botón no aparece porque la aplicación cambia, este
+    // test tiene que ponerse ROJO, que es su trabajo.
+    await expect(ungroupBtn, 'tras inyectar un grupo debe poder deshacerse el grupo').toBeVisible({
+      timeout: 5000,
+    });
+    await expect(ungroupBtn, 'el botón de deshacer grupo no debe estar deshabilitado').toBeEnabled();
 
     await ungroupBtn.click({ force: true });
     await rackPage.waitForTimeout(2000);
 
     const containersAfter = await rackPage.locator(STRUCTURAL_SEL).count();
-    console.log(`[TEST] After ungroup: ${containersAfter} structural`);
 
     expect(containersAfter).toBeLessThan(containersBefore);
   });

@@ -106,23 +106,30 @@ Todavía **no sé por qué**. Mi sospecha es que el programa no anota el nuevo t
 "punto limpio" al reiniciar, pero **suspuesta no es lo mismo que comprobado**, así que no
 lo doy por cierto.
 
-### 3.3 Las tres pruebas que "pasaban" sin comprobar nada
+### 3.3 Las pruebas que "pasaban" sin comprobar nada
 
-Buena noticia: **esto ya está resuelto**. Antes, tres pruebas envolvían su comprobación
-en un `try/catch` que, si fallaba, escribía un mensaje y seguía tan tranquilo. Eso significa que
-daban igual de "bien" tanto si la función servía como si estaba rota.
+Buena noticia: **esto ya está resuelto en toda la suite de navegador**, no solo en las tres
+primeras. Antes, los tests envolvían su comprobación central en un `try/catch` que, si
+fallaba, escribía un mensaje y seguía tan tranquilo. Eso significa que daban igual de
+"bien" tanto si la función servía como si estaba rota.
 
-Descubrí además que **el fallo era de las pruebas, no de la aplicación**: escribían el
-texto en un trozo de memoria que ya no estaba en pantalla,así que la aplicación nunca se enteraba de que la habías editado. Por eso el cartel de "cambios sin guardar" no aparecía
-"nunca": **nunca le llegaban los cambios**.
+Lo que había debajo era peor de lo que parecía:
+
+- Los de humo escribían el texto en un trozo de memoria que **ya no estaba en pantalla**, así
+  que la aplicación nunca se enteraba de que la habías editado. Por eso el cartel de "cambios
+  sin guardar" no aparecía nunca: nunca le llegaban los cambios.
+- **Una aserción que no podía fallar**: `expect(ancho_del_anillo).toBeGreaterThanOrEqual(0)`.
+  Cualquier número es mayor o igual que cero. Ese test daba igual de bueno con el anillo de
+  foco roto que con el correcto.
+- **Una exportación entera que nunca ocurría**: el test de exportar a `.acepack` escribía "no
+  se ha descargado nada" y salía con `return`. Es decir, llevaba tiempo en verde **sin
+  exportar nunca**.
 
 Ahora:
 
-- **2 pruebas afirman de verdad y pasan.** Una comprueba que al escribir aparece el
-  cartel de cambios sin guardar y que al guardar desaparece; la otra comprueba que al
-  recargar la página sale el aviso de "¿seguro?". Esta última **nunca se había comprobado
-  de verdad** y funciona.
-- **3 pruebas quedan marcadas como "pendiente"**, con el motivo escrito dentro del propio
+- **7 pruebas afirman de verdad y pasan**, entre ellas la de exportar/importar grupo y la del
+  anillo de foco.
+- **7 quedan marcadas como "pendiente"**, cada una con su motivo escrito dentro del propio
   archivo. Salen como *pendiente* en el informe y **no pueden pasar por buenas**.
 
 ### 3.4 Una prueba en rojo en la barra de herramientas
@@ -185,7 +192,8 @@ Lo que queda en rojo en el navegador, con lo medido:
 - **9** del editor de conexiones (3.5) — causa sin diagnosticar.
 - **3** de la barra de herramientas — piden cosas en un rack que arranca vacío.
 - **1** del rack — verificada como anterior a todo este trabajo.
-- **3** de los de humo, marcadas como *pendiente* con su motivo escrito (3.3).
+- **7** marcadas como *pendiente* con su motivo escrito (3.3). No son rojas: son medidas y
+  están declaradas como lo que son.
 
 ---
 
