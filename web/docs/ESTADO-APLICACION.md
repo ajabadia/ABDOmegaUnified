@@ -130,11 +130,22 @@ Ahora:
 Fallan al pedir que aparezcan cosas en un módulo vacío. Comportamiento real sin
 investigar.
 
-### 3.5 Una prueba en rojo en el editor de conexiones
+### 3.5 El editor de conexiones — **arreglado en parte**
 
-Recién ejecutada (nunca lo había estado). Al abrir un plano de ejemplo aparecen **2
-puntos de conexión donde deberían aparecer 4**. O el plano no trae los controles que la
-prueba espera, o el programa está dibujando la mitad. No lo he investigado.
+Al ejecutar por fin estas pruebas encontré que fallaban **todas** (22). La causa era de las
+pruebas, no de la aplicación:
+
+- Las pruebas declaraban dos "jacks" (conexiones de audio) en el manifiesto pero **sin
+  dibujarlos en el rack**. Un tirador de conexión necesita una posición en pantalla, y
+  sin dibujar no la hay: solo aparecían 2 de 4.
+- Además, **21 de esas pruebas leían una lista vacía sin avisar**. Buscaban un dato
+  interno de la aplicación por un nombre que ya no existe, y cuando no lo encontraban
+  devolvían "nada" en silencio. Es decir: no estaban comprobando nada.
+
+**Resultado: de 0 pruebas en verde a 13.** Quedan **9 en rojo**, todas del mismo tipo:
+intentan pasar el ratón por encima de la línea de conexión o pincharla para
+borrarla, y el elemento no aparece. **No está diagnosticado.** Puede ser que el
+ratón no alcance la línea, o que la línea no se dibuje; todavía no lo he medido.
 
 ### 3.6 Una prueba en rojo que no es mía
 
@@ -174,7 +185,8 @@ antigua. **No subo nada a GitHub sin que me lo digas expresamente.**
 
 1. **Investigar por qué "Reset Workspace" deja el documento sucio** (3.2). Es un fallo
    real que afecta al uso diario.
-2. **Mirar por qué el editor de conexiones dibuja la mitad de los puntos** (3.5).
+2. **Acabar con las 9 pruebas del editor de conexiones** que quedan en rojo (3.5). Ahora
+   fallan por un motivo distinto y ya se pueden investigar de verdad.
 3. **Ejecutar las 5 pruebas de navegador que quedan** (3.7).
 4. **Decidir qué hacemos con `ABDOmegaEditor`** (ver sección 8).
 
