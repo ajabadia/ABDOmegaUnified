@@ -23,9 +23,13 @@ import {
   Shield,
   History,
 } from 'lucide-react';
-import type { HistoryEntry, HistoryEventType } from '@/omega-ui-core/types/history';
+import type { HistoryEntry, HistoryEventType, HistoryState } from '@/omega-ui-core/types/history';
 import type { HistoryEntry as BatchHistoryEntry } from '@/features/manifest-editor/hooks/useBatchHistory';
 import { BATCH_VARIANT_TIMELINE } from '@/features/manifest-editor/hooks/useBatchHistory';
+import {
+  countUnsavedChanges,
+  isEntryUnsaved
+} from '@/features/manifest-editor/utils/historySavePoint';
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
@@ -77,6 +81,14 @@ export interface UndoTimelinePopoverProps {
   future: HistoryEntry[];
   /** Batch history entries (visibility/lock/group operations) */
   batchEntries?: BatchHistoryEntry[];
+  /**
+   * Historial completo del documento activo.
+   *
+   * Se pasa entero (y no solo `past`/`future`) porque el punto de guardado
+   * vive en `history.lastSavedIndex` y el timeline necesita derivar de él
+   * qué cambios siguen sin guardar.
+   */
+  history?: HistoryState | undefined;
   /** Undo a batch history entry by index (0 = most recent) */
   onUndoBatchEntry?: ((index: number) => void) | undefined;
   /** Jump to a specific past entry by index */
@@ -99,6 +111,7 @@ export default function UndoTimelinePopover({
   past,
   future,
   batchEntries = [],
+  history,
   onUndoBatchEntry,
   onUndoTo,
   onUndo,
@@ -205,6 +218,12 @@ export default function UndoTimelinePopover({
   const pastReversed = [...past].reverse();
   const hasBatchEntries = batchEntries.length > 0;
 
+  // El punto de guardado se lee del historial real. Si no viene `history`
+  // (tests antigos, o un consumidor que aún no lo pase) no se marca nada:
+  // es una mejora puramente aditiva y no debe romper a los callers.
+  const savePoint: HistoryState | undefined = history ?? { past, future, lastSavedIndex: past.length };
+  const unsavedCount = countUnsavedChanges(savePoint);
+
   // Compute global index offsets for each section
   const pastOffset = 0;
   const futureOffset = pastReversed.length;
@@ -216,7 +235,7 @@ export default function UndoTimelinePopover({
       className="fixed z-[300] w-[280px] max-h-[340px] flex flex-col rounded-xs border wb-outline wb-surface backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
       style={{ bottom: position.bottom, right: position.right }}
     >
-      <HistoryHeader totalSteps={totalSteps} />
+      <HistoryHeader totalSteps={totalSteps} unsavedCount={unsavedCount} />
 
       {/* LIST */}
       <div
@@ -228,21 +247,40 @@ export default function UndoTimelinePopover({
           <EmptyHistoryState />
         )}
 
-        {pastReversed.map((entry, revIdx) => (
-          <HistoryEntry
-            key={entry.id}
-            entry={entry}
-            isCurrent={revIdx === 0}
-            globalIdx={pastOffset + revIdx}
-            focusedIndex={focusedIndex}
-            onClick={() => {
-              onUndoTo(past.length - 1 - revIdx);
-              onClose();
-            }}
-            onHover={setFocusedIndex}
-            actionLabel="Undo to"
-          />
-        ))}
+        {pastReversed.map((entry, revIdx) => {
+          // `revIdx` cuenta desde el más reciente; el índice real dentro de
+          // `past` es el que usa `history` para decidir si es un cambio sin
+          // guardar.
+          const realIdx = past.length - 1 - revIdx;
+          const unsaved = isEntryUnsaved(savePoint, realIdx);
+          return (
+            <React.Fragment key={entry.id}>
+              {/* Separador en el punto de guardado: marca de dónde salen los
+                  cambios sin guardar. */}
+              {unsaved && realIdx === Math.min(savePoint.lastSavedIndex, past.length - 1) && (
+                <SectionDivider
+                  show
+                  label={`Saved · ${unsavedCount} unsaved`}
+                  opacity="text-amber-400/60"
+                  color="bg-amber-400/20"
+                />
+              )}
+              <HistoryEntry
+                entry={entry}
+                isCurrent={revIdx === 0}
+                isUnsaved={unsaved}
+                globalIdx={pastOffset + revIdx}
+                focusedIndex={focusedIndex}
+                onClick={() => {
+                  onUndoTo(realIdx);
+                  onClose();
+                }}
+                onHover={setFocusedIndex}
+                actionLabel="Undo to"
+              />
+            </React.Fragment>
+          );
+        })}
 
         <SectionDivider
           show={future.length > 0 && past.length > 0}
@@ -298,17 +336,28 @@ export default function UndoTimelinePopover({
 
 // ── Sub-components ────────────────────────────────────────────────────────
 
-/** Header with History icon and step count */
-function HistoryHeader({ totalSteps }: { totalSteps: number }) {
+/** Header with History icon, step count and unsaved-changes badge */
+function HistoryHeader({ totalSteps, unsavedCount }: { totalSteps: number; unsavedCount: number }) {
   return (
     <div className="flex items-center justify-between px-3 py-1.5 border-b wb-outline">
       <div className="flex items-center gap-1.5">
         <History className="w-3 h-3 text-primary" />
         <span className="text-[8px] font-black uppercase tracking-[0.15em] wb-text">History</span>
       </div>
-      <span className="text-[7px] font-mono text-white/30">
-        {totalSteps} step{totalSteps !== 1 ? 's' : ''}
-      </span>
+      <div className="flex items-center gap-2">
+        {unsavedCount > 0 && (
+          <span
+            data-testid="unsaved-badge"
+            className="text-[7px] font-mono text-amber-400/90"
+            title={`${unsavedCount} change${unsavedCount !== 1 ? 's' : ''} not saved yet`}
+          >
+            {unsavedCount} unsaved
+          </span>
+        )}
+        <span className="text-[7px] font-mono text-white/30">
+          {totalSteps} step{totalSteps !== 1 ? 's' : ''}
+        </span>
+      </div>
     </div>
   );
 }
@@ -337,9 +386,11 @@ function SectionDivider({ show, label, opacity = 'text-white/20', color = 'bg-wh
 }
 
 /** Single history entry row (past or future) */
-function HistoryEntry({ entry, isCurrent, globalIdx, focusedIndex, onClick, onHover, actionLabel, dimmed }: {
+function HistoryEntry({ entry, isCurrent, isUnsaved = false, globalIdx, focusedIndex, onClick, onHover, actionLabel, dimmed }: {
   entry: HistoryEntry;
   isCurrent: boolean;
+  /** This entry happened after the last save and is not on disk yet */
+  isUnsaved?: boolean;
   globalIdx: number;
   focusedIndex: number;
   onClick: () => void;
@@ -359,10 +410,11 @@ function HistoryEntry({ entry, isCurrent, globalIdx, focusedIndex, onClick, onHo
           ? 'bg-primary/10 border-l-2 border-primary cursor-default'
           : 'hover:bg-white/5 border-l-2 border-transparent cursor-pointer active:bg-white/10'
       }${dimmed ? ' opacity-50' : ''}`}
-      aria-label={isCurrent ? `Current: ${entry.label || entry.type.replace(/_/g, ' ')}` : `${actionLabel}: ${entry.label || entry.type.replace(/_/g, ' ')}`}
+      aria-label={`${isCurrent ? `Current${isUnsaved ? ', unsaved' : ''}` : `${actionLabel}${isUnsaved ? ', unsaved' : ''}`}: ${entry.label || entry.type.replace(/_/g, ' ')}`}
+      data-unsaved={isUnsaved ? 'true' : undefined}
     >
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-        isCurrent ? 'bg-primary shadow-[0_0_6px_rgba(0,242,255,0.5)]' : 'bg-white/20'
+        isCurrent ? 'bg-primary shadow-[0_0_6px_rgba(0,242,255,0.5)]' : isUnsaved ? 'bg-amber-400/70' : 'bg-white/20'
       }`} />
       <span className={`shrink-0 ${eventColor(entry.type)}`}>
         {eventIcon(entry.type)}

@@ -16,7 +16,7 @@ import { calculateManifestDiff, applyDiffEntry } from '../utils/manifestDiff';
 import type { ManifestDiffResult, DiffEntry } from '../types/diff';
 import type { DocumentOrchestrator } from '../types/document';
 import type { WorkbenchTabType } from '../types/workbench';
-import { compare, type Operation } from 'fast-json-patch';
+import { compare, getValueByPointer, type Operation } from 'fast-json-patch';
 
 interface HistoryDependencies {
   orchestrator: Pick<DocumentOrchestrator, 'pushHistory' | 'undo' | 'redo' | 'undoTo' | 'updateDocument' | 'documentsById'>;
@@ -35,6 +35,26 @@ interface HistoryDependencies {
     setLayoutMode: (mode: import('../types/workbench').WorkbenchLayoutMode) => void;
     setMultiSelectedNodes: (nodeIds: string[]) => void;
   };
+}
+
+/**
+ * A JSON Patch operation enriched with the value it replaced/removed.
+ * `from` is attached at push time (see pushHistoryEntry) because the source
+ * document is not reachable from the history entry later on.
+ */
+type HistoryPatchOp = Operation & { from?: unknown };
+
+/**
+ * Reads the pre-change value for a patch op without throwing.
+ * getValueByPointer raises on pointers whose parent is missing; a diff viewer
+ * must never break authoring because one entry holds an odd path.
+ */
+function readPatchSource(document: OMEGA_Manifest, op: Operation): unknown {
+  try {
+    return getValueByPointer(document, op.path);
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -67,11 +87,26 @@ export const useHistoryActions = ({
     const latestManifest = currentDoc?.manifest || manifest;
     const latestResources = currentDoc?.extraResources || [];
 
-    const manifestSnapshot = JSON.parse(JSON.stringify(latestManifest)) as OMEGA_Manifest;
+    // Snapshot del estado PRE-mutación que se guarda en el historial. Usa
+    // `structuredClone` y no un round-trip por JSON: este último borraba las
+    // claves con valor `undefined` (los tipos del manifiesto los declaran
+    // explícitamente, p. ej. `frames?: number | undefined`, y el tsconfig tiene
+    // `exactOptionalPropertyTypes: true`) y reventaba ante referencias cíclicas.
+    // Sin esto, el undo restauraría un manifiesto ya degradado aunque el
+    // reducer lo clonee bien. Ver `cloneManifest` en orchestratorReducer.ts.
+    const manifestSnapshot = structuredClone(latestManifest);
 
-    let patch: Operation[] | undefined;
+    let patch: HistoryPatchOp[] | undefined;
     if (prevManifestRef.current) {
-      patch = compare(prevManifestRef.current, latestManifest);
+      // The patch is computed FROM prevManifestRef.current, so the pre-change
+      // value is only available here. entry.manifest is the patch TARGET:
+      // reading op.path from it later yields the NEW value for `replace`, and
+      // undefined for `remove` (the path is already gone).
+      patch = compare(prevManifestRef.current, latestManifest).map((op) =>
+        op.op === 'remove' || op.op === 'replace'
+          ? { ...op, from: readPatchSource(prevManifestRef.current!, op) }
+          : op
+      );
     }
     prevManifestRef.current = manifestSnapshot;
 
@@ -220,7 +255,7 @@ export const useHistoryActions = ({
     const entry = doc.history.past[index];
     const pastSnapshot = entry.manifest;
 
-    const storedPatch = entry.metadata?.patch as Operation[] | undefined;
+    const storedPatch = entry.metadata?.patch as HistoryPatchOp[] | undefined;
     if (storedPatch && storedPatch.length > 0) {
       return {
         entries: storedPatch.map((op) => ({
@@ -229,7 +264,7 @@ export const useHistoryActions = ({
           changeType: op.op === 'add' ? 'added' as const : op.op === 'remove' ? 'removed' as const : 'modified' as const,
           fieldPath: op.path,
           description: `${op.op} ${op.path}`,
-          before: 'from' in op ? undefined : undefined,
+          before: 'from' in op ? op.from : undefined,
           after: 'value' in op ? op.value : undefined
         })),
         summary: {

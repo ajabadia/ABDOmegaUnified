@@ -1108,3 +1108,124 @@ describe('UndoTimelinePopover — snapshots', () => {
     expect(container.firstChild).toMatchSnapshot();
   });
 });
+
+// ── Unsaved changes (lastSavedPoint wired through history) ───────────────
+
+describe('UndoTimelinePopover — unsaved changes', () => {
+  const pastOf = (n: number) =>
+    Array.from({ length: n }, (_, i) => createEntry({ id: `e${i}`, label: `Change ${i}` }));
+
+  const renderWithHistory = (
+    past: HistoryEntry[],
+    lastSavedIndex: number,
+    future: HistoryEntry[] = []
+  ) =>
+    render(
+      <UndoTimelinePopover
+        {...BASE_PROPS}
+        past={past}
+        future={future}
+        history={{ past, future, lastSavedIndex }}
+        triggerRef={createTriggerRef()}
+        isOpen={true}
+      />
+    );
+
+  it('no muestra el contador cuando todo está guardado', () => {
+    const past = pastOf(3);
+    renderWithHistory(past, past.length);
+
+    expect(screen.queryByTestId('unsaved-badge')).toBeNull();
+    expect(screen.queryAllByText(/unsaved/)).toHaveLength(0);
+  });
+
+  it('muestra cuántos cambios siguen sin guardar', () => {
+    // 5 entradas, punto de guardado en 3 → 2 sin guardar.
+    renderWithHistory(pastOf(5), 3);
+
+    const badge = screen.getByTestId('unsaved-badge');
+    expect(badge.textContent).toBe('2 unsaved');
+  });
+
+  it('usa el singular para un único cambio sin guardar', () => {
+    renderWithHistory(pastOf(4), 3);
+    expect(screen.getByTestId('unsaved-badge').textContent).toBe('1 unsaved');
+  });
+
+  it('marca solo las entradas posteriores al punto de guardado', () => {
+    const past = pastOf(5);
+    const { container } = renderWithHistory(past, 3);
+
+    const marked = Array.from(container.querySelectorAll('[data-unsaved="true"]'));
+    // past[4] y past[3] son los dos cambios posteriores al guardado.
+    expect(marked).toHaveLength(2);
+    expect(marked[0].textContent).toContain('Change 4');
+    expect(marked[1].textContent).toContain('Change 3');
+    // Las ya guardadas no se marcan.
+    expect(marked.some((el) => el.textContent?.includes('Change 2'))).toBe(false);
+  });
+
+  it('cuenta todas las entradas como sin guardar si nunca se guardó', () => {
+    const past = pastOf(3);
+    const { container } = renderWithHistory(past, -1);
+
+    expect(screen.getByTestId('unsaved-badge').textContent).toBe('3 unsaved');
+    expect(container.querySelectorAll('[data-unsaved="true"]')).toHaveLength(3);
+  });
+
+  it('el separador de guardado aparece justo en el punto de corte', () => {
+    const { container } = renderWithHistory(pastOf(5), 3);
+    // El separador dice "Saved · N unsaved"; el badge de la cabecera solo
+    // dice "N unsaved", así que hay que buscar el que mentions ambos.
+    const divider = Array.from(container.querySelectorAll('span')).find((el) =>
+      el.textContent?.includes('Saved') && el.textContent?.includes('unsaved')
+    );
+    expect(divider).not.toBeUndefined();
+    expect(divider?.textContent).toContain('2 unsaved');
+
+    // Y debe quedar justo antes de la PRIMERA entrada sin guardar. El orden
+    // es: [Change 4 sin guardar] · separador · [Change 3 sin guardar] · guardadas.
+    const rows = Array.from(
+      container.querySelector('.overflow-y-auto')!.children
+    ).map((el) => ({
+      isDivider: el.tagName === 'DIV',
+      unsaved: el.hasAttribute('data-unsaved')
+    }));
+    expect(rows).toEqual([
+      { isDivider: false, unsaved: true }, // Change 4
+      { isDivider: true, unsaved: false }, // separador "Saved"
+      { isDivider: false, unsaved: true }, // Change 3
+      { isDivider: false, unsaved: false }, // Change 2 (guardada)
+      { isDivider: false, unsaved: false }, // Change 1
+      { isDivider: false, unsaved: false } // Change 0
+    ]);
+  });
+
+  it('el aria-label de una entrada sin guardar lo indica', () => {
+    const past = pastOf(3);
+    renderWithHistory(past, 1);
+
+    // Con el guardado en 1, la entrada 1 es la primera sin guardar y la 0 no.
+    expect(screen.getByLabelText('Undo to, unsaved: Change 1')).not.toBeNull();
+    expect(screen.getByLabelText('Undo to: Change 0')).not.toBeNull();
+    // La vigente (revIdx 0) se anuncia como "Current", no como "Undo to".
+    expect(screen.getByLabelText('Current, unsaved: Change 2')).not.toBeNull();
+  });
+
+  it('funciona sin la prop history (sin marcadores), por compatibilidad', () => {
+    // Los callers antiguos no pasan `history`; no debe romperse ni mentir.
+    const past = pastOf(3);
+    const { container } = render(
+      <UndoTimelinePopover
+        {...BASE_PROPS}
+        past={past}
+        triggerRef={createTriggerRef()}
+        isOpen={true}
+      />
+    );
+
+    expect(screen.queryByTestId('unsaved-badge')).toBeNull();
+    expect(container.querySelectorAll('[data-unsaved="true"]')).toHaveLength(0);
+    expect(screen.getByLabelText('Current: Change 2')).not.toBeNull();
+  });
+});

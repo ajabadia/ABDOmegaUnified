@@ -14,6 +14,15 @@ if errorlevel 1 (
     exit /b 1
 )
 
+:: 0b. Guardia pre-arranque: node_modules integro.
+:: Sin historial, un package.json corrupto (bytes nulos) rompe la resolucion
+:: de modulos y el dev server no arranca. Fallar aqui, no 30s despues.
+call "%~dp0..\scripts\check_node_modules.cmd"
+if errorlevel 1 (
+    echo [ERROR] node_modules corrupto - abortando arranque.
+    exit /b 1
+)
+
 :: Next.js solo permite UN 'next dev' por proyecto (lockfile .next/dev).
 :: El Manifest Editor es una RUTA del mismo servidor (/en/editor), no un
 :: servidor aparte. Si el dev server de 6789 ya esta corriendo, no se

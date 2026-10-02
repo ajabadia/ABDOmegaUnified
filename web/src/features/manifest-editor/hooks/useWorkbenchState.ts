@@ -174,12 +174,6 @@ export function useWorkbenchState() {
         },
         syncSnapshot: (params: SnapshotParams, manifest: OMEGA_Manifest) => {
           bridgeRef.current?.syncSnapshot(params, manifest);
-        },
-        requestHealth: () => {
-          // Internal call via bridge
-        },
-        resync: () => {
-          // Manual trigger
         }
       }
     }),

@@ -13,6 +13,7 @@
 import { useCallback } from 'react';
 import type { OrchestratorState, OrchestratorAction } from '../../types/document';
 import { BlueprintValidator } from '@/omega-ui-core/utils/blueprintValidator';
+import { nextHistoryEntryId } from '@/omega-ui-core/utils/historyEntryId';
 import { getService } from '@/services/globalEventBus';
 import { SERVICE_TOKENS } from '@/omega-ui-core/di';
 
@@ -55,7 +56,7 @@ export function useDocumentTransactions(
         type: 'PUSH_HISTORY',
         id,
         entry: {
-          id: `tx_${Date.now()}`,
+          id: nextHistoryEntryId('tx'),
           type: 'CONTENT_CHANGE',
           label: doc.activeTransaction.label,
           timestamp: Date.now(),

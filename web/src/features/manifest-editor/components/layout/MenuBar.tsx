@@ -42,6 +42,14 @@ export interface MenuBarProps {
   onToggleTour?: (() => void) | undefined;
   onOpenGallery?: (() => void) | undefined;
   onImportDistilledJson?: (() => void) | undefined;
+  /** Abre un documento nuevo. Ver `utils/newDocument.ts`. */
+  onNewDocument?: (() => void) | undefined;
+  /**
+   * Abre un proyecto `.omega`. Antes se llamaba a través del global
+   * `window.__omegaLoadProject`; ahora es una prop como cualquier otra, y por
+   * tanto visible al type-checker y testeable sin `window`.
+   */
+  onLoadOmegaProject?: (() => void | Promise<void>) | undefined;
   onLinkDirectory?: (() => void) | undefined;
   isDirectoryLinked?: boolean | undefined;
   gridVisible?: boolean | undefined;

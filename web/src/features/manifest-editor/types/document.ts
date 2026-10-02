@@ -61,7 +61,19 @@ export type OrchestratorAction =
 export interface DocumentOrchestrator {
   documentsById: Record<string, DocumentState>;
   activeDocumentId: string;
-  activeDocument: DocumentState;
+  /**
+   * El documento activo, o `undefined` si no hay ninguno.
+   *
+   * Opcional a propósito. El reducer garantiza que `documentsById` nunca queda
+   * vacío, pero esa garantía vive en el reducer: TypeScript no puede
+   * comprobarla desde aquí, y declararlo `DocumentState` hacía que el tipo
+   * afirmara algo que el sistema de tipos no podía sostener. Un índice de
+   * `Record<string, DocumentState>` devuelve `DocumentState` aunque la clave
+   * no exista, así que el desmentiro pasaba inadvertido.
+   *
+   * La resuelve `useManifestEditor`, que es su único consumidor.
+   */
+  activeDocument: DocumentState | undefined;
   openDocument: (id: string, manifest: OMEGA_Manifest) => void;
   closeDocument: (id: string) => void;
   updateDocument: (id: string, updates: Partial<Omit<DocumentState, 'manifest' | 'history'>> & { manifest?: Partial<OMEGA_Manifest> }) => void;

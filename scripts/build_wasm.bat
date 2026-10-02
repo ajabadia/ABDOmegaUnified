@@ -11,6 +11,19 @@ set BINDINGS_INC=%~dp0..\engine\bindings
 
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 
+REM ================================================================
+REM  Notas de toolchain:
+REM  - -Wl,--strip-all: reduce el tamano (quita la tabla de simbolos) SIN
+REM    tocar los exports del ABI (omega_get_contract/init/process/...) ni los
+REM    imports host (env.omega_*). NO usar -s STRIP_ALL=1: ese flag SI elimina
+REM    los exports omega_* y rompe el runtime (docs guia_maestra WASM JUCE).
+REM  - Escape hatch (futuros modulos): si un modulo llega a necesitar punteros
+REM    a funcion (llamadas indirectas), emcc puede empezar a emitir imports de
+REM    tabla (env.__indirect_function_table) que WAMR no satisface. En ese caso
+REM    compilar ESE modulo con -s STANDALONE_WASM=1 y -s EXPORTED_FUNCTIONS
+REM    explicito (binario autocontenido con su propia memoria/tabla).
+REM ================================================================
+
 echo [1/8] Verificando entorno Emscripten (em++)...
 set EMXX=em++
 where em++ >nul 2>nul
@@ -28,30 +41,30 @@ if %errorlevel% neq 0 (
 )
 
 echo [2/8] Compilando modulo preexistente midi_in...
-%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\midi_in\midi_in.cpp" -o "%OUTPUT_DIR%\midi_in.wasm"
+%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -Wl,--strip-all -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\midi_in\midi_in.cpp" -o "%OUTPUT_DIR%\midi_in.wasm"
 copy /Y "%OUTPUT_DIR%\midi_in.wasm" "%~dp0..\modules\midi_in\midi_in.wasm" >nul
 
 echo [3/8] Compilando modulo preexistente midi_trigger...
-%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\midi_trigger\midi_trigger.cpp" -o "%OUTPUT_DIR%\midi_trigger.wasm"
+%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -Wl,--strip-all -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\midi_trigger\midi_trigger.cpp" -o "%OUTPUT_DIR%\midi_trigger.wasm"
 copy /Y "%OUTPUT_DIR%\midi_trigger.wasm" "%~dp0..\modules\midi_trigger\midi_trigger.wasm" >nul
 
 echo [4/8] Compilando modulo preexistente omega_lab_monitor...
-%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\omega_lab_monitor\omega_lab_monitor.cpp" -o "%OUTPUT_DIR%\omega_lab_monitor.wasm"
+%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -Wl,--strip-all -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\omega_lab_monitor\omega_lab_monitor.cpp" -o "%OUTPUT_DIR%\omega_lab_monitor.wasm"
 copy /Y "%OUTPUT_DIR%\omega_lab_monitor.wasm" "%~dp0..\modules\omega_lab_monitor\omega_lab_monitor.wasm" >nul
 
 echo [5/8] Compilando modulo midi_2_cv...
-%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\midi_2_cv\midi_2_cv.cpp" -o "%OUTPUT_DIR%\midi_2_cv.wasm"
+%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -Wl,--strip-all -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\midi_2_cv\midi_2_cv.cpp" -o "%OUTPUT_DIR%\midi_2_cv.wasm"
 copy /Y "%OUTPUT_DIR%\midi_2_cv.wasm" "%~dp0..\modules\midi_2_cv\midi_2_cv.wasm" >nul
 
 echo [6/8] Compilando modulo 440demo...
-%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\440demo\440demo.cpp" -o "%OUTPUT_DIR%\440demo.wasm"
+%EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -Wl,--strip-all -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\440demo\440demo.cpp" -o "%OUTPUT_DIR%\440demo.wasm"
 REM El host C++ carga el .wasm desde modules/<id>/ (junction host/Resources/modules) — sincronizar la copia canónica.
 copy /Y "%OUTPUT_DIR%\440demo.wasm" "%~dp0..\modules\440demo\440demo.wasm" >nul
 
 echo [7/8] Compilando cadena de voz P0: vco, vcf, adsr, vca, lfo...
 for %%M in (vco vcf adsr vca lfo) do (
     echo   - %%M
-    %EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\%%M\%%M.cpp" -o "%OUTPUT_DIR%\%%M.wasm"
+    %EMXX% -O3 -s WASM=1 -s SIDE_MODULE=1 -Wl,--strip-all -I"%ENGINE_INC%" -include "%BINDINGS_INC%\wasm_compat.h" "%~dp0..\modules\%%M\%%M.cpp" -o "%OUTPUT_DIR%\%%M.wasm"
     if errorlevel 1 (
         echo [ERROR] Fallo la compilacion del modulo %%M.
         exit /b 1
@@ -78,6 +91,11 @@ if %errorlevel% neq 0 (
 node "%~dp0verify_voice_chain_runtime.mjs"
 if %errorlevel% neq 0 (
     echo [ERROR] La verificacion runtime de la cadena de voz fallo - revisa modules\{vco,vcf,adsr,vca,lfo}\*.cpp.
+    exit /b 1
+)
+node "%~dp0verify_rack_worklet_runtime.mjs"
+if %errorlevel% neq 0 (
+    echo [ERROR] La verificacion runtime del rack en web fallo - revisa web\public\worklets\rack.worklet.js.
     exit /b 1
 )
 

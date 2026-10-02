@@ -20,6 +20,30 @@ import { useDocumentDirtyWatcher } from './orchestrator/useDocumentDirtyWatcher'
 import { useDocumentTransactions } from './orchestrator/useDocumentTransactions';
 import { useHistoricalRestore } from './orchestrator/useHistoricalRestore';
 
+/**
+ * Resuelve el documento activo por su id.
+ *
+ * Existe como función pura y exportada por una razón concreta: es la línea
+ * que separa un tipo honesto de una mentira. Antes estaba escrito como
+ *
+ *     state.documentsById[activeDocumentId] || state.documentsById['primary']
+ *
+ * dentro del `useMemo`, y ese `||` hacía que el hook devolviera SIEMPRE un
+ * documento. El tipo `DocumentState` era entonces cierto por casualidad, no
+ * por contrato, y un `activeDocumentId` colgante pasaba desapercibido.
+ *
+ * Ahora devuelve `undefined` cuando el id no existe, que es lo que el tipo
+ * `DocumentState | undefined` promete. Ser una función pura la hace
+ * verificable con un estado inválido a propósito, cosa imposible de
+ * alcanzar a través del hook (el reducer no deja construir ese estado).
+ */
+export function resolveActiveDocument(
+  documentsById: Record<string, DocumentState>,
+  activeDocumentId: string
+): DocumentState | undefined {
+  return documentsById[activeDocumentId];
+}
+
 export const useDocumentOrchestrator = () => {
   const [state, dispatch] = useReducer(orchestratorReducer, initialOrchestratorState);
 
@@ -38,8 +62,14 @@ export const useDocumentOrchestrator = () => {
 
   // ── Derived state ──────────────────────────────────────────────────
   const activeDocumentId = state.activeDocumentId;
+
+  // Sin el `|| state.documentsById['primary']` de antes. Ese fallback era
+  // una segunda fuente de verdad disfrazada de red de seguridad: si
+  // `activeDocumentId` no era ninguna clave, `primary` respondía igual y el
+  // error quedaba enterrado. Con el invariante del reducer una búsqueda
+  // fallida ya no debería ocurrir, y si ocurre quiero que se vea.
   const activeDocument = useMemo(
-    () => state.documentsById[activeDocumentId] || state.documentsById['primary'],
+    () => resolveActiveDocument(state.documentsById, activeDocumentId),
     [state.documentsById, activeDocumentId],
   );
 
@@ -105,7 +135,6 @@ export const useDocumentOrchestrator = () => {
       commitTransaction,
       abortTransaction,
       restoreHistoricalRevision,
-      primaryDocument: activeDocument,
     }),
     [
       state.documentsById,

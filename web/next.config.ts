@@ -1,3 +1,4 @@
+import path from 'node:path';
 import createNextIntlPlugin from 'next-intl/plugin';
 import type { NextConfig } from "next";
 
@@ -6,6 +7,18 @@ const withNextIntl = createNextIntlPlugin(
 );
 
 const nextConfig: NextConfig = {
+  // Este proyecto (`web/`) es autónomo: `node_modules`, `package.json`,
+  // `package-lock.json`, `app/`, `src/` y `public/` están todos aquí dentro,
+  // no hay dependencias `file:`/`workspace:`/`link:`, y el alias `@/*` solo
+  // apunta a `./src/*` y `./*`. No se referencia nada por encima de `web/`.
+  //
+  // Aun así, sin esto Next.js sube a buscar lockfiles hacia arriba y encuentra
+  // `pnpm-workspace.yaml` + `pnpm-lock.yaml` en `D:\desarrollos\ABDSynths`,
+  // donde viven una docena de proyectos hermanos. Eso convertía el directorio
+  // padre en la raíz del proyecto, y Turbopack pasaba a reportar sus rutas
+  // como `[project]/ABDOmegaUnified/web/...` en lugar de `[project]/...`.
+  outputFileTracingRoot: path.join(__dirname),
+
   images: {
     remotePatterns: [
       {

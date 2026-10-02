@@ -46,6 +46,10 @@ interface HeaderProps {
   onToggleTour?: (() => void) | undefined;
   onOpenGallery?: (() => void) | undefined;
   onImportDistilledJson?: (() => void) | undefined;
+  /** Abre un documento nuevo. Ver `utils/newDocument.ts`. */
+  onNewDocument?: (() => void) | undefined;
+  /** Abre un proyecto `.omega`. Antes llegaba vía `window.__omegaLoadProject`. */
+  onLoadOmegaProject?: (() => void | Promise<void>) | undefined;
   onLinkDirectory?: (() => void) | undefined;
   isDirectoryLinked?: boolean;
   isSplit?: boolean;
@@ -128,6 +132,8 @@ export default function Header(props: HeaderProps) {
           onToggleTour={props.onToggleTour}
           onOpenGallery={props.onOpenGallery}
           onImportDistilledJson={props.onImportDistilledJson}
+          onNewDocument={props.onNewDocument}
+          onLoadOmegaProject={props.onLoadOmegaProject}
           onLinkDirectory={props.onLinkDirectory}
           isDirectoryLinked={props.isDirectoryLinked}
           windowStates={props.windowStates}

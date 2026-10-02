@@ -101,6 +101,7 @@ export const useSimulationBridge = (
         setLastSuccessfulSyncAt(Date.now());
         setPendingStructuralSync(false);
         setLastError(null);
+        setStatus('in-sync');
         console.log(`[BRIDGE] Sync Success: ${result.hash}`);
       } else {
         throw new Error('Deployment failed at runtime');

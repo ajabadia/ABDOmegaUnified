@@ -276,7 +276,6 @@ namespace {
         { "omega_get_block_size", (void*)omega_get_block_size, "()i", nullptr },
         { "omega_get_midi_protocol", (void*)omega_get_midi_protocol, "()i", nullptr },
         { "omega_publish_midi", (void*)omega_publish_midi, "(iiii)", nullptr },
-        { "omega_get_system_buffer", (void*)omega_get_system_buffer, "($)i", nullptr },
         { "omega_log_terminal", (void*)omega_log_terminal, "($$)", nullptr }
     };
 }

@@ -1,5 +1,6 @@
 /**
- * Runtime smoke test for the 4 OMEGA WASM modules.
+ * Runtime smoke test for the 9 OMEGA WASM modules (all but midi_2_cv,
+ * which has its own verify_midi_2_cv_runtime.mjs).
  *
  * Validates the exact path the user asked to check: that midi_in /
  * midi_trigger / omega_lab_monitor / 440demo instantiate without

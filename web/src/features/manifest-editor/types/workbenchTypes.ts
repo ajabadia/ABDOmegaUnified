@@ -55,6 +55,13 @@ export interface WorkbenchContainerLogic {
   setIsCommandPaletteOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isDirty: boolean;
   lastSavedTime: string | null;
+  /**
+   * `false` cuando el orquestador no tiene documento activo y `useManifestEditor`
+   * está sirviendo `DEFAULT_MANIFEST` como respaldo. El invariante del reducer
+   * lo hace inalcanzable; si se rompe, el contenedor lo pinta en vez de dejar
+   * que el usuario edite un manifiesto huérfano creyendo que es el suyo.
+   */
+  hasActiveDocument: boolean;
 
   // Grid
   gridVisible: boolean;
@@ -92,6 +99,13 @@ export interface WorkbenchContainerLogic {
   handleAddEntity: ReturnType<typeof useEntityCrud>['handleAddEntity'];
   handleDuplicateItem: ReturnType<typeof useEntityCrud>['handleDuplicateItem'];
   handleRemoveItem: ReturnType<typeof useEntityCrud>['handleRemoveItem'];
+  /**
+   * Abre un documento nuevo y lo activa. Es el único call site de
+   * `orchestrator.openDocument` en producción: sin él la app solo podía
+   * tener un documento, porque nada llamaba a la única acción que podía
+   * crear un segundo.
+   */
+  handleNewDocument: () => void;
 
   // Export
   handleExportOmegaRack: ReturnType<typeof useExportOperations>['handleExportOmegaRack'];
@@ -141,7 +155,11 @@ export interface WorkbenchContainerLogic {
   handleSendToBack: (id: string) => void;
   handleSaveAsBlueprintById: (id: string) => void;
 
-  setIsCellLibraryOpen: (open: boolean) => void;
+  // `setIsCellLibraryOpen` se eliminó de esta API: era un no-op (`(_open) => {}`)
+  // que solo existía para que el botón "Library" pareciera funcionar. El modal
+  // `UniversalCellLibraryModal` ya no está en el árbol, así que no hay nada que
+  // abrir. Cuando vuelva, `useWorkbenchModals` ya gestiona su propio estado
+  // local cuando no se le pase la prop.
 
   // Alignment ghost preview
   alignGhostItems: GhostItem[];

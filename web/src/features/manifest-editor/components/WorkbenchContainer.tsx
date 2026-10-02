@@ -16,6 +16,9 @@ import { useState, useCallback, useMemo } from 'react';
 import Header from './layout/Header';
 import { PreferencesModal } from '@/features/manifest-editor/components/settings/PreferencesModal';
 import WorkbenchFooter from './layout/WorkbenchFooter';
+import SessionRestoreNotice from './layout/SessionRestoreNotice';
+import DocumentTabBar from './layout/DocumentTabBar';
+import NoActiveDocumentNotice from './layout/NoActiveDocumentNotice';
 import CommandPalette from './layout/CommandPalette';
 import EditorModals from './modals/EditorModals';
 import VisualModulationMatrix from './modulation/VisualModulationMatrix';
@@ -59,6 +62,7 @@ export default function WorkbenchContainer({
     inspectorActiveSection, showNumericResize, showNumericRotate,
     setShowNumericResize, setShowNumericRotate,
     isCommandPaletteOpen, setIsCommandPaletteOpen, isDirty, lastSavedTime,
+    hasActiveDocument,
     gridVisible, showGuides,
     auditResult, totalErrors, totalWarnings,
     batchHistory, selectedItemId, isGalleryOpen,
@@ -72,18 +76,19 @@ export default function WorkbenchContainer({
     handleOpenConfig: _ignoredOpenConfig, handleOpenAudit, handleOpenCellEditor,
     onDeploy, onReset, handleToggleMiniMap, handleToggleGrid, handleToggleGuides,
     handleOpenNumericResize, handleOpenNumericRotate,
-    triggerUpload, handleImportDistilledJson,
+    triggerUpload, handleImportDistilledJson, handleLoadOmegaProject,
     handleCompareWithHistory, handleDiagnosticClick, handleCaptureViewState,
     handleNavigateToIssue, highlightPath,
     activeTab, watchdog,
     setActiveTool,
     handleCopyTransform, handlePasteTransform,
     handleMenuAlign, handleMenuDistribute,
+    handleNewDocument,
     handleCopy, handleCut, handlePaste, canCopy, canCut, canPaste,
     alignGhostItems, alignGhostType, handleGhostPreviewChange,
     isDragOver, dragHandlers, commandNodes, commandActions,
     handleCommandPaletteSelectNode, setIsGalleryOpen,
-    selectedItem, studioCell, availableBinds, setIsCellLibraryOpen,
+    selectedItem, studioCell, availableBinds,
     rackSections, handleToggleRackSection,
     handleDragRatio, handleDragPrimarySplitRatio, handleDragSecondarySplitRatio,
     handleDragRatioEnd,
@@ -207,6 +212,8 @@ export default function WorkbenchContainer({
           onToggleTour={() => actions.toggleUIState('isOnboardingOpen')}
           onOpenGallery={() => actions.toggleWindow('window_blueprints')}
           onImportDistilledJson={handleImportDistilledJson}
+          onNewDocument={handleNewDocument}
+          onLoadOmegaProject={handleLoadOmegaProject}
           windowStates={windowStates}
           onToggleWindow={actions.toggleWindow}
           simulationBridge={editor.simulationBridge}
@@ -254,6 +261,14 @@ export default function WorkbenchContainer({
           onSelect={handleApplyTemplate}
           onClose={() => setIsGalleryOpen(false)}
         />
+      )}
+
+      {/* Pestañas de DOCUMENTO. Va entre la cabecera y el área de trabajo, y
+          se oculta en modo zen junto al resto del cromo. Su razón de existir
+          es el botón de cierre: el reducer rechaza cerrar el último documento
+          y, sin esta barra, ese rechazo sería un no-op invisible. */}
+      {!state.isZenMode && (
+        <DocumentTabBar orchestrator={editor.orchestrator} onNewDocument={handleNewDocument} />
       )}
 
       <main className="flex-1 flex overflow-hidden">
@@ -403,7 +418,6 @@ export default function WorkbenchContainer({
               resolveAsset={editor.resolveAsset}
               onTriggerUpload={triggerUpload}
               onOpenConfig={_handleOpenConfig}
-              onOpenLibrary={() => setIsCellLibraryOpen(true)}
               onSelectBlueprint={handleSelectBlueprintFromPanel}
               onAltClickBlueprint={handleAltClickBlueprintFromPanel}
               onSelectUserBlueprint={handleSelectUserBlueprint}
@@ -476,6 +490,16 @@ export default function WorkbenchContainer({
         onSelectNode={handleCommandPaletteSelectNode}
       />
 
+      {/* Aviso de historial de deshacer descartado al restaurar. Va justo
+          encima del pie para leerse junto al botón de deshacer que queda
+          gris, y se oculta en modo zen como el resto del cromo. */}
+      {!state.isZenMode && <SessionRestoreNotice />}
+
+      {/* El aviso de "no hay documento activo" NO se oculta en modo zen: si
+          el editor está sirviendo un manifiesto de respaldo, el usuario tiene
+          que verlo esté donde esté. El resto del cromo sí se oculta. */}
+      {!hasActiveDocument && <NoActiveDocumentNotice />}
+
       {!state.isZenMode && (
         <WorkbenchFooter
           watchdogStatus={watchdog.status}
@@ -494,6 +518,7 @@ export default function WorkbenchContainer({
           activeTool={activeTool}
           historyPast={editor.orchestrator.documentsById[editor.activeId]?.history?.past || []}
           historyFuture={editor.orchestrator.documentsById[editor.activeId]?.history?.future || []}
+          history={editor.orchestrator.documentsById[editor.activeId]?.history}
           onUndo={editor.undo}
           onRedo={editor.redo}
           onUndoTo={editor.undoTo}

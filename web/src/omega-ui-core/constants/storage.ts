@@ -18,4 +18,13 @@ export const STORAGE_KEYS = {
   CELL_LIBRARY: `omega_${STORAGE_VERSION}_cell_library`,
   CLIPBOARD: `omega_${STORAGE_VERSION}_clipboard`,
   AUDIT_LOGS: `omega_${STORAGE_VERSION}_audit_logs`,
+  /**
+   * Marcador de migraciones de sesion YA aplicadas (array de ids).
+   *
+   * Vive en `STORAGE_VERSION` y no en una version nueva a proposito: subir la
+   * version renombraria TODAS las claves y dejaria orfanas las sesiones de
+   * todo el mundo. Una migracion debe arreglar datos viejos sin invalidar los
+   * que no tocan. Ver `utils/sessionMigrations.ts`.
+   */
+  SESSION_MIGRATIONS: `omega_${STORAGE_VERSION}_session_migrations`,
 };

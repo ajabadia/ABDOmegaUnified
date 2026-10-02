@@ -1,6 +1,7 @@
 import type { HistoryEntry } from '@/omega-ui-core/types/history';
 import type { OMEGA_Manifest } from '@/omega-ui-core/types/manifest';
 import type { IEventBus } from '@/omega-ui-core/di/EventBus';
+import { nextHistoryEntryId } from '@/omega-ui-core/utils/historyEntryId';
 import { emitEvent } from './globalEventBus';
 
 /**
@@ -18,6 +19,26 @@ class HistoryService {
   private maxEntries = 50;
 
   constructor(private eventBus?: IEventBus) {}
+
+  /**
+   * Limita `future` al mismo tope que `history`.
+   *
+   * `maxEntries` solo se aplicaba a `history` (en `push`), así que `future`
+   * crecía sin límite: `undo()` hacía `unshift` una entrada cada vez, y
+   * `restore()` sustitía ambos arrays por lo que trajera el `.omega` sin
+   * comprobar nada. Es el GROWTH real sin topar que ya no existe en el reducer
+   * del orchestrator (allí `past + future` es un invariante y `past` está
+   * topado).
+   *
+   * El recorte cae por la COLA porque `future[0]` es la entrada que replay el
+   * siguiente redo: descartar por la cabeza tiraría justo lo que el usuario
+   * está a punto de rehacer.
+   */
+  private capFuture() {
+    if (this.future.length > this.maxEntries) {
+      this.future = this.future.slice(0, this.maxEntries);
+    }
+  }
 
   /**
    * push
@@ -62,7 +83,11 @@ class HistoryService {
     const entryToRestore = this.history.pop()!;
     
     const currentState: HistoryEntry = {
-      id: `redo_${Date.now()}`,
+      // El prefijo `redo_` parece un error de nombre (esta entrada va a
+      // `future`, no es un redo), pero se conserva: aparece en logs de
+      // observabilidad y en snapshots ya guardados, y renombrarlo no arregla
+      // la colisión, que es lo que hace el generador.
+      id: nextHistoryEntryId('redo'),
       type: 'SNAPSHOT',
       label: 'Pre-Undo State',
       timestamp: Date.now(),
@@ -71,6 +96,7 @@ class HistoryService {
     };
 
     this.future.unshift(currentState);
+    this.capFuture();
 
     return { entry: entryToRestore, currentState };
   }
@@ -85,7 +111,7 @@ class HistoryService {
     const entryToRestore = this.future.shift()!;
     
     const currentState: HistoryEntry = {
-      id: `undo_${Date.now()}`,
+      id: nextHistoryEntryId('undo'),
       type: 'SNAPSHOT',
       label: 'Pre-Redo State',
       timestamp: Date.now(),
@@ -122,6 +148,13 @@ class HistoryService {
   restore(history: { past: HistoryEntry[]; future: HistoryEntry[] }) {
     this.history = history.past ? [...history.past] : [];
     this.future = history.future ? [...history.future] : [];
+    // Un `.omega` manipulado (o de una versión antigua) puede traer pilas más
+    // largas que el tope; se ajustan por igual que en push/undo para que el
+    // servicio no acepte memoria arbitraria del fichero.
+    if (this.history.length > this.maxEntries) {
+      this.history = this.history.slice(this.history.length - this.maxEntries);
+    }
+    this.capFuture();
   }
 }
 

@@ -6,7 +6,26 @@ import { SharedModuleCatalogService, type SharedModuleEntry } from '@/services/s
 import { manifestToTree } from '@/omega-ui-core/uca/ucaBridge';
 import { DEFAULT_RACK_HP } from '@/omega-ui-core/uca/panelGeometry';
 import { renderModuleHTML } from '@/features/rack-player/lib/renderModuleHTML';
+import RackKeyboard from '@/features/rack-player/components/RackKeyboard';
+import RackControls, { type RackParamDef } from '@/features/rack-player/components/RackControls';
 import { Plus, Trash2, FolderPlus, X } from 'lucide-react';
+
+// Binarios WASM del rack (los MISMOS que el host standalone usa, vía junction).
+// El worklet los instancia de forma nativa con el motor del navegador.
+const RACK_MODULE_IDS = [
+  'midi_2_cv', 'lfo', 'vco', 'vcf', 'adsr', 'vca',
+  'midi_in', 'midi_trigger', 'omega_lab_monitor',
+];
+
+// Tipado mínimo de Web MIDI (sin @types/webmidi instalado).
+interface WebMidiInputLike {
+  name?: string;
+  onmidimessage: ((e: { data?: number[] }) => void) | null;
+}
+interface WebMidiAccessLike {
+  inputs?: { values: () => IterableIterator<WebMidiInputLike> };
+  onstatechange: (() => void) | null;
+}
 
 export default function RackPlayerContainer() {
   // Catálogo de módulos (estado): se hidrata en vivo desde /api/modules al
@@ -29,11 +48,15 @@ export default function RackPlayerContainer() {
   const [isNewPatchModalOpen, setIsNewPatchModalOpen] = useState(false);
   const [newPatchName, setNewPatchName] = useState('');
 
-  // Audio: worklet del 440demo (wasm real vía AudioWorklet)
+  // Audio: worklet del rack modular (los 9 wasm reales vía AudioWorklet)
   const [audioStatus, setAudioStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [audioError, setAudioError] = useState('');
+  const [midiDeviceName, setMidiDeviceName] = useState('');
+  const [rackContracts, setRackContracts] = useState<Record<string, RackParamDef[]>>({});
+  const [rackDefaults, setRackDefaults] = useState<Record<string, Record<string, number>>>({});
   const audioCtxRef = useRef<AudioContext | null>(null);
   const workletNodeRef = useRef<AudioWorkletNode | null>(null);
+  const midiAccessRef = useRef<WebMidiAccessLike | null>(null);
 
   // Initial load
   useEffect(() => {
@@ -90,6 +113,49 @@ export default function RackPlayerContainer() {
     };
   }, []);
 
+  // Reenvía un evento MIDI (teclado virtual o dispositivo real) al worklet.
+  const sendMidi = (status: number, d1: number, d2: number) => {
+    try {
+      workletNodeRef.current?.port.postMessage({ type: 'midi', status, d1, d2 });
+    } catch { /* noop */ }
+  };
+
+  // Sliders de la UI → omega_on_param del módulo (por el contrato embebido).
+  // Vive a nivel de componente y no dentro de `startAudio` porque `RackControls`
+  // vive en el JSX: declarado allí dentro era código inalcanzable para la UI.
+  const setRackParam = (module: string, param: string, value: number) => {
+    try {
+      workletNodeRef.current?.port.postMessage({ type: 'setParam', module, param, value });
+    } catch { /* noop */ }
+  };
+
+  // Web MIDI opcional: si hay un teclado MIDI conectado, se reenvía al rack.
+  const setupWebMidi = async () => {
+    const nav = navigator as unknown as {
+      requestMIDIAccess?: () => Promise<WebMidiAccessLike>;
+    };
+    if (!nav.requestMIDIAccess) return;
+    try {
+      const access = await nav.requestMIDIAccess();
+      midiAccessRef.current = access;
+      const listInputs = () => [...(access.inputs?.values() ?? [])];
+      const inputs = listInputs();
+      if (inputs.length > 0) {
+        setMidiDeviceName(inputs.map((i) => i.name || 'MIDI').join(', '));
+      }
+      for (const input of inputs) {
+        input.onmidimessage = (e) => {
+          const [status, d1, d2] = e.data ?? [];
+          if (status === undefined) return;
+          sendMidi(status, d1, d2);
+        };
+      }
+      access.onstatechange = () => {
+        setMidiDeviceName(listInputs().map((i) => i.name || 'MIDI').join(', ') || '');
+      };
+    } catch { /* Web MIDI es opcional */ }
+  };
+
   const toggleAudioWorklet = async () => {
     if (isPlaying) {
       // STOP
@@ -97,12 +163,14 @@ export default function RackPlayerContainer() {
       try { await audioCtxRef.current?.close(); } catch { /* noop */ }
       workletNodeRef.current = null;
       audioCtxRef.current = null;
+      midiAccessRef.current = null;
+      setMidiDeviceName('');
       setAudioStatus('idle');
       setIsPlaying(false);
       return;
     }
 
-    // START: AudioContext + worklet del 440demo (wasm real)
+    // START: AudioContext + worklet del rack modular (wasm real)
     try {
       setAudioStatus('loading');
       setAudioError('');
@@ -112,8 +180,8 @@ export default function RackPlayerContainer() {
       const ctx = new AudioCtor();
       audioCtxRef.current = ctx;
 
-      await ctx.audioWorklet.addModule('/worklets/tone440.worklet.js');
-      const node = new AudioWorkletNode(ctx, 'tone440-processor', {
+      await ctx.audioWorklet.addModule('/worklets/rack.worklet.js');
+      const node = new AudioWorkletNode(ctx, 'rack-processor', {
         numberOfInputs: 0,
         numberOfOutputs: 1,
         outputChannelCount: [2],
@@ -122,6 +190,8 @@ export default function RackPlayerContainer() {
 
       node.port.onmessage = (e: MessageEvent) => {
         if (e.data?.type === 'ready') {
+          setRackContracts(e.data.contracts ?? {});
+          setRackDefaults(e.data.defaults ?? {});
           setAudioStatus('ready');
         } else if (e.data?.type === 'error') {
           setAudioStatus('error');
@@ -129,15 +199,22 @@ export default function RackPlayerContainer() {
         }
       };
 
-      // El worklet NO tiene fetch en su scope: el binario se carga aquí y se
-      // transfiere al worklet por postMessage (AudioWorkletGlobalScope).
-      const wasmRes = await fetch('/wasm/440demo.wasm');
-      if (!wasmRes.ok) throw new Error(`fetch /wasm/440demo.wasm -> HTTP ${wasmRes.status}`);
-      const wasmBytes = await wasmRes.arrayBuffer();
-      node.port.postMessage({ type: 'loadWasm', bytes: wasmBytes }, [wasmBytes]);
+      // El worklet NO tiene fetch en su scope: los binarios se cargan aquí y se
+      // transfieren al worklet por postMessage (AudioWorkletGlobalScope).
+      const modules: Record<string, ArrayBuffer> = {};
+      for (const id of RACK_MODULE_IDS) {
+        const wasmRes = await fetch(`/wasm/${id}.wasm`);
+        if (!wasmRes.ok) throw new Error(`fetch /wasm/${id}.wasm -> HTTP ${wasmRes.status}`);
+        modules[id] = await wasmRes.arrayBuffer();
+      }
+      node.port.postMessage(
+        { type: 'loadRack', modules, sampleRate: ctx.sampleRate },
+        Object.values(modules),
+      );
 
       node.connect(ctx.destination);
       await ctx.resume();
+      await setupWebMidi();
       setIsPlaying(true);
     } catch (e) {
       setAudioStatus('error');
@@ -171,10 +248,10 @@ export default function RackPlayerContainer() {
                 : 'bg-blue-600 text-white hover:bg-blue-500'
             }`}
           >
-            {isPlaying ? '⏸️ PAUSE AUDIO' : '▶️ START AUDIO WORKLET'}
+            {isPlaying ? '⏸️ PAUSE AUDIO' : '▶️ START RACK (WASM)'}
           </button>
 
-          {/* Estado del motor de audio (wasm 440 Hz) */}
+          {/* Estado del motor de audio (rack modular wasm) */}
           {audioStatus !== 'idle' && (
             <span
               className={`px-2 py-1 rounded text-[10px] font-mono border ${
@@ -186,7 +263,7 @@ export default function RackPlayerContainer() {
               }`}
             >
               {audioStatus === 'ready'
-                ? '🔊 440 Hz WASM LIVE'
+                ? `🔊 RACK WASM LIVE${midiDeviceName ? ` · MIDI: ${midiDeviceName}` : ''}`
                 : audioStatus === 'loading'
                   ? '⏳ CARGANDO WASM…'
                   : `⚠️ ${audioError}`}
@@ -247,6 +324,41 @@ export default function RackPlayerContainer() {
                 MÓDULOS: {rackModuleIds.length}
               </span>
             </div>
+          </div>
+
+          {/* Teclado virtual → MIDI → rack WASM */}
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] font-mono text-slate-400 tracking-wide uppercase">
+                Teclado virtual → midi_2_cv → vco/vcf/adsr/vca
+              </span>
+              <span className="text-[10px] font-mono text-slate-500">
+                {isPlaying ? '▶ motor activo' : '❚❚ motor en pausa'}
+              </span>
+            </div>
+            <RackKeyboard onMidi={sendMidi} disabled={!isPlaying} />
+          </div>
+
+          {/* Sliders de parámetros → omega_on_param.
+              Los contratos/defaults llegan del propio worklet (`ready`), así que los
+              sliders reflejan los valores que el motor usa de verdad. */}
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] font-mono text-slate-400 tracking-wide uppercase">
+                Controles de la cadena de voz → omega_on_param
+              </span>
+              <span className="text-[10px] font-mono text-slate-500">
+                {Object.keys(rackContracts).length > 0
+                  ? `${Object.keys(rackContracts).length} contratos cargados`
+                  : 'sin contrato hasta arrancar el motor'}
+              </span>
+            </div>
+            <RackControls
+              contracts={rackContracts}
+              defaults={rackDefaults}
+              onParam={setRackParam}
+              disabled={!isPlaying}
+            />
           </div>
 
           {loading ? (

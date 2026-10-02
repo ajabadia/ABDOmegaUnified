@@ -86,3 +86,13 @@ web/public/monaco/
 # pide no compartirlo y añadirlo aquí — hoy era un untracked que podía colarse
 # en cualquier commit.
 web/.vercel/
+
+# Estado local de la herramienta de desarrollo (Freebuff). Es un UUID de este
+# proyecto en esta máquina; no aporta nada al repo y cambia por equipo.
+.freebuff/
+
+# WAMR (WebAssembly Micro Runtime) clonado dentro del árbol de web/: 30 MB de
+# C de terceros. Verificado: ni `web/src`, ni `web/scripts`, ni `next.config.ts`
+# lo referencian — hoy es una copia local sin uso. Si algún día hace falta, lo
+# correcto es bajarlo en el paso de build, no vendorizarlo en el historial.
+web/wasm-runtime/

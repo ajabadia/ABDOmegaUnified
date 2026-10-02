@@ -20,6 +20,10 @@ const customJestConfig = {
   // Exclude E2E tests (Playwright), node_modules, and legacy code
   testPathIgnorePatterns: ['/node_modules/', '/legacy/', '/e2e/'],
 
+  // Polyfills de globals de navegador que jsdom no implementa
+  // (hoy `structuredClone`). Ver web/jest.setup.js.
+  setupFiles: ['<rootDir>/jest.setup.js'],
+
   // Verbose output for debugging
   verbose: true,
 
@@ -29,6 +33,13 @@ const customJestConfig = {
   // Redirect UniversalRenderer to mock in moduleNameMapper to bypass
   // SWC/import resolution mismatch with jest.mock + @/ aliases.
   moduleNameMapper: {
+    // Scripts/utilidades que viven en la RAÍZ del repo (fuera de web/).
+    // Los tests de Jest solo corren con rootDir=web/, asi que sin este alias
+    // habria que importar con rutas relativas brittle tipo '../../../../scripts/...'.
+    // El script se importa aqui para REUSAR su logica de clasificacion en vez
+    // de reimplementarla (una copia puede desviarse y dar verde sobre un arbol
+    // corrupto). Ver web/src/lib/__tests__/checkNodeModulesIntegrity.test.ts.
+    '^@scripts/(.*)$': '<rootDir>/../scripts/$1',
     // Matches resolved absolute paths like D:\...omega-ui-core\renderers\UniversalRenderer
     '[\\\\/]omega-ui-core[\\\\/]renderers[\\\\/]UniversalRenderer$':
       '<rootDir>/src/omega-ui-core/renderers/__mocks__/UniversalRenderer.tsx',

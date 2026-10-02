@@ -22,6 +22,7 @@ import { useDeployment } from './useDeployment';
 import { useHistoryActions } from './useHistoryActions';
 import { useClipboardActions } from './useClipboardActions';
 import { useToast } from '@/features/manifest-editor/components/ToastContainer';
+import { DEFAULT_MANIFEST } from '../constants/defaults';
 
 /**
  * OMEGA ERA 7.2.3 - MANIFEST EDITOR HOOK (ORCHESTRATOR)
@@ -40,13 +41,50 @@ export const useManifestEditor = (
   const activeDoc = orchestrator.activeDocument;
   const activeId = orchestrator.activeDocumentId;
 
-  const { 
-    manifest, 
-    contract, 
+  /**
+   * FRONTERA DE LA DOCUMENTACIÓN ACTIVA
+   *
+   * `activeDocument` es `DocumentState | undefined` y este es su ÚNICO
+   * consumidor. Aquí se decide una sola vez qué hacer cuando no hay documento,
+   * en vez de propagar `| undefined` por los cincuenta consumidores de
+   * `manifest` que tiene este hook debajo.
+   *
+   * Antes esto era `const { manifest, ... } = activeDoc` a pelo: sin documento
+   * activo, un TypeError reventaba el editor entero. Con el invariante del
+   * reducer (nunca se puede cerrar el último documento) este caso es
+   * inalcanzable, pero "inalcanzable" no es lo mismo que "imposible", y un
+   * fallo que tumba la app es peor que uno que se ve.
+   *
+   * Por eso el fallback NO es silencioso: `hasActiveDocument` queda a false y
+   * el contenedor pinta una franja. Un editor vacío con el aviso a la vista es
+   * un estado defendible; un editor vacío sin explicación parece un cuelgue.
+   *
+   * El objeto de respaldo se construye una vez por módulo, no en cada render.
+   */
+  const hasActiveDocument = activeDoc !== undefined;
+  const fallbackDoc = useMemo(
+    () => ({
+      id: 'no-active-document',
+      manifest: DEFAULT_MANIFEST,
+      contract: null,
+      wasmBuffer: null,
+      extraResources: [],
+      isDirty: false,
+      lastStableHash: '',
+      isInitializing: false,
+      history: { past: [], future: [], lastSavedIndex: -1 }
+    }),
+    []
+  );
+  const resolvedDoc = activeDoc ?? fallbackDoc;
+
+  const {
+    manifest,
+    contract,
     wasmBuffer,
     extraResources,
     isDirty,
-  } = activeDoc;
+  } = resolvedDoc;
 
   // 1.5. Simulation Bridge (Phase 9.1 - Live Loop)
   const simulationBridge = useSimulationBridge(
@@ -198,6 +236,13 @@ export const useManifestEditor = (
     logs,
     isDirty,
     activeId,
+    /**
+     * `false` cuando no hay documento activo y este hook está sirviendo el
+     * manifiesto de respaldo. Nunca debería pasar (el reducer no deja cerrar
+     * el último documento), pero si pasa la UI lo dice en vez de fingir que
+     * todo va bien. Ver la frontera más arriba.
+     */
+    hasActiveDocument,
     isDirectoryLinked: !!directoryHandle,
     
     // Core Actions
@@ -243,7 +288,7 @@ export const useManifestEditor = (
     addLog
   }), [
     manifest, contract, wasmBuffer, extraResources,
-    issues, logs, isDirty, activeId, directoryHandle,
+    issues, logs, isDirty, activeId, directoryHandle, hasActiveDocument,
     history, entities, clipboard, deployment,
     blueprintInjection, fileOps, assets,
     orchestrator, simulationBridge,

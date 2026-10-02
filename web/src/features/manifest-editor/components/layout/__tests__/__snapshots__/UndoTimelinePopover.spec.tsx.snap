@@ -40,13 +40,17 @@ exports[`UndoTimelinePopover — snapshots should match snapshot for empty state
         History
       </span>
     </div>
-    <span
-      class="text-[7px] font-mono text-white/30"
+    <div
+      class="flex items-center gap-2"
     >
-      0
-       step
-      s
-    </span>
+      <span
+        class="text-[7px] font-mono text-white/30"
+      >
+        0
+         step
+        s
+      </span>
+    </div>
   </div>
   <div
     class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"
@@ -158,13 +162,17 @@ exports[`UndoTimelinePopover — snapshots should match snapshot with all event 
         History
       </span>
     </div>
-    <span
-      class="text-[7px] font-mono text-white/30"
+    <div
+      class="flex items-center gap-2"
     >
-      7
-       step
-      s
-    </span>
+      <span
+        class="text-[7px] font-mono text-white/30"
+      >
+        7
+         step
+        s
+      </span>
+    </div>
   </div>
   <div
     class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"
@@ -584,13 +592,17 @@ exports[`UndoTimelinePopover — snapshots should match snapshot with batch entr
         History
       </span>
     </div>
-    <span
-      class="text-[7px] font-mono text-white/30"
+    <div
+      class="flex items-center gap-2"
     >
-      5
-       step
-      s
-    </span>
+      <span
+        class="text-[7px] font-mono text-white/30"
+      >
+        5
+         step
+        s
+      </span>
+    </div>
   </div>
   <div
     class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"
@@ -857,13 +869,17 @@ exports[`UndoTimelinePopover — snapshots should match snapshot with past and f
         History
       </span>
     </div>
-    <span
-      class="text-[7px] font-mono text-white/30"
+    <div
+      class="flex items-center gap-2"
     >
-      3
-       step
-      s
-    </span>
+      <span
+        class="text-[7px] font-mono text-white/30"
+      >
+        3
+         step
+        s
+      </span>
+    </div>
   </div>
   <div
     class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"
@@ -1118,13 +1134,17 @@ exports[`UndoTimelinePopover — snapshots should match snapshot with past entri
         History
       </span>
     </div>
-    <span
-      class="text-[7px] font-mono text-white/30"
+    <div
+      class="flex items-center gap-2"
     >
-      3
-       step
-      s
-    </span>
+      <span
+        class="text-[7px] font-mono text-white/30"
+      >
+        3
+         step
+        s
+      </span>
+    </div>
   </div>
   <div
     class="flex-1 overflow-y-auto overscroll-contain py-0.5 min-h-0"

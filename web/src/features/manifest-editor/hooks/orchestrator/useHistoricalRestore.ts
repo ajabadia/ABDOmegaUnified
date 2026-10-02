@@ -13,6 +13,7 @@
 import { useCallback } from 'react';
 import type { OrchestratorState, OrchestratorAction } from '../../types/document';
 import { HistoryRestoreEngine } from '@/services/historyRestore';
+import { nextHistoryEntryId } from '@/omega-ui-core/utils/historyEntryId';
 
 export function useHistoricalRestore(
   state: OrchestratorState,
@@ -35,11 +36,13 @@ export function useHistoricalRestore(
       type: 'PUSH_HISTORY',
       id,
       entry: {
-        id: `restore_${Date.now()}`,
+        id: nextHistoryEntryId('restore'),
         type: 'RECOVERY_POINT',
         label: `Restored Revision: ${revisionId}`,
         timestamp: Date.now(),
         correlationId: `restore_${Date.now()}_${revisionId}`,
+        // (el `id` de arriba usa el contador monotónico; el `correlationId` se
+        // deja como estaba porque su unicidad la aporta `revisionId`)
         manifest: doc.manifest,
         uiState: {
           selectedNodeId: null,

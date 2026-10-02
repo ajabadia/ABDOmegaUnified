@@ -12,6 +12,16 @@ if errorlevel 1 (
     exit /b 1
 )
 
+:: 0b. Guardia pre-arranque: node_modules integro.
+:: Un package.json corrupto hace fallar Turbopack con errores de resolucion
+:: que no apuntan a la causa real. Se comprueba ANTES de lanzar nada para que
+:: el diagnostico salga aqui y no 30s despues en forma de "Can't resolve ...".
+call "%~dp0scripts\check_node_modules.cmd"
+if errorlevel 1 (
+    echo [ERROR] node_modules corrupto - abortando arranque.
+    exit /b 1
+)
+
 :: 1. Verificar Enlace Junction de Interfaz (host/ui -> web/public/host-ui)
 if not exist "%~dp0web\public\host-ui" (
     echo [LINK] Creando Enlace Junction para mantener Fuente Unica de Verdad...
