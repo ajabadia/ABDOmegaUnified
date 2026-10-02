@@ -142,10 +142,38 @@ Lo que había debajo era peor de lo que parecía:
 
 Ahora:
 
-- **7 pruebas afirman de verdad y pasan**, entre ellas la de exportar/importar grupo y la del
+- **9 pruebas afirman de verdad y pasan**, entre ellas la de exportar/importar grupo y la del
   anillo de foco.
-- **7 quedan marcadas como "pendiente"**, cada una con su motivo escrito dentro del propio
-  archivo. Salen como *pendiente* en el informe y **no pueden pasar por buenas**.
+- **5 quedan marcadas como "pendiente"**, cada una con su motivo escrito dentro del propio
+  archivo. Salen como *pendiente* en el informe y **no pueden pasar por buenas**. Eran 7.
+
+### 3.3-bis La exportación a `.acepack` — no estaba rota, se tapaba con un botón
+
+La prueba de exportar un blueprint a `.acepack` estaba marcada como pendiente desde hacía
+tiempo, con la nota de que no se sabía si la exportación estaba rota o si solo fallaba la
+comprobación. **Medido: la exportación funcionaba.** El fichero se descargaba bien.
+
+Lo que estaba roto era otra cosa, y era de las que se ven en el uso diario: **no se podía
+seleccionar una celda pinchando en su centro.** El tirador de conexión —el circulito del que
+salen los cables— estaba dibujado justo en el medio de la celda, por encima. Al pinchar ahí,
+el clic se lo quedaba el tirador y la celda no se enteraba.
+
+La cadena, medida en el navegador:
+
+1. Pinchas el centro de la celda y no se selecciona nada.
+2. Sin selección, la opción **File → Export → Cell as Blueprint JSON** aparece desactivada.
+3. La exportación se queda antes de empezar y avisa `[ERROR] No cell selected`.
+
+Es decir: una función entera parecía rota por un botón dibujado encima. Pinchando en una
+esquina, todo funcionaba y se descargaba el fichero.
+
+También se descartaron dos sospechas habituales antes de dar con la buena, y ninguna era:
+revocar la dirección del fichero nada más pulsar, y anclar el enlace fuera de la página. Se
+probaron los tres casos en el navegador y **los tres descargan**.
+
+Ahora el tirador va en el borde lateral del nodo —entradas a la izquierda, salidas a la
+derecha, que es como lo hacen los editores de nodos— y el centro queda libre para seleccionar.
+La prueba deja de estar pendiente y comprueba la descarga y la reimportación de verdad.
 
 ### 3.4 Una prueba en rojo en la barra de herramientas
 
@@ -229,7 +257,7 @@ Lo que queda en rojo en el navegador, con lo medido:
 
 - **3** de la barra de herramientas — piden cosas en un rack que arranca vacío.
 - **1** del rack — verificada como anterior a todo este trabajo.
-- **7** marcadas como *pendiente* con su motivo escrito (3.3). No son rojas: son medidas y
+- **5** marcadas como *pendiente* con su motivo escrito (3.3). No son rojas: son medidas y
   están declaradas como lo que son.
 
 ---

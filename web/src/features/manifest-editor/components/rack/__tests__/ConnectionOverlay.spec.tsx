@@ -1047,3 +1047,90 @@ describe('ConnectionOverlay — edge cases & lifecycle', () => {
     expect(defaultColorPath).not.toBeNull();
   });
 });
+
+// ── ═══════════════════════════════════════════════════════════════════════
+//  9. Handle placement
+//  ═══════════════════════════════════════════════════════════════════════
+
+describe('ConnectionOverlay — colocación del tirador', () => {
+  /**
+   * El tirador NO puede volver al centro del nodo.
+   *
+   * MEDIDO en el navegador (2 de octubre de 2026): con el tirador en el centro
+   * exacto, pinchar una celda por su mitad no seleccionaba nada. El overlay de
+   * conexiones va por encima del rack (`z-[60]`) y el tirador tenía
+   * `pointer-events` activos, así que se comía el clic: los eventos `click` y
+   * `pointerdown` de la celda no llegaban a dispararse y `selectedNodeId`
+   * seguía en `null`.
+   *
+   * La consecuencia era grave y no se veía: sin selección, el ítem
+   * `File → Export → Cell as Blueprint JSON` queda deshabilitado y exportar a
+   * `.acepack` aborta con `[ERROR] No cell selected`. Una función entera
+   * parecía rota por un botón dibujado encima.
+   *
+   * Estos tests fijan que el tirador vive en el borde lateral y que el centro
+   * del nodo queda libre.
+   */
+  function leerTiradores(container: HTMLElement) {
+    return Array.from(container.querySelectorAll('circle[data-port-handle-id]')).map((c) => ({
+      id: c.getAttribute('data-port-handle-id') ?? '',
+      cx: Number(c.getAttribute('cx')),
+      cy: Number(c.getAttribute('cy')),
+    }));
+  }
+
+  it('coloca el tirador en el borde lateral, nunca en el centro del nodo', () => {
+    const { container } = render(
+      <ConnectionOverlay {...defaultProps} />
+    );
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    const tiradores = leerTiradores(container);
+    expect(tiradores.length).toBeGreaterThan(0);
+
+    // Posiciones de los nodos en `createMockContainer`.
+    const centros: Record<string, { x: number; y: number }> = {
+      [KNOB_ID]: { x: 50 + 48 / 2, y: 50 + 48 / 2 },
+      [FREQ_ID]: { x: 150 + 48 / 2, y: 50 + 48 / 2 },
+      [AUDIO_IN_ID]: { x: 50 + 40 / 2, y: 200 + 40 / 2 },
+      [AUDIO_OUT_ID]: { x: 150 + 40 / 2, y: 200 + 40 / 2 },
+    };
+
+    for (const t of tiradores) {
+      const centro = centros[t.id];
+      // OJO: `expect` de `@jest/globals` NO admite segundo argumento (mensaje),
+      // a diferencia del de `expect` global. Por eso el comentario va aparte.
+      expect(centro).toBeDefined();
+      // Este es EL assert: si el tirador volviera al centro, el nodo sería
+      // inclicable otra vez.
+      expect(t.cx).not.toBeCloseTo(centro!.x, 1);
+      // La vertical sí se mantiene en el centro: el tirador sale por un lado.
+      expect(t.cy).toBeCloseTo(centro!.y, 1);
+    }
+  });
+
+  it('deja el centro del nodo dentro de la caja pero pegado a un borde', () => {
+    const { container } = render(
+      <ConnectionOverlay {...defaultProps} />
+    );
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    const cajas: Record<string, { x: number; w: number }> = {
+      [KNOB_ID]: { x: 50, w: 48 },
+      [FREQ_ID]: { x: 150, w: 48 },
+      [AUDIO_IN_ID]: { x: 50, w: 40 },
+      [AUDIO_OUT_ID]: { x: 150, w: 40 },
+    };
+
+    for (const t of leerTiradores(container)) {
+      const caja = cajas[t.id];
+      // Dentro de la caja del nodo (margen de 8 px), no fuera ni encima.
+      expect(t.cx).toBeGreaterThan(caja.x);
+      expect(t.cx).toBeLessThan(caja.x + caja.w);
+    }
+  });
+});

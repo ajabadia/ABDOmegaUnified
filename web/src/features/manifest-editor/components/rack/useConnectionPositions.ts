@@ -24,6 +24,14 @@ interface UseConnectionPositionsResult {
   entityLabelMap: Map<string, string>;
 }
 
+/**
+ * Separación del tirador respecto al borde del nodo, en píxeles.
+ *
+ * Va con `Math.min(this, width / 4)` al aplicarse: en un nodo más estrecho que
+ * cuatro insets el tirador se pegaría al lado contrario.
+ */
+const HANDLE_EDGE_INSET = 8;
+
 export function useConnectionPositions(
   manifest: OMEGA_Manifest,
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -53,10 +61,33 @@ export function useConnectionPositions(
       if (!entityIds.has(id)) return;
 
       const rect = el.getBoundingClientRect();
-      const x = rect.left - containerRect.left + rect.width / 2;
-      const y = rect.top - containerRect.top + rect.height / 2;
       const entity = entities.find(e => e.id === id);
       const isInput = entity?.type === 'telemetry' || entity?.type === 'stream';
+
+      // El tirador va en el BORDE lateral del nodo, no en su centro.
+      //
+      // MEDIDO (2 de octubre de 2026): estaba en el centro exacto, y el
+      // overlay de conexiones va por encima del rack (`z-[60]`, con
+      // `pointer-events` activos). Pinchar una celda por su mitad —justo lo
+      // que hace una persona con un potenciómetro— no seleccionaba nada: el
+      // clic lo recibía el tirador y la celda ni se enteraba. Medido en el
+      // navegador: el `pointerdown` y el `click` de la celda no llegaban a
+      // dispararse, y `selectedNodeId` seguía en `null`.
+      //
+      // Sin selección, el menú `File → Export → Cell as Blueprint JSON`
+      // permanece deshabilitado y exportar la celda a `.acepack` no arranca:
+      // el tirador había vuelto imposible una función entera por tapar el
+      // centro del nodo.
+      //
+      // Entradas a la izquierda y salidas a la derecha es la convención de
+      // los editores de nodos, y deja el centro del nodo libre para seleccionarlo.
+      // El margen se acota a un cuarto del ancho para que en nodos estrechos
+      // el tirador no llegue a salirse.
+      const inset = Math.min(HANDLE_EDGE_INSET, rect.width / 4);
+      const x = isInput
+        ? rect.left - containerRect.left + inset
+        : rect.left - containerRect.left + rect.width - inset;
+      const y = rect.top - containerRect.top + rect.height / 2;
 
       newHandles.push({
         id,

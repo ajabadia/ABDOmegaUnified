@@ -144,30 +144,26 @@ test.describe('Blueprint Store — Group Drag, Overlap, Export/Import & Ungroup'
 
     expect(exportResult).toBe('OK');
 
-    // MEDIDO el 2 de octubre de 2026: la descarga NO ocurre. `waitForEvent
-    // ('download')` se agota a los 20 s y el test nunca llegaba a comprobar ni el
-    // nombre del fichero ni la reimportación.
+// MEDIDO Y CORREGIDO (2 de octubre de 2026): esto era un `test.fixme`.
     //
-    // ANTES de esto, ese mismo caso escribía un mensaje y salía con `return`, y
-    // el test daba verde. Es decir, llevaba tiempo en verde sin exportar nada:
-    // el fallo estaba tapado justo debajo de la puerta de calidad.
+    // La exportación NUNCA estuvo rota: el `.acepack` se descargaba bien. Lo
+    // que no funcionaba era la selección previa. El tirador de conexión se
+    // dibujaba en el centro exacto de la celda, sobre un overlay que va por
+    // encima del rack, así que el clic de este test (justo en el centro de la
+    // celda) lo recibía el tirador y la celda no llegaba a seleccionarse. Sin
+    // selección, el ítem del menú queda deshabilitado y
+    // `handleSaveCellAsBlueprint` aborta con `[ERROR] No cell selected` sin
+    // llegar a crear el fichero.
     //
-    // No se puede afirmar que la exportación esté rota: puede que el panel lo
-    // genere por otra vía (Blob + enlace) y Playwright no lo vea como
-    // `download`. Lo que sí es certo es que hoy no se puede comprobar por esta
-    // puerta, y por eso se declara pendiente con su motivo en vez de dejarse
-    // en verde.
+    // MEDIDO que no era otra causa: revocar la URL del objeto nada más pulsar
+    // y anclar el `<a>` fuera del DOM NO rompen la descarga. Probados los tres
+    // casos en el navegador —suelto y revocado, en el DOM, y en el DOM
+    // revocando tarde— y los tres descargan.
     //
-    // Cuando alguien investigate por qué no salta el evento, se quita esta
-    // línea y las comprobaciones de abajo empiezan a correr de verdad.
-    const download = await downloadPromise.catch(() => null);
-    test.fixme(
-      download === null,
-      'La exportación a .acepack no dispara el evento `download` de Playwright en 20 s. ' +
-        'Sin él no hay forma de comprobar ni el nombre del fichero ni la reimportación. ' +
-        'Pendiente: averiguar si la exportación usa otra vía (Blob/enlace) o si está rota. ' +
-        'Antes era un console.log con `return`: verde falso.'
-    );
+    // El tirador ahora va en el borde lateral del nodo. Con el centro libre,
+    // este test comprueba la descarga de verdad, y debajo el nombre del
+    // fichero y la reimportación.
+    const download = await downloadPromise;
     expect(download, 'la exportación debe lanzar una descarga real').toBeTruthy();
 
     const suggestedName = download.suggestedFilename();
