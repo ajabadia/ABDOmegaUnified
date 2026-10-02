@@ -16,6 +16,12 @@ import type * as Monaco from 'monaco-editor';
 
 import type { TabDiagnostics } from '../../types/diagnostics';
 import { mapMonacoMarkers } from '../../utils/diagnosticUtils';
+import { configureMonacoLoader } from '@/lib/monaco/configureMonacoLoader';
+
+// El editor se carga en el momento de importarlo, no al renderizar: si esto
+// fuera un useEffect, el primer montage ya habría pidido el CDN. Ver el
+// docblock de configureMonacoLoader para por qué NO queremos el CDN.
+configureMonacoLoader();
 
 interface SourceViewProps {
   tabId: string;

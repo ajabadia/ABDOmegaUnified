@@ -6,14 +6,70 @@ import { gotoWorkbench, switchView, type EditorView } from './helpers/navigation
  * OMEGA ERA 9.2.0 — INDUSTRIAL SMOKE TEST SUITE
  * Validates core industrialization features.
  *
- * v9.2.0-dev: Fixed Monaco async loading timing, updated to footer-based view switching.
+ * =============================================================================
+ * POR QUÉ ESTE FICHERO CAMBIÓ DE FORMA (y por qué ya no se "rinde")
+ * =============================================================================
+ * Antes, cinco de estos tests envolvían su comprobación central en
+ *
+ *     try { await expect(x).toBe(...) } catch { console.log('...') }
+ *
+ * Un `console.log` en un `catch` NO es un fallo: el test daba verde tanto si
+ * la cosa funcionaba como si no. Con tres de ellos así, la suite premiaba
+ * seguir rota.
+ *
+ * La causa de fondo era doble, y las dos se midieron:
+ *
+ *  1. `@monaco-editor/loader` se llevaba el editor a
+ *     `cdn.jsdelivr.net` porque nadie llamaba a `loader.config`. La vista de
+ *     código no cargaba. Arreglado en `src/lib/monaco/configureMonacoLoader.ts`.
+ *
+ *  2. Aun con el editor cargado, los tests escribían con
+ *     `monaco.editor.getModels()[0].setValue(...)`. Medido: hay DOS modelos,
+ *     `inmemory://model/1` (vacío, el que crea `<Editor>` por su cuenta y queda
+ *     DESPUÉS de que `handleMount` lo sustituya) y
+ *     `file:///omega/<doc>/<tab>.json` (el que está en pantalla). El `[0]` es el
+ *     equivocado: el texto se escribía en un modelo que nadie miraba, así que
+ *     la app nunca se enteraba y el indicador de "cambios sin guardar" no
+ *     aparecía jamás. La culpa era del test, no de la aplicación.
+ *
+ * Ahora los tests TECLEAN, como una persona, y afirman lo que deben.
+ * Lo que se ha medido que NO funciona va marcado `test.fixme` con el motivo
+ * escrito: sale como "fixme" en el informe, nunca como verde.
  */
 
-// La supresión del onboarding ya no se duplica aquí: vive en
-// `helpers/navigation.ts` y `gotoWorkbench` la aplica en cada navegación.
+// Cargar Monaco son ~16 MB desde /monaco/vs: el arranque de la vista de código
+// se acerca a los 20 s. Con el 30 s por defecto, tests que antes pasaban
+// rozando el límite ahora se caían por timeout sin decir por qué.
+test.describe.configure({ timeout: 90_000 });
+
+/** Selector del indicador de cambios sin guardar de la barra de pestañas. */
+const DIRTY_INDICATOR = '[title="Unsaved changes"]';
+
+/**
+ * Forma del modelo de Monaco que está EN PANTALLA, tal y como lo ve la pagina.
+ *
+ * No usar `getModels()[0]`: es `inmemory://model/1`, un modelo huerfano que
+ * `<Editor>` crea antes de que `handleMount` lo sustituya por el del manifiesto.
+ * Ver la cabecera de este fichero.
+ */
+interface MonacoModelInPage {
+  uri: { toString: () => string };
+  getValue: () => string;
+}
+
+interface MonacoInPage {
+  monaco?: { editor?: { getModels: () => MonacoModelInPage[] } };
+}
+
+/** Lee de la pagina el modelo de Monaco en uso, o `null` si aun no hay ninguno. */
+function readModelInUse(page: Page): Promise<MonacoModelInPage | null> {
+  return page.evaluate(() => {
+    const models = (window as unknown as MonacoInPage).monaco?.editor?.getModels() ?? [];
+    return models.find((m) => m.uri.toString().startsWith('file:///omega/')) ?? null;
+  });
+}
 
 test.describe('Phase 6 Critical Flows', () => {
-
   /** Helper: switch view via the footer. Delegates to the shared helper. */
   async function switchToView(page: Page, view: EditorView) {
     await switchView(page, view);
@@ -22,45 +78,38 @@ test.describe('Phase 6 Critical Flows', () => {
   }
 
   /**
-   * Helper: wait for Monaco editor to be available (loads async via @monaco-editor/react).
-   * Polls until the first model exists or timeout.
+   * Helper: espera al modelo de Monaco que está en pantalla.
+   *
+   * Antes devolvía `false` si no aparecía y los tests seguían adelante con un
+   * editor inexistente. Ahora lanza: si el editor no carga, el test que lo
+   * necesita no tiene nada que comprobar y debe decirlo con nombre y apellidos.
    */
-  async function waitForMonaco(page: Page, timeout = 15000): Promise<boolean> {
-    try {
-      const available = await page.waitForFunction(() => {
-        interface MonacoWindow extends Window {
-          monaco?: { editor?: { getModels: () => Array<{ getValue: () => string }> } }
-        }
-        const mw = window as unknown as MonacoWindow;
-        return !!(mw.monaco?.editor?.getModels()?.length);
-      }, { timeout });
-      return !!available;
-    } catch {
-      return false;
-    }
+  async function waitForMonaco(page: Page, timeout = 30_000): Promise<void> {
+    await page.waitForFunction(
+      () => {
+        const models = (window as unknown as MonacoInPage).monaco?.editor?.getModels() ?? [];
+        return models.some((m) => m.uri.toString().startsWith('file:///omega/'));
+      },
+      undefined,
+      { timeout }
+    );
   }
 
-  /**
-   * Helper: set Monaco source content directly.
-   * Polls until the Monaco model is available, then sets the value.
-   */
-  async function setMonacoContent(page: Page, manifest: Record<string, unknown>) {
-    await page.evaluate((data) => {
-      return new Promise<void>((resolve) => {
-        const check = () => {
-          interface MonacoWindow extends Window { monaco?: { editor?: { getModels: () => Array<{ setValue: (val: string) => void }> } } }
-          const mw = window as unknown as MonacoWindow;
-          const model = mw.monaco?.editor?.getModels()[0];
-          if (model) {
-            model.setValue(JSON.stringify(data, null, 2));
-            resolve();
-          } else {
-            setTimeout(check, 100);
-          }
-        };
-        check();
-      });
-    }, manifest);
+  /** Escribe un manifiesto pulsando teclas, como haría una persona. */
+  async function typeManifestInEditor(page: Page, manifest: Record<string, unknown>): Promise<void> {
+    await page.locator('.monaco-editor .view-lines').first().click();
+    await page.waitForTimeout(200);
+    await page.keyboard.press('Control+a');
+    await page.keyboard.type(JSON.stringify(manifest), { delay: 5 });
+  }
+
+  /** Lee el texto del modelo que está en pantalla. */
+  async function readEditorText(page: Page): Promise<string> {
+    return page.evaluate(() => {
+      const models = (window as unknown as MonacoInPage).monaco?.editor?.getModels() ?? [];
+      const model = models.find((m) => m.uri.toString().startsWith('file:///omega/'));
+      return model?.getValue() ?? '';
+    });
   }
 
   test.beforeEach(async ({ page }) => {
@@ -77,215 +126,172 @@ test.describe('Phase 6 Critical Flows', () => {
       window.confirm = () => true;
     });
 
-    // Navigate to Source view via footer
     await switchToView(page, 'source');
+    await waitForMonaco(page);
 
-    // Wait for Monaco to fully load (async chunk loading via @monaco-editor/react)
-    const monacoReady = await waitForMonaco(page);
-    expect(monacoReady).toBe(true);
+    // El editor que se está usando NO es el primero que devuelve la API. Fijarlo
+    // aquí es lo que hace que el resto del test signifique algo.
+    const modelsInUse = await readEditorText(page);
+    expect(modelsInUse.length, 'el editor debe mostrar el manifiesto al abrir').toBeGreaterThan(0);
 
-    // Verify Monaco has at least one model
-    const monacoModel = await page.evaluate(() => {
-      interface MonacoWindow extends Window { monaco?: { editor?: { getModels: () => Array<{ getValue: () => string }> } } }
-      const mw = window as unknown as MonacoWindow;
-      return !!mw.monaco?.editor?.getModels()[0];
-    });
-    expect(monacoModel).toBe(true);
-
-    // Modify the source via Monaco
-    await setMonacoContent(page, {
+    await typeManifestInEditor(page, {
       version: '7.2.3',
       name: 'Dirty Module',
-      controls: []
+      controls: [],
     });
 
-    // Check for dirty indicator in the tab bar (MultiTabHeader renders title="Unsaved changes")
-    const dirtyIndicator = page.locator('[title="Unsaved changes"]').first();
-    try {
-      await expect(dirtyIndicator).toBeVisible({ timeout: 1000 });
-    } catch {
-      // Monaco edits may not trigger dirty flag through the current architecture;
-      // verify the source was actually written by reading it back
-      const writtenManifest = await page.evaluate(() => {
-        interface MonacoWindow extends Window { monaco?: { editor?: { getModels: () => Array<{ getValue: () => string }> } } }
-        const mw = window as unknown as MonacoWindow;
-        return mw.monaco?.editor?.getModels()[0]?.getValue() || '';
-      });
-      expect(writtenManifest).toContain('Dirty Module');
-    }
+    // MEDIDO: al teclear, el indicador aparece en menos de 500 ms. Antes esto
+    // era un try/catch que se rendía y daba verde igual.
+    const dirtyIndicator = page.locator(DIRTY_INDICATOR).first();
+    await expect(dirtyIndicator, 'editar el código debe marcar el documento como sucio').toBeVisible({
+      timeout: 10_000,
+    });
 
     // Trigger save via Ctrl+S keyboard shortcut (wired in useWorkbenchShortcuts.ts
     // to editor.exportManifest('work')). First blur Monaco programmatically,
     // since the shortcut handler suppresses Ctrl+S when Monaco is focused.
-    await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await page.waitForTimeout(200);
     await page.keyboard.press('Control+s');
-    await page.waitForTimeout(2000);
 
-    // After saving, dirty indicator should clear (if it was shown)
-    if (await dirtyIndicator.count() > 0) {
-      await expect(dirtyIndicator).not.toBeVisible({ timeout: 15000 }).catch(() => {
-        console.log('Dirty indicator did not clear after save — may need manual persistence.');
-      });
-    }
+    // MEDIDO: se limpia en menos de 1 s.
+    await expect(dirtyIndicator, 'guardar debe limpiar el indicador de cambios sin guardar').not.toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test('Flow 2: Cross-View Sync (Rack Selection -> Source Reveal)', async ({ page }) => {
-    // Switch to rack view
     await switchToView(page, 'rack');
 
-    // Find a cell or container in the rack (UCA tree)
     const cell = page.locator('.uca-node').first();
-    const cellExists = await cell.count();
+    const cells = await cell.count();
 
-    if (cellExists > 0) {
-      // Click to select (force: true to handle any interaction gate)
-      await cell.click({ force: true });
-      await page.waitForTimeout(800);
-
-      // Switch to Source view
-      await switchToView(page, 'source');
-      await waitForMonaco(page);
-
-      // Check for a selection highlight in the source view
-      const decoration = page.locator('.omega-source-selection-highlight').first();
-      if (await decoration.count() > 0) {
-        await expect(decoration).toBeVisible({ timeout: 10000 });
-      } else {
-        console.log('Selection highlight not found in Source view — Monaco decorations may need a render tick.');
-      }
-    } else {
-      console.log('Skipping selection sync test: No UCA nodes found in Rack.');
+    if (cells === 0) {
+      test.skip(true, 'El rack arranca vacío: no hay nodos UCA que seleccionar.');
+      return;
     }
+
+    await cell.click({ force: true });
+    await page.waitForTimeout(800);
+
+    await switchToView(page, 'source');
+    await waitForMonaco(page);
+
+    const highlight = page.locator('.omega-source-selection-highlight').first();
+
+    // MEDIDO: hay nodos en el rack (el test NO se salta), pero tras seleccionar
+    // uno y volver a la vista de código el resaltado no aparece en 15 s. O la
+    // función está rota, o este test selecciona un nodo que no lleva `id` y por
+    // eso `SourceView` no tiene nada que resaltar (su regex busca `"id": "..."`).
+    // Sin resolver eso, afirmar aquí sería adivinar.
+    test.fixme(
+      (await highlight.count()) === 0,
+      'Hay nodos .uca-node pero no aparece el resaltado de selección en la vista de código. Pendiente: ¿función rota o el nodo no tiene "id"? Antes era un console.log: verde falso.'
+    );
+
+    await expect(highlight).toBeVisible({ timeout: 15_000 });
   });
 
   test('Flow 3: Diagnostic Trigger (Broken Bind -> Badge -> Tooltip)', async ({ page }) => {
     await switchToView(page, 'source');
     await waitForMonaco(page);
 
-    // Set a broken bind in the manifest
-    await setMonacoContent(page, {
+    await typeManifestInEditor(page, {
       version: '7.2.3',
       name: 'Broken Module',
-      controls: [{
-        id: 'ctrl_1',
-        type: 'knob',
-        bind: 'INVALID_TARGET'
-      }]
+      controls: [{ id: 'ctrl_1', type: 'knob', bind: 'INVALID_TARGET' }],
     });
 
-    // Wait for the manifest to propagate and structural auditor to detect the broken bind
     await page.waitForTimeout(3000);
 
-    // Look for a broken-bind badge or warning in the UI
+    // MEDIDO (no supuesto): tras escribir un `bind` inválido, con el editor
+    // cargando y el texto llegando de verdad a la app, NO aparece ningún
+    // indicador con "Broken Bind", ni con los selectores alternativos de
+    // auditoría. Es decir: o el auditor estructural no corre sobre el documento
+    // editado, o no existe tal aviso. Hasta saberlo, este test no puede
+    // afirmar nada — y un test que no puede afirmar nada debe decirlo.
+    test.fixme(
+      true,
+      'Sin badge de "Broken Bind" medido en 3 s. Pendiente de averiguar si el aviso no existe o si este test busca donde no es. Antes era un console.log: verde falso.'
+    );
+
+    // Código muerto mientras el fixme esté activo. Al quitar el fixme, esto
+    // vuelve a ser la comprobación de verdad.
     const warningBadge = page.locator('[title*="Broken Bind"]').first();
-    if (await warningBadge.count() === 0) {
-      // Try alternate selectors: audit/diagnostic badges in the toolbar or footer
-      const auditBadge = page.locator(
-        '[title*="audit" i], [title*="warning" i], [title*="issue" i], [title*="broken" i], [title*="dangling" i]'
-      ).first();
-      if (await auditBadge.count() > 0) {
-        console.log('Audit/diagnostic badge found (alternate selector).');
-        const badgeText = await auditBadge.textContent();
-        console.log(`Badge content: ${badgeText}`);
-        return;
-      }
-      console.log('No broken-bind badge found — auditor may require specific conditions or UI interaction.');
-    } else {
-      await expect(warningBadge).toBeVisible({ timeout: 20000 });
-      const title = await warningBadge.getAttribute('title');
-      expect(title).toContain('Broken Bind');
-      expect(title).toContain('INVALID_TARGET');
-    }
+    await expect(warningBadge).toBeVisible({ timeout: 20_000 });
+    await expect(warningBadge.getAttribute('title')).toContain('INVALID_TARGET');
   });
 
   test('Flow 4: beforeunload Guard (Dirty -> Refresh -> Confirm)', async ({ page }) => {
     await switchToView(page, 'source');
     await waitForMonaco(page);
 
-    // Make the manifest dirty
-    await setMonacoContent(page, {
+    await typeManifestInEditor(page, {
       version: '7.2.3',
       name: 'BeforeUnload Test',
-      controls: []
+      controls: [],
     });
 
-    // Give the document orchestrator time to register the dirty state
-    await page.waitForTimeout(5000);
+    // MEDIDO: el indicador SÍ aparece al teclear (Flow 1 lo afirma en duro).
+    await expect(page.locator(DIRTY_INDICATOR).first()).toBeVisible({ timeout: 10_000 });
 
-    // Verify the source was written
-    const written = await page.evaluate(() => {
-      interface MonacoWindow extends Window { monaco?: { editor?: { getModels: () => Array<{ getValue: () => string }> } } }
-      const mw = window as unknown as MonacoWindow;
-      return mw.monaco?.editor?.getModels()[0]?.getValue() || '';
-    });
-    expect(written).toContain('BeforeUnload Test');
-
-    // Set up the dialog handler BEFORE triggering reload
     let dialogHandled = false;
-    page.on('dialog', async dialog => {
+    page.on('dialog', async (dialog) => {
       dialogHandled = true;
-      console.log('[beforeunload dialog]', dialog.message());
       await dialog.dismiss();
     });
 
-    // Trigger the reload
-    await page.reload().catch(() => {
-      // Reload may be interrupted by dialog handling
-    });
+    // POR QUÉ NO SE ESPERA EL `reload` A COMPLETAR
+    // ------------------------------------------
+    // La navegación se queda colgada en el propio diálogo hasta que se acepta o
+    // se descarta. `await page.reload()` no vuelve nunca y el test se deatha por
+    // tiempo, que es como se manifestation este test antes: verde por
+    // `catch`, sin decir nada. Se lanza la recarga en segundo plano y se mira si
+    // el diálogo aparece.
+    page.reload({ waitUntil: 'commit' }).catch(() => undefined);
+    await page.waitForTimeout(6000);
 
-    // Give the dialog a moment to fire
-    await page.waitForTimeout(2000);
-
-    if (!dialogHandled) {
-      console.log('beforeunload dialog did not fire — browser may not trigger it in headless mode.');
-    }
+    // MEDIDO: con el documento de verdad sucio, el diálogo SÍ aparece. La
+    // versión anterior de este test nunca lo comprobaba porque el documento
+    // nunca llegaba a estar sucio (el texto se escribía en el modelo
+    // equivocado; ver la cabecera del fichero).
+    await expect
+      .poll(() => dialogHandled, { timeout: 5_000, message: 'el diálogo beforeunload no llegó a dispararse' })
+      .toBe(true);
   });
 
   test('Flow 5: Reset Guard (Dirty -> Reset -> Confirm -> Clean)', async ({ page }) => {
     await switchToView(page, 'source');
     await waitForMonaco(page);
 
-    // Make dirty
-    await setMonacoContent(page, {
+    await typeManifestInEditor(page, {
       version: '7.2.3',
       name: 'Reset Guard Test',
-      controls: []
+      controls: [],
     });
 
-    // Give orchestrator time to register
-    await page.waitForTimeout(5000);
-
-    // Verify source was written
-    const written = await page.evaluate(() => {
-      interface MonacoWindow extends Window { monaco?: { editor?: { getModels: () => Array<{ getValue: () => string }> } } }
-      const mw = window as unknown as MonacoWindow;
-      return mw.monaco?.editor?.getModels()[0]?.getValue() || '';
-    });
-    expect(written).toContain('Reset Guard Test');
+    await expect(page.locator(DIRTY_INDICATOR).first()).toBeVisible({ timeout: 10_000 });
 
     // Override window.confirm to auto-accept the reset confirmation
     await page.evaluate(() => {
       window.confirm = () => true;
     });
 
-    // Open Edit menu → Reset Workspace
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
     await page.waitForTimeout(400);
     await page.getByText('Reset Workspace', { exact: true }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(4000);
 
-    // After reset, check if dirty indicator cleared
-    const dirtyIndicator = page.locator('[title="Unsaved changes"]').first();
-    try {
-      await expect(dirtyIndicator).not.toBeVisible({ timeout: 10000 });
-    } catch {
-      // Reset may not clear dirty flag via the document orchestrator;
-      // fallback: verify the navigation is still functional
-      console.log('Dirty indicator remained after reset — may need orchestrator sync.');
-      // Verify the page is still responsive
-      const footer = page.locator('footer');
-      await expect(footer).toBeVisible({ timeout: 5000 });
-    }
+    // MEDIDO, Y ES UN FALLO REAL: después de "Reset Workspace" el documento
+    // sigue marcado como sucio. El texto sí vuelve al original, pero el
+    // indicador no se apaga. Sospecha (sin comprobar): `lastStableHash` no se
+    // actualiza al reiniciar. Antes de que este test lo afirmara en duro, el
+    // `catch` lo silenciaba y daba verde.
+    test.fixme(
+      (await page.locator(DIRTY_INDICATOR).first().isVisible()) === false ? false : true,
+      'Reset Workspace deja el documento marcado como sucio. FALLO REAL medido el 2 de octubre de 2026, causa sin diagnosticar. Antes era un console.log: verde falso.'
+    );
+
+    await expect(page.locator(DIRTY_INDICATOR).first()).not.toBeVisible({ timeout: 10_000 });
   });
 });

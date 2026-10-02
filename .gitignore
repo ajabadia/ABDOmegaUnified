@@ -76,6 +76,12 @@ web/public/host-ui/
 web/public/modules/
 host/Resources/modules/
 
+# Monaco: 16 MB y 121 ficheros que salen de node_modules, no del repo. Los deja
+# en web/public/monaco el paso `prebuild` (scripts/prepare_public_assets.mjs),
+# que es quien copia de node_modules/monaco-editor/min/. Sin esto, el editor de
+# la vista de código se descargaría de jsDelivr en cada visita.
+web/public/monaco/
+
 # Vercel: `vercel link` guarda el projectId/orgId del proyecto. La propia CLI
 # pide no compartirlo y añadirlo aquí — hoy era un untracked que podía colarse
 # en cualquier commit.

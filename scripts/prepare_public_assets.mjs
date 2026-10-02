@@ -24,6 +24,10 @@
  * que encuentre por el camino** (p. ej. `host/ui/omega-ui-core/`, que también es
  * un junction). Es exactamente lo que el junction hacía, pero con bytes reales.
  *
+ * El destino `monaco` no viene de una ruta canónica del repo sino de
+ * `node_modules`: es el editor de la vista de código, que sin esto se
+ * descargaría de un CDN. Ver `web/src/lib/monaco/configureMonacoLoader.ts`.
+ *
  * CÓMO SE USA
  * -----------
  *     node scripts/prepare_public_assets.mjs              # materializa todo
@@ -47,7 +51,8 @@
  *   - Guardia de ciclos por realpath: un junction que se apunta a sí mismo (o un
  *     anillo de junctions) cortaría el copiado con ELOOP infinito.
  *   - Las carpetas pesadas (`host-ui`, ~78 MB) se pueden saltar; el catálogo de
- *     módulos y las fuentes NO, sin ellas la app arranca y luego falla al abrir.
+ *     módulos, Monaco y las fuentes NO, sin ellos la app arranca y luego falla
+ *     al abrir, o se queda cargando sin decir nada.
  */
 
 import fs from 'node:fs';
@@ -95,6 +100,15 @@ export const TARGETS = [
     sources: ['host/ui'],
     required: false,
     why: 'La página standalone enlazada desde el portal; 78 MB, se puede --skip=.',
+  },
+  {
+    name: 'monaco',
+    dest: 'web/public/monaco',
+    sources: ['web/node_modules/monaco-editor/min'],
+    required: true,
+    why:
+      'La build AMD de Monaco (loader.js + workers). Sin ella la vista de código se queda en ' +
+      '"Loading..." para siempre, en silencio, porque @monaco-editor/loader descarga de jsDelivr.',
   },
 ];
 
@@ -288,7 +302,7 @@ function parseArgv(argv) {
 
 const USAGE = `Uso: node scripts/prepare_public_assets.mjs [--check] [--only=a,b] [--skip=a,b]
 
-  (sin flags)  materializa web/public/{modules,fonts,host-ui,omega-ui-core}
+  (sin flags)  materializa web/public/{modules,fonts,host-ui,omega-ui-core,monaco}
   --check      solo diagnostica; sale 1 si falta un destino obligatorio
   --only=...   limita a los destinos indicados (${TARGETS.map((t) => t.name).join(', ')})
   --skip=...   excluye destinos (útil para no copiar host-ui: 78 MB)
