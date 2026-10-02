@@ -1,0 +1,27 @@
+{
+  "numFailedTestSuites": 1,
+  "numFailedTests": 2,
+  "numPassedTestSuites": 80,
+  "numPassedTests": 1642,
+  "testResults": [
+    {
+      "name": "/repo/web/src/algo/fallo.spec.ts",
+      "status": "failed",
+      "message": "",
+      "assertionResults": [
+        {
+          "title": "debería marcar el documento como sucio",
+          "ancestorTitles": ["Reset"],
+          "status": "failed",
+          "failureMessages": ["\n  Expected: true\n  Received: false\n"]
+        },
+        {
+          "title": "otra cosa",
+          "ancestorTitles": [],
+          "status": "failed",
+          "failureMessages": ["boom"]
+        }
+      ]
+    }
+  ]
+}

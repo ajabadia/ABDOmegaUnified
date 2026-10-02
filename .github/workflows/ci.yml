@@ -80,8 +80,25 @@ jobs:
       - name: Tipos
         run: npx tsc --noEmit
 
+      # POR QUÉ NO ES UN `npx jest` A SECO
+      # ---------------------------------------
+      # Los logs de GitHub exigen iniciar sesión para leerlos (la API pública
+      # devuelve 403), así que un job rojo puede ser un misterio: se sabe que
+      # falló, pero no por qué. Este paso convierte el fallo en ANOTACIONES,
+      # que sí son datos abiertos y se leen sin cuenta.
       - name: Pruebas unitarias
-        run: npx jest src/lib src/features/manifest-editor src/services/history.test.ts src/omega-ui-core
+        run: |
+          set +e
+          npx jest src/lib src/features/manifest-editor src/services/history.test.ts src/omega-ui-core \
+            --json --outputFile=../jest-report.json > ../jest-output.txt 2>&1
+          status=$?
+          node ../scripts/report_jest_failures.cjs ../jest-report.json
+          if [ $status -ne 0 ]; then
+            echo "::group::Últimas líneas de la salida de Jest"
+            tail -n 40 ../jest-output.txt
+            echo "::endgroup::"
+          fi
+          exit $status
 
       # Esto ejecuta `prebuild` (scripts/prepare_public_assets.mjs), que es la
       # primera prueba real del script en Linux: en el runner no hay junctions,
