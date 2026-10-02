@@ -41,6 +41,24 @@ const AUDIO_OUT_ID = 'e2e_audio_out';
  * This replaces the old `injectPortHandles` approach which had an ID mismatch
  * because `pageWithBlueprint`'s `injectGroupViaManifest` uses dynamic timestamp
  * IDs that don't match the static control IDs.
+ *
+ * =============================================================================
+ * POR QUÉ LOS JACKS TAMBIÉN NECESITAN NODO DE ÁRBOL (medido el 2 de octubre)
+ * =============================================================================
+ * `useConnectionPositions` no inventa posiciones: recorre el DOM looking for
+ * `[id^="uca-"]` y solo crea un handle si ese id está en `ui.controls` o
+ * `ui.jacks`. Ese atributo `id="uca-<nodeId>"` lo pone ÚNICAMENTE
+ * `omega-ui-core/renderers/components/CellNode.tsx` — es decir, solo para nodos
+ * del ÁRBOL.
+ *
+ * Este helper declaraba los dos jacks en `ui.jacks` pero NO les creaba nodo de
+ * árbol. Consecuencia medida: se dibujaban 2 handles (los dos potenciómetros)
+ * donde la prueba esperaba 4. Y no es solo el test 1: las 22 pruebas siguientes
+ * hacen `getHandleBox(..., AUDIO_IN_ID)`, es decir, dependían de este mismo
+ * hueco para poder arrastrar de un tirador a otro.
+ *
+ * No es un fallo de la aplicación: un jack sin nodo de árbol no se dibuja, y un
+ * handle sin elemento dibujado no tendría posición donde pintarse.
  */
 async function setupPortHandles(page: Page) {
   const result = await page.evaluate(
@@ -118,6 +136,31 @@ async function setupPortHandles(page: Page) {
                 },
                 meta: { label: 'E2E Frequency' },
                 bind: 'frequency',
+              },
+              // Nodos de árbol de los jacks: sin estos, no existe ningún
+              // elemento con `id="uca-e2e_audio_in"` en el DOM y, por tanto,
+              // ningún handle. Ver la cabecera de este helper.
+              {
+                id: audioInId,
+                kind: 'cell',
+                cellRef: 'port',
+                role: 'port',
+                layout: {
+                  pos: { x: 50, y: 160 },
+                  size: { width: 48, height: 48 },
+                },
+                meta: { label: 'E2E Audio In' },
+              },
+              {
+                id: audioOutId,
+                kind: 'cell',
+                cellRef: 'port',
+                role: 'port',
+                layout: {
+                  pos: { x: 150, y: 160 },
+                  size: { width: 48, height: 48 },
+                },
+                meta: { label: 'E2E Audio Out' },
               },
             ],
           },
@@ -208,25 +251,49 @@ async function injectModulation(
         findProp(fiber.sibling, name, visited)
       );
     }
-    const addModFn = findProp(
+    // Se crea la modulación sobre el manifiesto con la misma vía que usa
+    // `setupPortHandles`. Antes buscaba una prop llamada exactamente
+    // `addModulation`, que no existe: la inyección no hacia NADA y el test
+    // comprobaba sobre un manifiesto sin tocar.
+    const updateFn = findProp(
       (root as any)[fiberKey],
-      'addModulation',
+      'updateManifest',
       new Set()
     );
-    if (!addModFn) return;
-    addModFn({
-      id: m.id,
-      source: m.source,
-      target: m.target,
-      amount: m.amount ?? 0.75,
-      type: m.type ?? 'unipolar',
-    });
+    if (!updateFn) return;
+    updateFn((prev: any) => ({
+      ...(prev || {}),
+      modulations: [
+        ...((prev && prev.modulations) || []),
+        {
+          id: m.id,
+          source: m.source,
+          target: m.target,
+          amount: m.amount ?? 0.75,
+          type: m.type ?? 'unipolar',
+        },
+      ],
+    }));
   }, mod);
   await page.waitForTimeout(1500);
 }
 
 /**
- * Read the current modulations array from the manifest via fiber tree.
+ * Read the current modulations array from the manifest.
+ *
+ * =============================================================================
+ * POR QUÉ CAMBIÓ: 21 PRUEBAS LEÍAN SIEMPRE `[]`
+ * =============================================================================
+ * Buscaba una prop de React llamada exactamente `modulations` (`===` sobre el
+ * nombre). Ese callback no existe con ese nombre, así que la búsqueda fallaba,
+ * la función devolvía `[]` sin avisar, y las 21 pruebas que la usan se
+ * quedaban sin comprobar nada — unas en verde por accidente, otras en rojo por
+ * otra cosa.
+ *
+ * Ahora se captura el manifiesto por la vía que sí está comprobada: el mismo
+ * `updateManifest` que usa `setupPortHandles` (que además busca con `includes`,
+ * no con `===`). Se le pasa una función identidad que se queda con el
+ * manifiesto y lo devuelve sin cambiarlo.
  */
 async function getModulations(page: Page): Promise<any[]> {
   return page.evaluate(() => {
@@ -244,7 +311,11 @@ async function getModulations(page: Page): Promise<any[]> {
       for (const props of [fiber.memoizedProps, fiber.pendingProps]) {
         if (!props) continue;
         for (const key of Object.keys(props)) {
-          if (key.toLowerCase() === name.toLowerCase()) return props[key];
+          if (
+            key.toLowerCase().includes(name.toLowerCase()) &&
+            typeof props[key] === 'function'
+          )
+            return props[key];
         }
       }
       return (
@@ -252,11 +323,14 @@ async function getModulations(page: Page): Promise<any[]> {
         findProp(fiber.sibling, name, visited)
       );
     }
-    const mods = findProp(
-      (root as any)[fiberKey],
-      'modulations',
-      new Set()
-    );
+    const updateFn = findProp((root as any)[fiberKey], 'updateManifest', new Set());
+    if (!updateFn) return [];
+    let captured: any = null;
+    updateFn((prev: any) => {
+      captured = prev;
+      return prev;
+    });
+    const mods = captured?.modulations;
     return Array.isArray(mods) ? mods : [];
   });
 }
