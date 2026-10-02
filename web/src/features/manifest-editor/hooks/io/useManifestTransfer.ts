@@ -254,7 +254,25 @@ export const useManifestTransfer = (
     }
 
     // 2. Try Local Watchdog Server
-    if (!saved) {
+    //
+    // SOLO en local. Este fetch va a http://127.0.0.1:3001, así que en un
+    // despliegue HTTPS el navegador lo bloquea por mixed content y la petición
+    // nunca sale. El catch de abajo decía "Watchdog offline/unresponsive",
+    // que es un diagnóstico FALSO: el watchdog puede estar perfectamente
+    // vivo y, aun así, ser inalcanzable desde el navegador.
+    //
+    // `useWatchdog` ya tenía esta misma guarda (y un comentario que explicaba
+    // el porqué); aquí faltaba. Con ella, el camino muerto ni se intenta y el
+    // log dice la verdad.
+    const isLocal =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+    if (!saved && !isLocal) {
+      addLog('[INFO] Watchdog local no accesible desde el navegador (no es local): se usará la descarga del navegador.');
+    }
+
+    if (!saved && isLocal) {
       try {
         const saveFile = async (name: string, data: string) => {
           const res = await fetch('http://127.0.0.1:3001/save', {
@@ -273,8 +291,11 @@ export const useManifestTransfer = (
           saved = true;
           addLog(`[OK] Manifest and contracts saved directly to watchdog workspace: ${manifest.id}`);
         }
-      } catch {
-        // Watchdog offline/unresponsive
+      } catch (e) {
+        // El watchdog local está apagado o no contesta. Esto YA solo puede
+        // ocurrir en local (arriba se filtra), así que el diagnóstico es
+        // honesto y no se culpa al navegador por un bloqueo de mixed content.
+        addLog(`[WARNING] Watchdog local no disponible: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
 

@@ -157,12 +157,54 @@ export class SharedModuleCatalogService {
     const entry = this.getModuleById(moduleId);
     const url = entry ? entry.manifestUrl : `/modules/${moduleId}/${moduleId}.acemm`;
     const res = await fetch(url);
-    const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch {
-      return yaml.load(text);
+
+    // POR QUÉ ESTA COMPROBACIÓN, Y POR QUÉ AQUÍ
+    // -----------------------------------------
+    // Antes se leía el cuerpo y se probaba con JSON y luego con YAML. Ante un
+    // 404, `yaml.load` NO LANZA: devuelve el cuerpo como STRING ("Not Found"),
+    // o incluso como objeto si el cuerpo es HTML con dos puntos (YAML lo lee
+    // como mapa). El llamante hacía `if (manifest)`, un string es truthy, y
+    // acababa asignando `manifest.ui = {}` sobre él.
+    //
+    // El usuario veía: "TypeError: Cannot create property 'ui' on string",
+    // que dice "el módulo tiene un formato raro". La causa real —el fichero no
+    // existe— no aparecía por ninguna parte.
+    //
+    // El mensaje nombra el MÓDULO y la URL a propósito: si algo falla, tiene
+    // que ser posible encontrar el fichero que falta sin depurar a ciegas.
+    if (!res.ok) {
+      throw new Error(
+        `No se encontró el manifiesto de "${moduleId}": ${res.status} en ${url}. ` +
+          `El fichero no está disponible; esto no es un problema de formato.`
+      );
     }
+
+    const text = await res.text();
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      try {
+        parsed = yaml.load(text);
+      } catch (e) {
+        throw new Error(
+          `El manifiesto de "${moduleId}" (${url}) no es ni JSON ni YAML válido: ` +
+            `${e instanceof Error ? e.message : String(e)}`
+        );
+      }
+    }
+
+    // Segunda barrera: aunque el cuerpo sea un 200 con contenido raro, un
+    // string o un número NO son un manifiesto. Preferimos fallar aquí, con el
+    // nombre del módulo delante, que devolver basura que revienta más lejos.
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error(
+        `El manifiesto de "${moduleId}" (${url}) no es un objeto: ` +
+          `se obtuvo ${Array.isArray(parsed) ? 'una lista' : `un ${typeof parsed}`}.`
+      );
+    }
+
+    return parsed;
   }
 
   /**

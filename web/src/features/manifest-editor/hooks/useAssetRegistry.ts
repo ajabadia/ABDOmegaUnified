@@ -29,10 +29,26 @@ export function useAssetRegistry(manifest: OMEGA_Manifest, mode: 'statics' | 'se
           : '/assets/elements/statics/statics-registry.json';
           
         const res = await fetch(registryPath);
+        // Sin esta comprobación, un 404 (un clon nuevo, un deploy sin los
+        // assets) llegaba a `res.json()`, que lanza sobre el cuerpo de error y
+        // dejaba `library` como estaba: un panel de assets vacío sin explicación.
+        // Ahora el fallo dice qué fichero falta.
+        if (!res.ok) {
+          throw new Error(`${res.status} al cargar ${registryPath}`);
+        }
         const data = await res.json();
-        setLibrary(data[mode] || []);
+        const list = data[mode];
+        // `|| []` convertía en "biblioteca vacía" tanto un registro sin esta
+        // clave como un registro mal construido. Ahora se distingue.
+        if (!Array.isArray(list)) {
+          throw new Error(
+            `${registryPath} no contiene una lista para "${mode}" (tiene ${Array.isArray(list) ? 'lista' : typeof list}).`
+          );
+        }
+        setLibrary(list);
       } catch (err) {
         console.error(`Error loading ${mode} library:`, err);
+        setLibrary([]);
       } finally {
         setIsLoading(false);
       }

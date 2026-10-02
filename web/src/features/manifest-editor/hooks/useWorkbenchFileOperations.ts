@@ -204,15 +204,13 @@ export const useWorkbenchFileOperations = (
     };
   }, [editor]);
 
-  // Expose handleLoadOmegaProject for use from MenuBar
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).__omegaLoadProject = handleLoadOmegaProject;
-    return () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (window as any).__omegaLoadProject;
-    };
-  }, [handleLoadOmegaProject]);
+  // `handleLoadOmegaProject` ya se devuelve en el objeto del hook y se pasa a
+  // `MenuBar` como prop normal. Antes vivía además en `window.__omegaLoadProject`
+  // y el menú lo alcanzaba por ahí: dos caminos para la misma acción, uno de
+  // ellos invisible al type-checker y imposible de testear sin montar un `window`
+  // real. Los otros dos globales (`__omegaLoadShelfModule`,
+  // `__omegaViewModuleSource`) se quedan como están porque los consume
+  // `buildShelfSubmenu`, que está fuera del árbol de props.
 
   // ── Query Param Module Auto-Loader ──
   useEffect(() => {
@@ -236,7 +234,15 @@ export const useWorkbenchFileOperations = (
             toast.success(`Loaded module: ${manifest.metadata?.name || loadModuleId}`);
           }
         } catch (e) {
+          // Antes esto era solo `console.error(e)`: un módulo indicado por URL
+          // que fallaba al cargarse no dejaba RASTRO en la interfaz. El
+          // usuario veía el editor como si nada, y el motivo estaba en la
+          // consola. Ahora sale al panel de logs y a un aviso, que es donde se
+          // puede enterar una sesión perdida o un fichero que no existe.
+          const reason = e instanceof Error ? e.message : String(e);
           console.error(e);
+          currentEditor.addLog(`[ERROR] No se pudo cargar el módulo "${loadModuleId}" de la URL: ${reason}`);
+          toast.error(`Error loading module ${loadModuleId}`);
         }
       }, 1000); // 1s delay to make sure the orchestrator is fully settled and activeId is ready
       return () => clearTimeout(timer);

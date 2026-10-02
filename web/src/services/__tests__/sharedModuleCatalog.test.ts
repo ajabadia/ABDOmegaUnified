@@ -116,6 +116,57 @@ describe('SharedModuleCatalogService — fetchManifest', () => {
     expect(manifest).toEqual({ id: 'ghost' });
     expect(globalThis.fetch).toHaveBeenCalledWith('/modules/ghost/ghost.acemm');
   });
+
+  // ── La clase de bug que estos tests fijan ──────────────────────────
+  //
+  // `fetchManifest` no comprobaba `res.ok`. Ante un 404, `yaml.load` sobre el
+  // cuerpo de error NO LANZA: devuelve un string ("Not Found"), o un objeto si
+  // el cuerpo es HTML con dos puntos. El llamante hacía `if (manifest)`, un
+  // string es truthy, y acababa con:
+  //
+  //   TypeError: Cannot create property 'ui' on string 'Not Found'
+  //
+  // que dice "el módulo está mal formado" cuando la causa real es que el
+  // fichero no existe. Cada test de abajo afirma sobre el CUERPO REAL de un
+  // error, no sobre un caso imaginario.
+
+  it('lanza nombrando el módulo y la URL cuando el manifiesto da 404', async () => {
+    globalThis.fetch = mockFetchResponse('Not Found', false, 404);
+
+    await expect(SharedModuleCatalogService.fetchManifest('vco')).rejects.toThrow(
+      /No se encontró el manifiesto de "vco"[\s\S]*404[\s\S]*\/modules\/vco\/vco\.acemm/
+    );
+  });
+
+  it('no devuelve el cuerpo de error de Vercel parseado como YAML', async () => {
+    // Este cuerpo es el caso peligroso: contiene dos puntos, así que YAML lo
+    // lee como un MAPA y devolvía un objeto con basura en vez de un string.
+    const cuerpo = '<!DOCTYPE html><html><head><title>404: Not Found</title></head></html>';
+    globalThis.fetch = mockFetchResponse(cuerpo, false, 404);
+
+    await expect(SharedModuleCatalogService.fetchManifest('adsr')).rejects.toThrow(/adsr/);
+  });
+
+  it('lanza si un 200 trae un texto plano que no es un manifiesto', async () => {
+    // Barrera de forma: un string no es un manifiesto, aunque el status sea 200.
+    globalThis.fetch = mockFetchResponse('Not Found', true, 200);
+
+    await expect(SharedModuleCatalogService.fetchManifest('lfo')).rejects.toThrow(
+      /no es un objeto[\s\S]*string/
+    );
+  });
+
+  it('lanza si un 200 trae JSON que no es un objeto', async () => {
+    globalThis.fetch = mockFetchResponse('"solo una cadena"', true, 200);
+
+    await expect(SharedModuleCatalogService.fetchManifest('vca')).rejects.toThrow(/vca/);
+  });
+
+  it('lanza nombrando el módulo si el cuerpo no es ni JSON ni YAML', async () => {
+    globalThis.fetch = mockFetchResponse('\t- : ][\n  :::', true, 200);
+
+    await expect(SharedModuleCatalogService.fetchManifest('midi_in')).rejects.toThrow(/midi_in/);
+  });
 });
 
 describe('SharedModuleCatalogService — fetchSource', () => {
