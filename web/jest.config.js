@@ -3,6 +3,35 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const nextJest = require('next/jest');
 
+/**
+ * Fija la zona horaria de TODA la suite, en el proceso padre.
+ *
+ * =============================================================================
+ * POR QUÉ AQUÍ Y NO EN `jest.setup.js` (medido, no supuesto)
+ * =============================================================================
+ * Hay pruebas que renderizan la hora del reloj desde `Date.now()` y la guardan
+ * en un snapshot. El primero que se ejecutó fuera de mi portátil —la integración
+ * continua— falló con el snapshot ya grabado:
+ *
+ *     UndoTimelinePopover — should match snapshot with batch entries
+ *     verde en UTC+2, rojo en el runner (UTC)
+ *
+ * El snapshot contenía `13:59:30`; en UTC se generaba `11:59:30`. O sea: la
+ * prueba estaba en verde **por la zona horaria de la máquina**, no por el
+ * código. Cualquiera en otro huso la habría visto rota sin haber tocado nada.
+ *
+ * Poner `process.env.TZ` en `setupFiles` NO funciona: los ficheros de setup se
+ * ejecutan cuando el entorno de test ya está construido, y para entonces Node
+ * ya ha resuelto la zona horaria. Verificado: con el TZ puesto ahí, la suite
+ * seguía dando verde con el reloj local, es decir, no había cambiado nada.
+ * En el config —que se evalúa en el padre, antes de que existan los workers—
+ * sí se propaga a todos ellos.
+ *
+ * Los snapshots se regrabaron DESPUÉS de aplicar esto, así que los del repo
+ * están en UTC y no dependen del reloj de nadie.
+ */
+process.env.TZ = 'UTC';
+
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files
   dir: './',

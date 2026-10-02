@@ -24,6 +24,47 @@
 
 /* eslint-env node */
 
+/**
+ * AVISO: la zona horaria de la suite NO se fija aquí.
+ *
+ * Se probó primero en este fichero y no surtía efecto: los ficheros de setup se
+ * ejecutan con el entorno de test ya construido, y Node ya ha resuelto la zona
+ * horaria para entonces. Verificado midiendo: con el `TZ` puesto aquí, la suite
+ * seguía dando verde con el reloj local, es decir, no había cambiado nada.
+ *
+ * Está en `jest.config.js`, que se evalúa en el proceso padre antes de que
+ * existan los workers, y de ahí sí se propaga a todos ellos. Ahí está también
+ * el porqué de que importe: hay snapshots que guardan la hora del reloj y, sin
+ * esto, una prueba está verde por la zona horaria de la máquina que la ejecuta.
+ *
+ * (Lo que sigue documenta los polyfills de este fichero.)
+ *
+ * =============================================================================
+ * POR QUÉ ESTO NO ES COSMÉTICA
+ * =============================================================================
+ * Hay pruebas que renderizan la hora del reloj a partir de `Date.now()` y la
+ * guardan en un snapshot. Medido en el primer día de integración continua:
+ *
+ *     UndoTimelinePopover — should match snapshot with batch entries
+ *     verde en el portátil (UTC+2), rojo en el runner de GitHub (UTC)
+ *
+ * porque el snapshot contenía `13:59:30` y en el runner se generaba `11:59:30`.
+ * Es decir: **una prueba verde dependedía de la zona horaria de quien la
+ * ejecutaba**, y no fallaba por un cambio de código sino por estar en otro
+ * sitio. Alguien en otro huso horario, o un runner de otra región, lo habría
+ * visto roto sin haber tocado una línea.
+ *
+ * Fijar la zona horana antes de que se cree ningún entorno de test convierte
+ * los snapshots en comparables en cualquier parte. Los snapshots se han
+ * vuelto a grabar DESPUÉS de aplicar esto, así que los que hay en el repo
+ * están en UTC y no dependen del reloj de nadie.
+ *
+ * Ojo: esto fija la zona, no el instante. Un snapshot con una hora absoluta
+ * sigue siendo frágil si la prueba usa `Date.now()` de verdad; lo correcto para
+ * esas es congelar el reloj en la propia prueba. Aquí solo se quita la
+ * dependencia de la MÁQUINA, que es el fallo medido.
+ */
+
 const { serialize, deserialize } = require('node:v8');
 
 if (typeof globalThis.structuredClone !== 'function') {

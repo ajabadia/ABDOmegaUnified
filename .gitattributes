@@ -8,3 +8,17 @@
 # dice la suya. Si las dos se declaran juntas, la justificacion de la primera
 # no tendria por que hablar de la segunda.
 *.cmd text eol=crlf
+
+# Los snapshots de Jest SIEMPRE en LF, en cualquier sistema operativo.
+#
+# `*.snap` es texto pero no está cubierto por ninguna regla, y con
+# `core.autocrlf=true` el checkout de Windows lo convertiría a CRLF mientras que
+# en Linux saldría tal cual. La salida serializada de Jest es siempre LF, así
+# que un `.snap` en CRLF solo puede compararse bien en el sistema que lo escribió.
+#
+# Fijar `text eol=lf` hace que se guarde y se extraiga igual en todas partes.
+# (El fallo que destapó esto no fue este, sino la zona horaria: ver el
+# docblock de `jest.config.js`, que fija `TZ=UTC` para que las instantáneas no
+# dependan de la hora local de quien las ejecuta. `jest.setup.js` tiene una
+# nota sobre por qué el TZ va en el config y no aquí.)
+*.snap text eol=lf
