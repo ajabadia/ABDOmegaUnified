@@ -21,10 +21,26 @@ export const dynamic = "force-dynamic";
 
 /**
  * Resuelve el directorio canónico de la estantería de módulos.
- * Nota: se evita resolver vía `public/modules` (junction) en este código — la
- * junction apunta fuera del root del proyecto web y Turbopack intenta trazar
- * ese path literal durante `next build` (error "points out of the filesystem
- * root"). La lectura en runtime usa directamente la carpeta real del monorepo.
+ *
+ * POR QUÉ NO SE CONSULTA `public/modules` — MEDIDO, NO SUPONIDO
+ * -------------------------------------------------------------
+ * Existe la tentación de añadir `public/modules` como tercer candidato (en un
+ * despliegue `<root>/modules` no existe y `prebuild` deja ahí una copia real).
+ * Medido con `next build` el 2 de octubre: **rompe el build**.
+ *
+ *   Symlink [project]/public/modules/440demo/440demo.acemm is invalid,
+ *   it points out of the filesystem root
+ *
+ * Turbopack traza las llamadas a `fs` de la ruta y las resuelve en tiempo de
+ * compilación; con el junction de esta máquina, `public/modules/...` cae fuera
+ * del root de Next (`web/`) y Turbopack aborta. Da igual que el candidato sea
+ * el último de la lista: la ruta literal basta para que la tracee.
+ *
+ * Consecuencia asumida en un despliegue: `GET /api/modules` responde 500 y
+ * `SharedModuleCatalogService.loadCatalog()` cae al catálogo generado
+ * (`acemmCatalog.generated.ts`), que es el comportamiento que ya cubren sus
+ * tests. Los `.acemm` estáticos (`/modules/<id>/<id>.acemm`) sí se sirven, los
+ * materializa `prebuild` en `public/`.
  */
 function resolveModulesDir(): string {
   const candidates = [
