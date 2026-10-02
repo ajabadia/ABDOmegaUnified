@@ -30,8 +30,12 @@ export default async function HomeLauncher({
         </div>
       </header>
 
-      {/* Main Apps Selection Grid */}
-      <main className="max-w-6xl w-full mx-auto my-auto py-10">
+      {/* Main Apps Selection Grid.
+          `id="main-content"`: es el destino del enlace "Skip to main content" que
+          renderiza app/layout.tsx. Antes ese enlace apuntaba a un ancla que no
+          existía en NINGUNA página, y el test de accesibilidad lo detectó al
+          ejecutarse por fin (e2e/accessibility.spec.ts). */}
+      <main id="main-content" className="max-w-6xl w-full mx-auto my-auto py-10">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-extrabold text-white mb-2">¿Qué aplicación deseas abrir?</h2>
           <p className="text-sm text-slate-400 max-w-xl mx-auto">

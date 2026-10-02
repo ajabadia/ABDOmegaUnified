@@ -14,7 +14,7 @@ export default function EditorPage() {
   const [isCellEditorOpen, setIsCellEditorOpen] = useState(false);
 
   return (
-    <main id="main-editor-content" className="h-screen w-screen overflow-hidden bg-black">
+    <main id="main-content" className="h-screen w-screen overflow-hidden bg-black">
       <Suspense fallback={<div className="h-full w-full bg-black flex items-center justify-center text-primary font-mono text-[10px] animate-pulse">INITIALIZING OMEGA EDITOR...</div>}>
         <PreferencesProvider>
           <WorkbenchContainer 
