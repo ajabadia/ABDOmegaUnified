@@ -1,4 +1,4 @@
-# Estado de la aplicación — 2 de octubre de 2026
+# Estado de la aplicación — 3 de octubre de 2026
 
 Este documento está pensado para alguien que **no** programa. Explica qué funciona,
 qué no, y qué hay que hacer. Nada de aquí requiere leer código para actuar.
@@ -53,8 +53,8 @@ detectó una prueba que nunca se había ejecutado entera.
 |---|---|
 | Tipos y compilación | **Correcto** |
 | Compilación para producción | **Correcta** |
-| Pruebas automáticas | **1644 de 1644 pasan** |
-| Pruebas en navegador real | **Las 16 ejecutadas enteras al menos una vez.** Ahora **ninguna se hace pasar por buena si no funciona** |
+| Pruebas automáticas | **1666 de 1666 pasan** |
+| Pruebas en navegador real | **156 en verde.** Todas bloquean: si una se rompe, el cambio no entra |
 | Comprobación automática en cada cambio | **Montada** (sección 3.6) |
 
 ---
@@ -175,10 +175,37 @@ Ahora el tirador va en el borde lateral del nodo —entradas a la izquierda, sal
 derecha, que es como lo hacen los editores de nodos— y el centro queda libre para seleccionar.
 La prueba deja de estar pendiente y comprueba la descarga y la reimportación de verdad.
 
-### 3.4 Una prueba en rojo en la barra de herramientas
+### 3.4 La barra de herramientas — **arreglada, y destapó dos fallos reales**
 
-Fallan al pedir que aparezcan cosas en un módulo vacío. Comportamiento real sin
-investigar.
+Las cuatro pruebas que quedaban en rojo (tres de la barra de herramientas y una del rack)
+no eran "pruebas que piden cosas en un rack que arranca vacío". **Eran dos fallos reales
+de la aplicación, tapados por pruebas que afirmaban lo contrario.**
+
+**1. Los botones de "Redimensionar" y "Rotar con números" no existían** (fallo real, grave).
+Tenían todo el trabajo hecho: ventana emergente, atajo de teclado (`Ctrl+Alt+R` y
+`Ctrl+Alt+T`), entrada propia en el menú y Tests unitarios. Lo único que faltaba era su
+nombre en la lista de botones de la barra. Como no estaban en esa lista, **no se dibujaban
+nunca** —loselectionaras lo que selectionaras. Un usuario que leyera el atajo en el manual
+se encontraria con que no hacia nada.
+
+**2. Al vaciar el rack no volvia a salir el cartel de "rack vacío"** (fallo real). Inyectar
+una plantilla crea una carpeta dentro del rack. Al borrar la celda que habia dentro, esa
+carpeta se quedaba **vacia pero presente**, y la comprobacion de "isolo vacio?" miraba si
+quedaba alguna carpeta, no si quedaba alguna pieza. Medido: con **0 celdas en pantalla, el
+cartel no volvia**. Un rack vacio se quedaba mudo para siempre.
+
+Los otros dos eran fallos de las pruebas, no de la aplicación:
+
+- Una pedia que el boton de "Configuracion" abriera un panel de propiedades. **Ese boton
+  abre el modal de preferencias**, y lo hace a proposito: el propio codigo lo reescribe
+  para ello. Buscaba un panel con un titulo que no existe en la aplicacion.
+- Otra buscaba nodos con la clase `uca-port`. Esa clase **no existe**: el componente que
+  dibuja los nodos pone siempre `uca-cell`, sin mirar de que tipo es. El puerto se estaba
+  dibujando; solo que con otra etiqueta.
+
+**Medido antes y despues:** las cuatro pruebas fallan sin el arreglo y pasan con el. Se
+comprobo ademas que los botones de numeric redimensionar siguen sin aparecer cuando no hay
+nada seleccionado, que es justo lo que deben hacer.
 
 ### 3.5 El editor de conexiones — **arreglado del todo**
 
@@ -224,23 +251,22 @@ desvanecía.
 ejecuta en cada cambio que se sube, en [GitHub Actions](https://github.com/ajabadia/ABDOmegaUnified/actions):
 
 - **La puerta rápida** (unos 5 minutos): comprueba que los tipos están bien, que las
-  1.644 pruebas automáticas pasan, que la aplicación compila, y —esto es lo nuevo— que
+  1.666 pruebas automáticas pasan, que la aplicación compila, y —esto es lo nuevo— que
   las carpetas que se publican existen de verdad después de compilar. Esa última
   comprobación es la que habría parado que se publicara una web **sin módulos de sonido
   y sin editor de texto**, que es exactamente el problema del punto 3.1.
-- **La puerta del navegador** (unos 30 minutos): 12 de los 16 ficheros de pruebas de
-  navegador. Si uno de esos se rompe, el cambio no entra.
+- **La puerta del navegador** (unos 30 minutos): **los 16 ficheros de pruebas de
+  navegador. Todos. Si uno se rompe, el cambio no entra.**
 
 **Lo que queda fuera, y por qué:**
 
-- Dos ficheros de pruebas que ya están en rojo por motivos conocidos
-  (barra de herramientas y rack) se ejecutan y se muestran, pero
-  **no bloquean**. Si bloquearan, la puerta estaría cerrada siempre y nadie leería el
-  informe. En cuanto uno se arregle, pasa a bloquear.
-- El editor de conexiones **ya no está entre ellos**: está arreglado y verde, así que
-  ahora sí bloquea.
 - El motor de audio en el navegador, porque necesita un compilador que no está en el
   servidor de GitHub.
+
+**Ya no queda ningún fichero en excepción.** Antes había un segundo paso que ejecutaba
+los ficheros en rojo **sin bloquear**, con la idea de que así al menos se veían. Medido el
+motivo por el que estaban en rojo, los dos fallos eran de la aplicación (3.4), así que la
+excepción solo servía para que nadie mirara. Se ha quitado el paso entero.
 
 El detalle está en [scripts/README.md](../../scripts/README.md). Para comprobar que la
 puerta está sana sin depender de GitHub: `node scripts/verify_ci_workflow.cjs`.
@@ -253,10 +279,10 @@ y eso ha cambiado el panorama: las que faltaban **pasaban todas**.
 Las últimas cinco (`importar .json`, `rutas de idioma`, `filtros del panel de capas`,
 `minimapa` y `proyectos .omega`) suman **34 pruebas, todas en verde**, sin tocar nada.
 
-Lo que queda en rojo en el navegador, con lo medido:
+Lo que queda en rojo en el navegador: **nada**. Las cuatro pruebas que quedaban (3.4) se
+arreglaron y ahora bloquean.
 
-- **3** de la barra de herramientas — piden cosas en un rack que arranca vacío.
-- **1** del rack — verificada como anterior a todo este trabajo.
+- **156 pruebas de navegador en verde**, ejecutadas enteras bloque por bloque.
 - **5** marcadas como *pendiente* con su motivo escrito (3.3). No son rojas: son medidas y
   están declaradas como lo que son.
 
@@ -269,7 +295,7 @@ sesión, historial, reproductor del rack, puente WASM). **Tú decidiste subirlos
 para que GitHub y Vercel dejaran de ver una versión antigua. Están en un commit aparte,
 deliberadamente mezclado y etiquetado como trabajo ajeno.
 
-Verificado justo antes de subirlo: tipos correctos, 1644 pruebas en verde, compilación
+Verificado justo antes de subirlo: tipos correctos, 1666 pruebas en verde, compilación
 correcta.
 
 Dos carpetas se quedaron fuera a propósito, con el motivo escrito en `.gitignore`:
@@ -289,12 +315,17 @@ en un commit aparte. Lo único que queda por tu cuenta es reconectar Vercel (3.1
 
 ### 5.2 Lo siguiente, por orden
 
-1. **Arreglar las tres pruebas de la barra de herramientas**, que piden cosas en un rack
-   que arranca vacío.
-2. **Arreglar la del rack**, verificada como anterior a todo este trabajo.
-3. **Cerrar la puerta de calidad del todo**: en cuanto los dos de arriba queden verdes se
-   puede quitar la excepción de "no bloquean" y el fallo se para en la puerta, no en un
-   informe que hay que ir a leer.
+**La puerta de calidad está cerrada.** Era el punto 3 de esta lista y ya está hecho: los
+cuatro tests que quedaban en rojo se arreglaron (3.4), los 16 ficheros de pruebas de
+navegador bloquean, y no queda ninguna excepción. Lo que falla, para en la puerta.
+
+Queda pendiente, y en este orden:
+
+1. **Subir estos últimos arreglos a GitHub.** Los cuatro de esta sesión (3 commits) están
+   solo en el ordenador; en GitHub siguen los tres anteriores. La puerta de GitHub solo
+   comprobará estos cambios cuando estén subidos.
+2. **Reconectar Vercel al repositorio bueno** (3.1). Es lo único que bloquea de verdad que
+   la web publicada reciba los arreglos, y es cosa de tu cuenta.
 
 ---
 
@@ -329,7 +360,7 @@ En la carpeta `web` salvo donde se dice otra cosa:
 
 - **"Las pruebas automáticas pasan"** →
   `npx jest src/lib src/features/manifest-editor src/services/history.test.ts src/omega-ui-core`
-  Deben salir **81 suites y 1644 pruebas, todas en verde**.
+  Deben salir **83 suites y 1666 pruebas, todas en verde**.
 
 - **"El editor no necesita internet"** → `npx jest configureMonacoLoader`. Comprueba que
   el editor se pide a `/monaco/vs` y que en ninguna parte se configura una dirección de

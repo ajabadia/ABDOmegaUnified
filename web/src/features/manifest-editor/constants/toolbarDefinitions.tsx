@@ -19,6 +19,8 @@ import {
   Group,
   Ungroup,
   Scale,
+  Ruler,
+  Rotate3D,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 
@@ -108,6 +110,24 @@ export const TOOLBAR_BUTTONS: ToolbarButtonDef[] = [
     group: 'edit',
     defaultVisible: true,
     title: 'Ungroup selected group',
+    conditional: true,
+  },
+  {
+    id: 'numeric-resize',
+    label: 'Numeric Resize',
+    icon: Ruler,
+    group: 'edit',
+    defaultVisible: true,
+    title: 'Numeric Resize (Ctrl+Alt+R)',
+    conditional: true,
+  },
+  {
+    id: 'numeric-rotate',
+    label: 'Numeric Rotate',
+    icon: Rotate3D,
+    group: 'edit',
+    defaultVisible: true,
+    title: 'Numeric Rotate (Ctrl+Alt+T)',
     conditional: true,
   },
   {

@@ -206,6 +206,9 @@ describe('useToolbarLogic — renderedButtons visibility', () => {
     expect(ids).not.toContain('studio');
     expect(ids).not.toContain('group');
     expect(ids).not.toContain('ungroup');
+    // Ídem para los numéricos: sin selección no deben asomar.
+    expect(ids).not.toContain('numeric-resize');
+    expect(ids).not.toContain('numeric-rotate');
   });
 
   it('should show studio when a node is selected', () => {
@@ -214,7 +217,32 @@ describe('useToolbarLogic — renderedButtons visibility', () => {
     );
     const ids = result.current.renderedButtons.map((b) => b.id);
     expect(ids).toContain('studio');
-    // numeric-resize / numeric-rotate only appear if the user has added them to config.order
+  });
+
+  /**
+   * Numeric Resize y Numeric Rotate tienen popover, atajo de teclado
+   * (Ctrl+Alt+R / Ctrl+Alt+T) y entrada de menú propio. Estaban inalcanzables
+   * desde el toolbar porque NO figuraban en `TOOLBAR_BUTTONS`, así que nunca
+   * entraban en `DEFAULT_CONFIG.order` y `renderedButtons` los descartaba siempre
+   * — seleccionases lo que seleccionases. Estos tests fallan si alguien los
+   * quita de la lista de definiciones.
+   */
+  it('should show numeric-resize and numeric-rotate when a node is selected', () => {
+    const { result } = renderHook(() =>
+      useToolbarLogic(defaultParams({ selectedNodeId: 'n1' })),
+    );
+    const ids = result.current.renderedButtons.map((b) => b.id);
+    expect(ids).toContain('numeric-resize');
+    expect(ids).toContain('numeric-rotate');
+  });
+
+  it('should keep numeric-resize and numeric-rotate in the default order', () => {
+    expect(DEFAULT_CONFIG.order).toContain('numeric-resize');
+    expect(DEFAULT_CONFIG.order).toContain('numeric-rotate');
+    // Y deben estarlo en la misma posición que sus pares condicionales, no
+    // arrastreados al final.
+    const studio = DEFAULT_CONFIG.order.indexOf('studio');
+    expect(DEFAULT_CONFIG.order.indexOf('numeric-resize')).toBeGreaterThan(studio);
   });
 
   it('should show group when 2+ nodes are multi-selected', () => {
@@ -265,7 +293,8 @@ describe('useToolbarLogic — layout cols calculation', () => {
     // window.innerHeight = 800 (default from beforeEach)
     // maxHeight = max(200, 800 - 140) = 660
     // maxRows = max(1, floor((660 - 36) / 34)) = max(1, floor(624/34)) = max(1, 18) = 18
-    // B = number of visible buttons (9 by default: select, marquee, transform, add, blueprints, config, live, zen = 8... let's count)
+    // B = número de botones visibles por defecto:
+    // select, marquee, transform, add, blueprints, config, live, zen = 8
     const { result } = renderHook(() => useToolbarLogic(defaultParams()));
     // Default visible: select, marquee, transform, add, blueprints, config, live, zen = 8
     // cols = ceil(8 / 18) = 1

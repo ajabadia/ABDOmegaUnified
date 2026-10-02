@@ -161,10 +161,34 @@ jobs:
 
       # ─────────────────────────────────────────────────────────────────────
       # PASO 1 — LA PUERTA. Los specs que están verdes hoy (medido el
-      # 2 de octubre de 2026). Si uno de estos se rompe, el cambio no entra.
+      # 3 de octubre de 2026). Si uno de estos se rompe, el cambio no entra.
       #
-      # `smoke-tests` entra aunque tenga 3 tests marcados `fixme`: esos no
+      # `smoke-tests` entra aunque tenga 2 tests marcados `fixme`: esos no
       # fallan nunca, se saltan a propósito y con su motivo escrito.
+      #
+      # POR QUÉ YA NO HAY UN PASO 2
+      # ---------------------------
+      # El job tenía dos pasos: este, que bloquea, y un paso informativo con
+      # `continue-on-error` para `rack-features` y `toolbar`, que estaban en
+      # rojo. Ese segundo paso ya no existe: los dos specs están verdes y
+      # bloquean.
+      #
+      # Arreglarlos destapó TRES fallos reales de la aplicación que los tests
+      # llevaban tiempo cubriendo sinAssertarlos:
+      #
+      #   - `numeric-resize` y `numeric-rotate` no figuraban en
+      #     TOOLBAR_BUTTONS, así que nunca entraban en el orden por defecto y
+      #     sus botones eran inalcanzables. Tenían popover, atajo de teclado y
+      #     entrada de menú; solo faltaban en una lista.
+      #   - El asistente de "rack vacío" decidía con `tree.children.length > 0`.
+      #     Inyectar un blueprint deja un `container`, así que al borrar la
+      #     celda el rack quedaba en blanco y el asistente no volvía nunca.
+      #   - `toolbar.spec.ts` pedía un panel de Properties que el botón de
+      #     Config nunca abrió (abre el modal de preferencias) y buscaba
+      #     `.uca-port`, una clase que `CellNode` no emite nunca.
+      #
+      # La lección repetida de este workflow: un test en rojo "conocido" no es
+      # una deuda, es un fallo de la aplicación que nadie miró.
       # ─────────────────────────────────────────────────────────────────────
       - name: Specs en verde (puerta)
         run: >-
@@ -180,33 +204,8 @@ jobs:
           e2e/layers-panel-filters.spec.ts
           e2e/mini-map-visual.spec.ts
           e2e/omega-project.spec.ts
+          e2e/rack-features.spec.ts
           e2e/shortcuts.spec.ts
           e2e/smoke-tests.spec.ts
-          --reporter=line
-
-      # ─────────────────────────────────────────────────────────────────────
-      # PASO 2 — EL RESTO, SIN BLOQUEAR. Estos dos están en rojo por motivos
-      # ya medidos y conocidos, y mientras lo estén, hacerlos bloquear
-      # dejaría la puerta cerrada siempre y nadie miraría el informe.
-      #
-      #   toolbar       27/30 — pide nodos en un rack que arranca vacío.
-      #   rack-features  1 rojo — verificado como anterior a este trabajo.
-      #
-      # `connection-editor` salió de aquí y subió al paso 1 el 2 de octubre de
-      # 2026: sus 22 pruebas están en verde. Al arreglarlo se destapó un fallo
-      # REAL de la aplicación — el botón de borrar la conexión se
-      # desmontaba antes de que el puntero llegara, así que era imposible
-      # pulsarlo — que estaba escondido detrás de unas pruebas que pulsaban
-      # fuera de la línea.
-      #
-      # Cuando uno se arregle, se sube a la lista del paso 1 y se quita de
-      # aquí. El `continue-on-error` es de ESTE PASO, no del job: si el paso 1
-      # falla, el job entero sigue fallando.
-      # ─────────────────────────────────────────────────────────────────────
-      - name: Specs en rojo conocidos (informativo, no bloquea)
-        continue-on-error: true
-        run: >-
-          npx playwright test
-          e2e/rack-features.spec.ts
           e2e/toolbar.spec.ts
           --reporter=line

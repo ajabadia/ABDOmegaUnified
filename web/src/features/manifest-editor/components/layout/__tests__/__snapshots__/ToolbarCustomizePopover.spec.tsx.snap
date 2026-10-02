@@ -1227,9 +1227,9 @@ exports[`CustomizePopover — snapshots should match snapshot for open popover (
     <span
       class="text-[6px] font-mono wb-text-muted"
     >
-      11
+      13
        / 
-      11
+      13
        visible
     </span>
   </div>
@@ -2155,9 +2155,9 @@ exports[`CustomizePopover — snapshots should match snapshot for open popover (
     <span
       class="text-[6px] font-mono wb-text-muted"
     >
-      11
+      13
        / 
-      11
+      13
        visible
     </span>
   </div>
@@ -3095,9 +3095,9 @@ exports[`CustomizePopover — snapshots should match snapshot for open popover (
     <span
       class="text-[6px] font-mono wb-text-muted"
     >
-      8
+      10
        / 
-      11
+      13
        visible
     </span>
   </div>

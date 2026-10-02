@@ -4,13 +4,23 @@
  * Tests for the Toolbar customize popover (P8) — reorder, show/hide, reset toolbar buttons.
  * Uses the real useToolbarCustomization hook by controlling localStorage before each test.
  *
- * NOTE: loadConfig() always validates and augments the order to include all 11 TOOLBAR_BUTTONS,
- * so tests that set a partial order will see the full 11-button list after loading.
+ * NOTE: loadConfig() always validates and augments the order to include every
+ * TOOLBAR_BUTTON, so tests that set a partial order will see the full list after
+ * loading. `TOTAL_BUTTONS` below tracks that count from the constant itself —
+ * antes estaba escrito a pelo ("11") y se rompió en silencio dos veces: primero
+ * al añadir botones y luego cuando `numeric-resize`/`numeric-rotate`
+ * aparecieron en TOOLBAR_BUTTONS y el total pasó a 13.
  */
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { STORAGE_KEY } from '@/features/manifest-editor/constants/toolbarDefinitions';
+import { STORAGE_KEY, TOOLBAR_BUTTONS } from '@/features/manifest-editor/constants/toolbarDefinitions';
 import Toolbar from '../Toolbar';
+
+/** Número total de botones definidos; el pie del popover usa este mismo total. */
+const TOTAL_BUTTONS = TOOLBAR_BUTTONS.length;
+
+/** Botones que el popover filtra por ser condicionales (nunca se listan). */
+const CONDITIONAL_COUNT = TOOLBAR_BUTTONS.filter((b) => b.conditional).length;
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -94,11 +104,11 @@ describe('CustomizePopover — header', () => {
     );
     render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
-    // After validation: 11 buttons in order, 3 hidden → "8 / 11 visible"
-    expect(screen.getByText('8 / 11 visible')).toBeTruthy();
-    // Click reset — should revert to default (0 hidden) → "11 / 11 visible"
+    // After validation: 13 buttons in order, 3 hidden → "10 / 13 visible"
+    expect(screen.getByText(`10 / ${TOTAL_BUTTONS} visible`)).toBeTruthy();
+    // Click reset — should revert to default (0 hidden)
     fireEvent.click(screen.getByTitle('Reset to default'));
-    expect(screen.getByText('11 / 11 visible')).toBeTruthy();
+    expect(screen.getByText(`${TOTAL_BUTTONS} / ${TOTAL_BUTTONS} visible`)).toBeTruthy();
   });
 });
 
@@ -110,7 +120,7 @@ describe('CustomizePopover — button list', () => {
   });
 
   it('should render all non-conditional buttons in the list', () => {
-    // DEFAULT_CONFIG has 11 buttons — 3 conditional => 8 visible
+    // 13 botones en total — 5 condicionales (studio, group, ungroup, numeric-*)
     render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
     expect(screen.getByText('Select Tool')).toBeTruthy();
@@ -133,9 +143,9 @@ describe('CustomizePopover — button list', () => {
   it('should render a drag handle (GripVertical icon) for each button', () => {
     const { container } = render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
-    // 11 total — 3 conditional (studio, group, ungroup) filtered = 8 rows
+    // Solo se listan los NO condicionales
     const gripIcons = container.querySelectorAll('svg.lucide-grip-vertical');
-    expect(gripIcons.length).toBe(8);
+    expect(gripIcons.length).toBe(TOTAL_BUTTONS - CONDITIONAL_COUNT);
   });
 
   it('should render a visibility toggle button for each button', () => {
@@ -188,7 +198,7 @@ describe('CustomizePopover — button list', () => {
   it('should toggle visibility when a visibility toggle button is clicked', () => {
     const { container } = render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
-    // Initially all visible — 8 Eye icons, 0 EyeOff
+    // Initially all visible — un Eye por fila, ningún EyeOff
     expect(container.querySelectorAll('svg.lucide-eye').length).toBe(8);
     // Click first Hide button (for 'select' button)
     const hideBtn = screen.getAllByTitle('Hide button')[0]!;
@@ -226,8 +236,8 @@ describe('CustomizePopover — footer', () => {
   it('should show visible/total count in the footer', () => {
     render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
-    // Default config: 11 buttons, 0 hidden → "11 / 11 visible"
-    expect(screen.getByText('11 / 11 visible')).toBeTruthy();
+    // Default config: 0 hidden → "N / N visible"
+    expect(screen.getByText(`${TOTAL_BUTTONS} / ${TOTAL_BUTTONS} visible`)).toBeTruthy();
   });
 
   it('should update visible count when buttons are hidden', () => {
@@ -237,24 +247,25 @@ describe('CustomizePopover — footer', () => {
     );
     render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
-    // After validation: 11 buttons in order, 2 hidden → "9 / 11 visible"
-    expect(screen.getByText('9 / 11 visible')).toBeTruthy();
+    // After validation: 2 hidden → "11 / 13 visible"
+    expect(screen.getByText(`${TOTAL_BUTTONS - 2} / ${TOTAL_BUTTONS} visible`)).toBeTruthy();
   });
 
   it('should show 0 / N visible when all buttons are hidden', () => {
-    setLocalConfig(
-      ['select', 'marquee', 'transform', 'add', 'live', 'zen', 'studio', 'group', 'ungroup', 'blueprints', 'config'],
-      ['select', 'marquee', 'transform', 'add', 'live', 'zen', 'studio', 'group', 'ungroup', 'blueprints', 'config'],
-    );
+    // Se ocultan TODOS por id, no una lista escrita a mano: `loadConfig()`
+    // amplía el order con los botones que falten, y si la lista de `hidden`
+    // se queda corta el contador no llega a 0.
+    const allIds = TOOLBAR_BUTTONS.map((b) => b.id);
+    setLocalConfig(allIds, allIds);
     render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
-    expect(screen.getByText('0 / 11 visible')).toBeTruthy();
+    expect(screen.getByText(`0 / ${TOTAL_BUTTONS} visible`)).toBeTruthy();
   });
 
   it('should show N / N visible when no buttons are hidden', () => {
     render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
-    expect(screen.getByText('11 / 11 visible')).toBeTruthy();
+    expect(screen.getByText(`${TOTAL_BUTTONS} / ${TOTAL_BUTTONS} visible`)).toBeTruthy();
   });
 });
 
@@ -310,13 +321,13 @@ describe('CustomizePopover — edge cases', () => {
   });
 
   it('should handle an empty button list gracefully', () => {
-    // Even with an empty config in localStorage, loadConfig augments to 11 buttons
+    // Even with an empty config in localStorage, loadConfig augments to all buttons
     setLocalConfig([], []);
     render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
     expect(screen.getByText('Customize Toolbar')).toBeTruthy();
-    // After augmentation: 11 buttons, 0 hidden → "11 / 11 visible"
-    expect(screen.getByText('11 / 11 visible')).toBeTruthy();
+    // After augmentation: all buttons, 0 hidden
+    expect(screen.getByText(`${TOTAL_BUTTONS} / ${TOTAL_BUTTONS} visible`)).toBeTruthy();
     // The popover should render all 8 non-conditional buttons
     expect(screen.getByText('Select Tool')).toBeTruthy();
   });
@@ -333,8 +344,8 @@ describe('CustomizePopover — edge cases', () => {
     expect(screen.getByText('Select Tool')).toBeTruthy();
     expect(screen.getByText('Live Mode')).toBeTruthy();
     // Invalid IDs are filtered — no crash, hidden list is empty (fake filtered out)
-    // Footer shows 11/11 visible (no hidden items survive validation)
-    expect(screen.getByText('11 / 11 visible')).toBeTruthy();
+    // Footer shows N/N visible (no hidden items survive validation)
+    expect(screen.getByText(`${TOTAL_BUTTONS} / ${TOTAL_BUTTONS} visible`)).toBeTruthy();
   });
 
   it('should not crash when rapidly opening and closing the popover', () => {
@@ -469,19 +480,23 @@ describe('CustomizePopover — localStorage persistence', () => {
     fireEvent.dragOver(draggableItems[2]!);
     fireEvent.dragEnd(draggableItems[0]!);
 
-    // moveButton(0, 2) removes select from 0 and inserts at 2:
-    // [marquee, transform, select, add, studio, group, ungroup, blueprints, config, live, zen]
+    // moveButton(0, 2) removes select from 0 and inserts at 2; the rest keep
+    // their relative order.
     const raw = localStorage.getItem(STORAGE_KEY);
     expect(raw).not.toBeNull();
     const saved = JSON.parse(raw!);
     expect(saved.order).toBeDefined();
-    expect(saved.order.length).toBe(11);
+    expect(saved.order.length).toBe(TOTAL_BUTTONS);
     expect(saved.order[0]).toBe('marquee');
     expect(saved.order[1]).toBe('transform');
     expect(saved.order[2]).toBe('select');
     expect(saved.order[3]).toBe('add');
-    // Remaining items unchanged
-    expect(saved.order.slice(4)).toEqual(['studio', 'group', 'ungroup', 'blueprints', 'config', 'live', 'zen']);
+    // Remaining items unchanged (en el orden que declara TOOLBAR_BUTTONS,
+    // menos los cuatro que se han movido).
+    const expectedTail = TOOLBAR_BUTTONS.map((b) => b.id).filter(
+      (id) => !['select', 'marquee', 'transform', 'add'].includes(id),
+    );
+    expect(saved.order.slice(4)).toEqual(expectedTail);
   });
 
   it('should persist reset to localStorage (clear hidden)', () => {
@@ -492,7 +507,7 @@ describe('CustomizePopover — localStorage persistence', () => {
     );
     render(<Toolbar {...BASE_PROPS} />);
     clickCustomizeBtn();
-    expect(screen.getByText('8 / 11 visible')).toBeTruthy();
+    expect(screen.getByText(`10 / ${TOTAL_BUTTONS} visible`)).toBeTruthy();
 
     // Click Reset
     fireEvent.click(screen.getByTitle('Reset to default'));
@@ -529,7 +544,7 @@ describe('CustomizePopover — localStorage persistence', () => {
     expect(raw).not.toBeNull();
     const saved = JSON.parse(raw!);
     expect(saved.order).toBeDefined();
-    expect(saved.order.length).toBe(11);
+    expect(saved.order.length).toBe(TOTAL_BUTTONS);
     expect(saved.hidden).toEqual([]);
   });
 

@@ -11,7 +11,25 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import type { OMEGA_Manifest } from '@/omega-ui-core/types/manifest';
+import type { OMEGA_Manifest, OmegaNode } from '@/omega-ui-core/types/manifest';
+
+/**
+ * `true` si el nodo (o cualquiera de sus descendientes) es algo que el rack
+ * dibuja de verdad: una celda o un puerto.
+ *
+ * POR QUÉ NO BASTA CON `tree.children.length > 0`
+ *
+ * Inyectar un blueprint crea un `container` bajo la raíz. Al borrar la celda
+ * que había dentro, ese `container` se queda **vacío pero presente**, así que
+ * `children.length` seguía dando 1 y el asistente de "rack vacío" no volvía a
+ * aparecer aunque el rack quedara en blanco. Lo que el usuario perceive como
+ * "vacío" son las celdas y los puertos, no los contenedores scaffolding.
+ */
+function hasRackContent(node: OmegaNode | undefined | null): boolean {
+  if (!node) return false;
+  if (node.kind === 'cell' || node.kind === 'port') return true;
+  return (node.children ?? []).some(hasRackContent);
+}
 
 export interface RackStartupAssistantResult {
   isStartupDismissed: boolean;
@@ -30,7 +48,7 @@ export function useRackStartupAssistant(
   const showAssistant = useMemo(() => {
     if (isLiveMode || isStartupDismissed) return false;
     const tree = manifest.ui?.tree;
-    const treeHasContent = !!tree && !!tree.children && tree.children.length > 0;
+    const treeHasContent = hasRackContent(tree);
     const layoutHasContent = allElementsCount > 0;
     return !treeHasContent && !layoutHasContent;
   }, [isLiveMode, isStartupDismissed, manifest.ui?.tree, allElementsCount]);

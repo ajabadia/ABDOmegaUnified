@@ -19,6 +19,8 @@ export const BUTTON_GROUPS: Record<string, ToolbarButtonGroup> = {
   studio: 'edit',
   group: 'edit',
   ungroup: 'edit',
+  'numeric-resize': 'edit',
+  'numeric-rotate': 'edit',
   blueprints: 'views',
   config: 'views',
   live: 'system',

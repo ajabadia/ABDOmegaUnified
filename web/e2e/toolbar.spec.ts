@@ -149,9 +149,16 @@ test.describe('Toolbar — Add Flyout', () => {
     await page.getByRole('button', { name: 'Audio input port' }).click();
     await page.waitForTimeout(1500);
 
-    // A port node should appear in the rack
-    const port = page.locator('.uca-node.uca-port').first();
-    await expect(port).toBeVisible({ timeout: 5000 });
+    // A port node should appear in the rack.
+    //
+    // OJO con la clase: un puerto se crea en el árbol con `kind: 'port'`, pero
+    // `CellNode` (que es quien lo dibuja — `UniversalRenderer` manda `cell` Y
+    // `port` al mismo componente) tiene la clase `uca-cell` FIJA en su JSX, sin
+    // mirar `node.kind`. Por eso buscar `.uca-port` nunca encontraba nada: no
+    // es que el puerto no se creara. `PortRenderer` sí dibuja el conector, así
+    // que eso es lo que se comprueba.
+    const portSocket = page.locator('.uca-node .port-socket').first();
+    await expect(portSocket).toBeVisible({ timeout: 5000 });
   });
 
   test('should close the flyout when clicking a primitive', async ({ page }) => {
@@ -392,13 +399,18 @@ test.describe('Toolbar — Blueprints & Config Buttons', () => {
     await expect(page.locator('button:has-text("Official Store")')).toBeVisible({ timeout: 5000 });
   });
 
-  test('should toggle the Config/Properties panel when clicking Config button', async ({ page }) => {
+  test('should open the Preferences modal when clicking the Config button', async ({ page }) => {
     await page.locator(CONFIG_BTN).click();
     await page.waitForTimeout(1000);
 
-    // The Properties panel should open in the right dock
-    const propsPanel = page.locator('button[title="Properties"]');
-    await expect(propsPanel).toBeVisible({ timeout: 5000 });
+    // El botón se titula "Module Signature & Governance" pero NO abre un panel
+    // de Properties: `WorkbenchContainer` lo reescribe a propósito
+    // (`_handleOpenConfig`) para que abra el modal de preferencias. El test
+    // pedía `button[title="Properties"]`, un título que no existe en la app, así
+    // que llevaba tiempo Green's por una razón equivocada.
+    const modal = page.getByRole('heading', { name: 'Preferences' });
+    await expect(modal).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: 'Close preferences' })).toBeVisible();
   });
 });
 
@@ -421,10 +433,15 @@ test.describe('Toolbar — Selection-Gated Buttons', () => {
     await page.getByRole('button', { name: 'Knob' }).click();
     await page.waitForTimeout(1500);
 
-    // Click on the cell to select it
+    // Click on the cell to select it.
+    //
+    // Sin `force`: antes hacía falta porque el tirador de conexión estaba en el
+    // centro exacto de la celda y absorbía el clic (arreglado en ccce5cc). Con el
+    // tirador al borde, un clic normal en el centro tiene que llegar de verdad a
+    // la celda — y este test es el que lo vigila.
     const cell = page.locator('.uca-node.uca-cell').first();
     await expect(cell).toBeVisible({ timeout: 5000 });
-    await cell.click({ force: true });
+    await cell.click();
     await page.waitForTimeout(500);
 
     // All selection-gated buttons should now be visible

@@ -1,7 +1,6 @@
 import { test, expect } from './fixtures/omegaFixtures';
 import type { Page } from '@playwright/test';
 import { injectBlueprint } from './helpers/blueprintInjection';
-import { gotoWorkbench } from './helpers/navigation';
 
 /**
  * OMEGA ERA 7.2.3 - RACK FEATURES E2E TEST SUITE
@@ -225,10 +224,18 @@ test.describe('RackStartupAssistant Matrix (v9.1.8-dev)', () => {
     await injectBlueprint(rackPage);
     await expect(rackPage.locator(OVERLAY)).not.toBeVisible({ timeout: 5000 });
 
-    // Reload to reset rack state.
-    // La recarga se hace sobre el WORKBENCH, no sobre el portal: volver a `/en`
-    // tras inyectar el blueprint dejaba la página fuera del editor.
-    await gotoWorkbench(rackPage, { view: 'rack', waitMs: 8000 });
+    // BORRAR de verdad, no recargar.
+    //
+    // Este test se llamaba "delete all" pero no borraba nada: recargaba el
+    // workbench y daba por hecho que eso vaciaba el rack. No lo hace — la sesión
+    // se persiste, así que tras recargar la celda seguía ahí (medido: 0 overlays,
+    // 1 celda) y el test solo pasaba porque nunca se comprobó nada intermedio.
+    // Ahora se selecciona la celda y se pulsa Supr, que es lo que dice el nombre.
+    const cell = rackPage.locator('.uca-node.uca-cell').first();
+    await expect(cell).toBeVisible({ timeout: 5000 });
+    await cell.click();
+    await rackPage.keyboard.press('Delete');
+    await expect(rackPage.locator('.uca-node.uca-cell')).toHaveCount(0, { timeout: 5000 });
 
     const overlay = rackPage.locator(OVERLAY);
     await expect(overlay).toBeVisible({ timeout: 5000 });
