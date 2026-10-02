@@ -8,7 +8,7 @@ qué no, y qué hay que hacer. Nada de aquí requiere leer código para actuar.
 ## 1. Lo que arreglé en esta sesión
 
 Todo lo de esta lista está **arreglado, probado y guardado en el historial de Git**
-(6 commits). Antes estaba roto; ahora hay una prueba automática que lo vigila.
+(8 commits). Antes estaba roto; ahora hay una prueba automática que lo vigila.
 
 ### Cosas que mentían y ahora dicen la verdad
 
@@ -18,6 +18,7 @@ Todo lo de esta lista está **arreglado, probado y guardado en el historial de G
 | Los módulos de sonido | Si un módulo no se encontraba, la aplicación decía "este módulo está mal formado". Mentía: el fichero sencillamente no estaba. | Dice el nombre del módulo y el fichero que falta. |
 | Botón "Rehacer" | El rótulo decía `Ctrl+Shift+Z`. **Ese atajo no hacía nada.** El bueno es `Ctrl+Y`. | Dice la verdad. |
 | Atajos en general | Los atajos se repartían en dos sitios distintos, y parte de la configuración era código que nunca se ejecutaba. | Un solo sitio. |
+| Las carpetas que se publican | Cuatro carpetas necesarias eran **enlaces a carpetas de tu disco**, que solo existen en tu ordenador. En un servidor no existen. | Se reconstruyen solas al compilar, en cualquier ordenador. |
 
 ### Cosas que estaban en rojo sin que nadie lo supiera
 
@@ -50,32 +51,46 @@ Lo digo claro porque prefiero que lo sepas.
 
 ### 3.1 La publicación en internet (Vercel) — lo más urgente
 
-La web **no se publica**. Vercel pide un ajuste de una casilla y, además, hay una razón
-de fondo que un ajuste no arregla:
+**Lo primero, y es lo importante: Vercel está publicando OTRO proyecto.**
 
-Cuatro carpetas que la aplicación necesita (`modules`, `fonts`, `host-ui`, `omega-ui-core`)
-están en tu ordenador como **enlaces a carpetas de Windows**, no como archivos de verdad.
-Esos enlaces solo existen en tu máquina. En cualquier otro ordenador —y en el servidor de
-Vercel— **no existen**.
+Tu proyecto en Vercel se llama `abd-omega-editor`, y está conectado al repositorio de
+GitHub **`ajabadia/ABDOmegaEditor`**. Pero el proyecto en el que trabajamos se llama
+**`ajabadia/ABDOmegaUnified`**. Son dos repositorios **distintos, sin ningún antepasado
+común** (lo comprobé: no comparten ni un solo commit).
 
-Consecuencia: la aplicación se abriría, pero **sin ningún módulo de sonido**, sin las
-tipografías y sin el reproductor.
+Traducción: **todo lo que hemos arreglado en estas sesiones no está en lo que Vercel
+publica.** Vercel sigue con su copia antigua. Por eso el error que recibiste
+("No Next.js version detected") no se arregla cambiando una casilla.
 
-**Lo que tienes que hacer tú** (son 2 clics, no puedo hacerlo yo):
+Además, el repositorio que Vercel clona tiene la aplicación **en la raíz**
+(`app/`, `src/`, `package.json` directamente), mientras que el nuestro la tiene en la
+carpeta `web/`. Son dos copias que fueron separándose.
+
+**Cuál es el bueno:** el nuestro, `ABDOmegaUnified`. Es donde se ha trabajado hoy, y
+tiene el motor de audio, los módulos y las herramientas. `ABDOmegaEditor` parece la
+versión antigua, que solo ha seguido recibiendo cambios de documentación y de GitHub
+Actions.
+
+**Lo que tienes que hacer tú** (no puedo hacerlo yo, es tu cuenta de Vercel):
 
 1. Entra en [vercel.com](https://vercel.com) → proyecto `abd-omega-editor`.
-2. Pestaña **Settings** → **General** → campo **Root Directory** → escribe `web` y guarda.
-3. Vuelve a desplegar.
+2. Pestaña **Settings** → **Git** → **Disconnect** el repositorio `ABDOmegaEditor`.
+3. Pestaña **Settings** → **General** → **Root Directory** → escribe `web` y guarda.
+4. Conecta el repositorio `ajabadia/ABDOmegaUnified` y despliega desde `main`.
+5. Vuelve a desplegar.
 
-Eso quita el error que recibiste. Pero **no** quita el problema de las carpetas.
+**Aviso importante antes de que lo hagas:** los arreglos de esta sesión están en tu
+ordenador, en commits que **todavía no se han subido** a GitHub. Si conectas Vercel
+antes de subirlos, Vercel construirá una versión antigua. Subir los commits es una
+acción tuya que yo no hago salvo que me lo pidas expresamente.
 
-**Para el problema de las carpetas hay dos caminos**, y el segundo es el que recomiendo:
+**Lo que ya está arreglado por mi parte** (esto era el segundo problema de fondo):
 
-- **Copiar** los archivos de verdad al repositorio. Simple, pero el repositorio crece
-  mucho y estas carpetas se duplicarían en varios sitios.
-- **Pegar un paso automático de compilación** que copie esas carpetas antes de compilar.
-  Es lo que recomiendo: mantiene el repositorio ligero y funciona en cualquier
-  ordenador. **Puedo hacerlo yo**, es mi trabajo, no tuyo.
+Las cuatro carpetas que en tu ordenador son enlaces (`modules`, `fonts`, `host-ui`,
+`omega-ui-core`) **ya no son un problema**: ahora hay un paso automático que las
+reconstruye con archivos de verdad antes de compilar, en cualquier ordenador. En tu
+ordenador no hace nada, porque los enlaces ya funcionan. Está probado con 10
+comprobaciones automáticas.
 
 ### 3.2 Tres pruebas que "pasan" sin comprobar nada
 
@@ -118,14 +133,19 @@ tendría todo lo que tiene tu ordenador ahora mismo.** Si pierdes el disco, pier
 
 ## 5. Lo que propongo hacer ahora, por orden
 
-1. **El paso automático de compilación** para las carpetas que faltan. Es lo que
-   desbloquea publicar en internet. Es mío, no tuyo.
+1. **Subir a GitHub los cambios que están solo en tu ordenador** (los 8 commits de esta
+   sesión y el trabajo de otras sesiones). Hasta que eso no pase, Vercel —y cualquier
+   copia nueva del proyecto— sigue viendo una versión antigua. **Es tuyo**: no subo
+   nada a GitHub sin que me lo digas.
 2. **Investigar el editor de texto que no aparece.** Probablemente esté relacionado con
    la 3.2, y puede ser un fallo real que afecta al uso diario.
 3. **Convertir las tres pruebas que no pueden fallar** en pruebas de verdad, o marcarlas
    como "pendiente" con el motivo escrito. Para que nunca más den un falso verde.
 4. **Ejecutar las 9 pruebas de navegador que no he ejecutado**, para cerrar el punto flaco
    del punto 2.
+5. **Decidir qué hacemos con `ABDOmegaEditor`**, el repositorio antiguo al que apunta
+   Vercel. Si nadie lo usa, lo correcto es olvidarlo; si le queda algo útil, hay que
+   decidir si se copia algo.
 
 ---
 
@@ -155,10 +175,12 @@ revisarla:
   que lo que la interfaz anuncia es lo que hace.
 
 - **"Las rutas web no se rompen en silencio"** → en `web`:
-  `npx jest middlewareMatcher`. Prueba 608 rutas generadas.
+  `npx jest middlewareMatcher`. Prueba 608 rutas generadas.- **"Los módulos dicen la verdad cuando faltan"** → en `web`: `npx jest sharedModuleCatalog`.
 
-- **"Los módulos dicen la verdad cuando faltan"** → en `web`:
-  `npx jest sharedModuleCatalog`.
+- **"Las carpetas se reconstruyen solas"** → en la raíz del proyecto:
+  `node scripts/prepare_public_assets.mjs --check`. Debe decir `junction` en las cuatro
+  (en tu ordenador) y salir con código 0. Las pruebas del script están en
+  `node --test scripts/__tests__/prepare_public_assets.test.mjs` (10 en verde).
 
-Si alguno de esos cinco falla, este documento está equivocado y quiero saberlo antes que
+Si alguno de esos seis falla, este documento está equivocado y quiero saberlo antes que
 nadie.
