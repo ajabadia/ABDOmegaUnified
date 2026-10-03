@@ -6,46 +6,46 @@
  * --------------------------
  * El proyecto de Vercel `abd-omega-editor` tiene Root Directory = `web`. Al
  * terminar el build, Vercel ejecuta la validacion post-build de Next.js 16 y
- * hace `lstat` de este fichero:
+ * hace `lstat` de rutas que empieza por la RAIZ del repo, saltandose el
+ * segmento `web`. Si alguna no existe, el despliegue entero se cae justo
+ * despues de compilar:
  *
- *     /vercel/path0/.next/routes-manifest-deterministic.json
- *
- * Si no esta, el despliegue entero se cae justo despues de compilar:
- *
- *     Build Completed in /vercel/output [53s]
+ *     Build Completed in /vercel/output [49s]
  *     Deploying outputs...
  *     status  ● Error
  *     errorCode: "ENOENT"
  *
- * Son DOS problemas distintos y hacen falta DOS arreglos:
+ * Medido en este repo, en este orden (cada arreglo tapa el siguiente error):
  *
- *   1. La RUTA. El validador construye la ruta con la raiz del repo en vez de
- *      con la del Root Directory, asi que se salta el segmento `web`
- *      (vercel/vercel#15937). Se arregla con un enlace `<repo>/.next` ->
- *      `web/.next`.
+ *     /vercel/path0/.next/routes-manifest-deterministic.json
+ *     /vercel/path0/node_modules/next/dist/build/adapter/setup-node-env.external.js
  *
- *   2. El FICHERO. Next.js 16.2.4 no escribe `routes-manifest-deterministic.json`
- *      en ningun sitio del arbol de build (medido: `find . -name
- *      routes-manifest-deterministic.json` no devuelve nada y `.next/` solo
- *      tiene `routes-manifest.json` y `app-path-routes-manifest.json`). Se
- *      arregla materializando una copia del manifiesto que si existe.
+ * Es un fallo de la plataforma, no de este repo: vercel/vercel#15937 ("Next.js
+ * 16 post-build validation drops intermediate path segments from multi-segment
+ * Root Directory"). Ni `next build` ni los tests lo ven; solo al desplegar.
  *
- * El rodeo es el que propone ese issue: hacer que la ruta equivocada resuelva.
+ * QUE HACE, Y POR QUE HAY DOS COSAS
+ * ---------------------------------
+ *   1. Enlaza en la raiz del repo cada entrada de `web/` que alli no exista,
+ *      para que las rutas que el validador construye sin el segmento `web`
+ *      resuelvan. Es el rodeo que propone el issue. Lo que ya existe en la raiz
+ *      (`docs/`, `scripts/`, `modules/`, ...) NO se toca: son del repo.
+ *   2. Materializa `.next/routes-manifest-deterministic.json` copiando
+ *      `routes-manifest.json`. El enlace del punto 1 ya hace que la ruta
+ *      resuelva, pero Next.js 16.2.4 no escribe ese fichero en ninguna parte
+ *      (medido: `find . -name routes-manifest-deterministic.json` no devuelve
+ *      nada), asi que hace falta crearlo. Solo se crea si falta, para que una
+ *      version futura de Next mande el suyo sin que lo pisen.
+ *
  * `postbuild` corre justo despues de `next build` y antes de que Vercel recoja
  * la salida, que es la ventana correcta.
  *
  * POR QUE SOLO EN VERCEL
  * ----------------------
- * En local no debe existir `<repo>/.next`: Jest, el typecheck y las rutas de
- * Next.js buscan hacia arriba ese directorio, y un enlace en la raiz hace que
- * los modulos se puedan leer dos veces. Sin la variable `VERCEL` el script no
- * hace nada y sale 0.
- *
- * Decisiones que conviene no deshacer sin pensarlo:
- *   - Si `<repo>/.next` ya existe de verdad, el script NO lo sustituye (no es
- *     suyo); avisa y sale 0, para no comerse el trabajo de nadie.
- *   - El manifiesto solo se copia si falta. Si una version futura de Next si lo
- *     escribe, este script no lo pisa.
+ * En local no debe existir nada de esto: Jest, el typecheck y las rutas de
+ * Next.js buscan hacia arriba `.next` y `node_modules`, y un enlace en la raiz
+ * hace que los modulos se puedan leer dos veces. Sin la variable `VERCEL` el
+ * script no hace nada y sale 0.
  */
 
 import fs from 'node:fs';
@@ -61,15 +61,21 @@ const DETERMINISTIC = 'routes-manifest-deterministic.json';
 
 /**
  * Que hacer, separado del disco para poder probarlo sin desplegar.
- *   'skip'  — nada que hacer (no estamos en Vercel, o el build no llego).
- *   'link'  — crear el enlace que el validador espera encontrar.
- *   'ready' — el enlace ya estaba; solo queda materializar el manifiesto.
+ *   'skip' — nada que hacer: no estamos en Vercel, o el build no llego.
+ *   'link' — hay que replicar `web/` en la raiz.
  */
-export function plan({ onVercel, buildDirExists, linkExists }) {
+export function plan({ onVercel, buildDirExists }) {
   if (!onVercel) return { action: 'skip', reason: 'no es un despliegue de Vercel' };
   if (!buildDirExists) return { action: 'skip', reason: 'web/.next no existe' };
-  if (linkExists) return { action: 'ready', reason: 'el enlace ya existe' };
   return { action: 'link', reason: 'el validador de Vercel busca web/ en la ruta' };
+}
+
+/**
+ * Entradas de `web/` que hay que enlazar en la raiz del repo. Devuelve solo
+ * nombres, para poder probarlo con arrays y sin tocar el disco.
+ */
+export function entriesToLink(entriesInWeb, existsInRepo) {
+  return entriesInWeb.filter((name) => !existsInRepo(name));
 }
 
 function main() {
@@ -77,7 +83,6 @@ function main() {
   const decision = plan({
     onVercel: Boolean(process.env.VERCEL),
     buildDirExists: fs.existsSync(build),
-    linkExists: fs.existsSync(path.join(REPO, '.next')),
   });
 
   if (decision.action === 'skip') {
@@ -85,27 +90,30 @@ function main() {
     return 0;
   }
 
-  if (decision.action === 'link') {
-    fs.symlinkSync(build, path.join(REPO, '.next'), 'junction');
-    process.stdout.write('link-vercel-root-output: creado <repo>/.next -> web/.next\n');
-  } else {
-    process.stdout.write(`link-vercel-root-output: ${decision.reason}\n`);
+  const toLink = entriesToLink(
+    fs.readdirSync(WEB),
+    (name) => fs.existsSync(path.join(REPO, name))
+  );
+  for (const name of toLink) {
+    fs.symlinkSync(path.join(WEB, name), path.join(REPO, name), 'junction');
   }
+  process.stdout.write(
+    `link-vercel-root-output: enlazados en <repo>/ ${toLink.length} entradas de web/: ${toLink.join(', ')}\n`
+  );
 
   const source = path.join(build, MANIFEST);
   const target = path.join(build, DETERMINISTIC);
   if (fs.existsSync(target)) {
     process.stdout.write(`link-vercel-root-output: ${DETERMINISTIC} ya estaba; no se toca.\n`);
-    return 0;
-  }
-  if (!fs.existsSync(source)) {
-    // Sin manifiesto de origen no hay nada que copiar. No es motivo para
-    // tumbar el build: el validador de Vercel dira ENOENT si lo necesita.
+  } else if (fs.existsSync(source)) {
+    fs.copyFileSync(source, target);
+    process.stdout.write(`link-vercel-root-output: copiado ${MANIFEST} -> ${DETERMINISTIC}\n`);
+  } else {
+    // Sin manifiesto de origen no hay nada que copiar. No es motivo para tumbar
+    // el build: el validador de Vercel dira ENOENT si lo necesita de verdad.
     process.stdout.write(`link-vercel-root-output: no encuentro ${MANIFEST}; no se copia nada.\n`);
-    return 0;
   }
-  fs.copyFileSync(source, target);
-  process.stdout.write(`link-vercel-root-output: copiado ${MANIFEST} -> ${DETERMINISTIC}\n`);
+
   return 0;
 }
 
