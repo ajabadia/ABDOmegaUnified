@@ -47,7 +47,16 @@ const customJestConfig = {
   testMatch: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],
 
   // Exclude E2E tests (Playwright), node_modules, and legacy code
-  testPathIgnorePatterns: ['/node_modules/', '/legacy/', '/e2e/'],
+  //
+  // `/wasm-runtime/third_party/` es codigo de TERCEROS (WAMR, Intel), y ni
+  // siquiera se versiona aqui: `.gitignore:98` ignora `web/wasm-runtime/`.
+  // Sus tests de la extension de VSCode importan `mocha` y `chai`, que no son
+  // dependencias de este proyecto, asi que Jest los recogia por el `testMatch`
+  // y la suite entera acababa en rojo con "Cannot find module 'mocha'".
+  // No es un test nuestro que se pueda arreglar ni un bug: es un fichero ajeno
+  // con otro runner. Se excluye el arbol entero, no el fichero, porque esto se
+  // descarga de forma automatica y puede traer mas tests con el mismo patron.
+  testPathIgnorePatterns: ['/node_modules/', '/legacy/', '/e2e/', '/wasm-runtime/third_party/'],
 
   // Polyfills de globals de navegador que jsdom no implementa
   // (hoy `structuredClone`). Ver web/jest.setup.js.
