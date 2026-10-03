@@ -1,13 +1,13 @@
 /**
- * Lo que hace el postbuild que replica `web/` en la raiz del repo y materializa
- * el manifiesto de rutas que Vercel exige para no abortar con ENOENT
- * (vercel/vercel#15937). Todo SOLO en Vercel.
+ * El postbuild que replica `web/` en la raiz del repo para que el validador de
+ * Vercel resuelva las rutas sin el segmento `web` (vercel/vercel#15937). Todo
+ * SOLO en Vercel.
  *
  * Se prueban las funciones puras, no el disco: crear symlinks en Windows no es
  * fiable y el CI corre en Linux, asi que lo que importa es la decision.
  */
 
-import { entriesToLink, plan } from '../link-vercel-root-output.mjs';
+import { plan, planLinks } from '../link-vercel-root-output.mjs';
 
 describe('link-vercel-root-output: plan', () => {
   it('replica web/ cuando Vercel valida la salida', () => {
@@ -30,25 +30,55 @@ describe('link-vercel-root-output: plan', () => {
   });
 });
 
-describe('link-vercel-root-output: entriesToLink', () => {
+describe('link-vercel-root-output: planLinks', () => {
   it('enlaza .next y node_modules, que en la raiz no existen', () => {
-    // Ambos los pide el validador: el segundo fallo medido fue
+    // El segundo fallo medido fue
     // node_modules/next/dist/build/adapter/setup-node-env.external.js.
-    const linked = entriesToLink(['.next', 'node_modules', 'app'], (name) => name === 'app');
-    expect(linked).toEqual(['.next', 'node_modules']);
+    const links = planLinks([{ name: '.next' }, { name: 'node_modules' }, { name: 'app' }], () => false);
+    expect(links).toEqual([
+      { from: '.next', to: '.next' },
+      { from: 'node_modules', to: 'node_modules' },
+      { from: 'app', to: 'app' },
+    ]);
   });
 
   it('no pisa lo que ya existe en la raiz del repo', () => {
     // docs/, scripts/ y modules/ son del repo: el enlace los ocultaria.
     const inRepo = new Set(['docs', 'scripts', 'modules']);
-    const linked = entriesToLink(['docs', 'scripts', 'modules', '.next'], (n) => inRepo.has(n));
-    expect(linked).toEqual(['.next']);
+    const links = planLinks(
+      [{ name: 'docs' }, { name: 'scripts' }, { name: 'modules' }, { name: '.next' }],
+      (rel) => inRepo.has(rel)
+    );
+    expect(links).toEqual([{ from: '.next', to: '.next' }]);
   });
 
-  it('no enlaza nada si la raiz ya lo tiene todo', () => {
+  it('fusiona un directorio que existe en los dos sitios', () => {
+    // Tercer fallo medido: /vercel/path0/docs/ADR-009.md. La raiz tiene docs/
+    // (del repo) y web/ tiene docs/ADR-009.md (trazado por Next). Enlazar el
+    // directorio entero ocultaria el del repo, asi que se enlaza dentro lo que
+    // falte.
+    const tree = [{ name: 'docs', children: [{ name: 'ADR-009.md' }, { name: 'ESTADO-APLICACION.md' }] }];
+    const inRepo = new Set(['docs', 'docs/ESTADO-APLICACION.md']);
+    expect(planLinks(tree, (rel) => inRepo.has(rel))).toEqual([
+      { from: 'docs/ADR-009.md', to: 'docs/ADR-009.md' },
+    ]);
+  });
+
+  it('no baja mas de un nivel dentro de un directorio compartido', () => {
+    // Un nivel basta para lo medido; sin tope, replicar el arbol entero en la
+    // raiz del repo seria mas lento de lo que el despliegue ahorra.
+    const tree = [
+      {
+        name: 'docs',
+        children: [{ name: 'assets', children: [{ name: 'logo.png' }] }],
+      },
+    ];
+    expect(planLinks(tree, () => true)).toEqual([]);
+  });
+
+  it('no hace nada si la raiz ya lo tiene todo', () => {
     const all = new Set(['docs', 'scripts', 'modules', '.next', 'node_modules']);
-    expect(entriesToLink(['docs', 'scripts', 'modules', '.next', 'node_modules'], (n) => all.has(n))).toEqual(
-      []
-    );
+    const tree = [{ name: 'docs' }, { name: 'scripts' }, { name: 'modules' }, { name: '.next' }, { name: 'node_modules' }];
+    expect(planLinks(tree, (rel) => all.has(rel))).toEqual([]);
   });
 });

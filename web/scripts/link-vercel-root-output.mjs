@@ -10,32 +10,38 @@
  * segmento `web`. Si alguna no existe, el despliegue entero se cae justo
  * despues de compilar:
  *
- *     Build Completed in /vercel/output [49s]
+ *     Build Completed in /vercel/output [52s]
  *     Deploying outputs...
  *     status  ● Error
  *     errorCode: "ENOENT"
  *
- * Medido en este repo, en este orden (cada arreglo tapa el siguiente error):
+ * Medido en este repo, uno detras de otro (cada arreglo tapa el siguiente):
  *
  *     /vercel/path0/.next/routes-manifest-deterministic.json
  *     /vercel/path0/node_modules/next/dist/build/adapter/setup-node-env.external.js
+ *     /vercel/path0/docs/ADR-009.md
  *
  * Es un fallo de la plataforma, no de este repo: vercel/vercel#15937 ("Next.js
  * 16 post-build validation drops intermediate path segments from multi-segment
  * Root Directory"). Ni `next build` ni los tests lo ven; solo al desplegar.
  *
- * QUE HACE, Y POR QUE HAY DOS COSAS
- * ---------------------------------
- *   1. Enlaza en la raiz del repo cada entrada de `web/` que alli no exista,
- *      para que las rutas que el validador construye sin el segmento `web`
- *      resuelvan. Es el rodeo que propone el issue. Lo que ya existe en la raiz
- *      (`docs/`, `scripts/`, `modules/`, ...) NO se toca: son del repo.
- *   2. Materializa `.next/routes-manifest-deterministic.json` copiando
- *      `routes-manifest.json`. El enlace del punto 1 ya hace que la ruta
- *      resuelva, pero Next.js 16.2.4 no escribe ese fichero en ninguna parte
- *      (medido: `find . -name routes-manifest-deterministic.json` no devuelve
- *      nada), asi que hace falta crearlo. Solo se crea si falta, para que una
- *      version futura de Next mande el suyo sin que lo pisen.
+ * QUE HACE
+ * --------
+ * Replica en la raiz del repo lo que falta de `web/`, para que las rutas que
+ * el validador construye sin el segmento `web` resuelvan:
+ *
+ *   - Si un nombre de `web/` no existe en la raiz, se enlaza el suyo.
+ *   - Si ya existe y es un directorio (p. ej. `docs/`, que el repo tambien
+ *     tiene), NO se sustituye: se enlaza dentro lo que falte. Por eso hace
+ *     falta mirar `docs/ADR-009.md` y no solo `docs/`.
+ *   - Lo que ya existe no se toca nunca. En el contenedor no hay mas que perder
+ *     que el propio despliegue, pero en local el script no hace nada.
+ *
+ * Ademas materializa `.next/routes-manifest-deterministic.json` copiando
+ * `routes-manifest.json`: el enlace ya hace que la ruta resuelva, pero
+ * Next.js 16.2.4 no escribe ese fichero en ninguna parte (medido con `find`),
+ * asi que hay que crearlo. Solo si falta, para que una version futura de Next
+ * mande el suyo sin que lo pisen.
  *
  * `postbuild` corre justo despues de `next build` y antes de que Vercel recoja
  * la salida, que es la ventana correcta.
@@ -59,6 +65,9 @@ const REPO = path.resolve(WEB, '..');
 const MANIFEST = 'routes-manifest.json';
 const DETERMINISTIC = 'routes-manifest-deterministic.json';
 
+/** Cuanto se baja en directorios que ya existen en la raiz. Uno basta para lo medido. */
+const MAX_DEPTH = 1;
+
 /**
  * Que hacer, separado del disco para poder probarlo sin desplegar.
  *   'skip' — nada que hacer: no estamos en Vercel, o el build no llego.
@@ -71,11 +80,33 @@ export function plan({ onVercel, buildDirExists }) {
 }
 
 /**
- * Entradas de `web/` que hay que enlazar en la raiz del repo. Devuelve solo
- * nombres, para poder probarlo con arrays y sin tocar el disco.
+ * Pares [origen, destino] que hay que enlazar, en forma RELATIVA a web/ y a la
+ * raiz, para poder probar la decision con objetos planos y sin tocar el disco.
+ *
+ * `tree` es el arbol de web/ en profundidad; `existsInRepo` responde si una
+ * ruta (separada por '/') ya existe en la raiz del repo.
  */
-export function entriesToLink(entriesInWeb, existsInRepo) {
-  return entriesInWeb.filter((name) => !existsInRepo(name));
+export function planLinks(tree, existsInRepo, depth = 0) {
+  const links = [];
+  for (const entry of tree) {
+    if (!existsInRepo(entry.name)) {
+      links.push({ from: entry.name, to: entry.name });
+      continue;
+    }
+    if (!entry.children || depth >= MAX_DEPTH) continue;
+    for (const child of planLinks(entry.children, (n) => existsInRepo(`${entry.name}/${n}`), depth + 1)) {
+      links.push({ from: `${entry.name}/${child.from}`, to: `${entry.name}/${child.to}` });
+    }
+  }
+  return links;
+}
+
+/** Lee el arbol de `dir` hasta la profundidad pedida. */
+function readTree(dir, depth) {
+  return fs.readdirSync(dir, { withFileTypes: true }).map((entry) => ({
+    name: entry.name,
+    children: entry.isDirectory() && depth > 0 ? readTree(path.join(dir, entry.name), depth - 1) : undefined,
+  }));
 }
 
 function main() {
@@ -90,15 +121,15 @@ function main() {
     return 0;
   }
 
-  const toLink = entriesToLink(
-    fs.readdirSync(WEB),
-    (name) => fs.existsSync(path.join(REPO, name))
-  );
-  for (const name of toLink) {
-    fs.symlinkSync(path.join(WEB, name), path.join(REPO, name), 'junction');
+  const links = planLinks(readTree(WEB, MAX_DEPTH), (rel) => fs.existsSync(path.join(REPO, rel)));
+  for (const { from, to } of links) {
+    fs.symlinkSync(path.join(WEB, from), path.join(REPO, to), 'junction');
   }
   process.stdout.write(
-    `link-vercel-root-output: enlazados en <repo>/ ${toLink.length} entradas de web/: ${toLink.join(', ')}\n`
+    `link-vercel-root-output: ${links.length} rutas de web/ enlazadas en <repo>/ (p. ej. ${links
+      .slice(0, 8)
+      .map((l) => l.to)
+      .join(', ')}${links.length > 8 ? ', ...' : ''})\n`
   );
 
   const source = path.join(build, MANIFEST);
