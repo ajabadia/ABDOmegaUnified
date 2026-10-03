@@ -1,10 +1,11 @@
 /**
- * El enlace `<repo>/.next` -> `web/.next` que Vercel necesita para no abortar
- * el despliegue con ENOENT (vercel/vercel#15937) SOLO se crea en Vercel.
+ * El enlace `<repo>/.next` -> `web/.next` y la copia del manifiesto de rutas
+ * que Vercel necesita para no abortar el despliegue con ENOENT
+ * (vercel/vercel#15937) SOLO se crean en Vercel.
  *
- * Estos tests comprueban la decision, no el enlace en disco: Symlink de disco
- * no existe en Windows de forma fiable y el CI corre en Linux, asi que lo que
- * importa es que `plan()` diga 'skip' en local y 'link' en un despliegue.
+ * Estos tests comprueban la decision, no el enlace en disco: crear symlinks en
+ * Windows no es fiable y el CI corre en Linux, asi que lo que importa es que
+ * `plan()` diga 'skip' en local y 'link' en un despliegue.
  */
 
 import { plan } from '../link-vercel-root-output.mjs';
@@ -31,9 +32,11 @@ describe('link-vercel-root-output', () => {
     expect(decision.reason).toBe('web/.next no existe');
   });
 
-  it('no sustituye un .next real de la raiz', () => {
+  it('si el enlace ya existe, solo queda materializar el manifiesto', () => {
+    // El manifiesto es justo lo que faltaba en el despliegue anterior: el
+    // enlace se creo bien y aun asi Vercel seguia dando ENOENT.
     const decision = plan({ ...enVercel, linkExists: true });
-    expect(decision.action).toBe('skip');
-    expect(decision.reason).toBe('la raiz ya tiene un .next real');
+    expect(decision.action).toBe('ready');
+    expect(decision.reason).toBe('el enlace ya existe');
   });
 });
