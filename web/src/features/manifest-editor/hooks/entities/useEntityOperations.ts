@@ -20,7 +20,6 @@ import {
   insertNodeInTree,
   findParentInTree,
   adaptManifestEntityToNode,
-  adaptNodeToManifestEntity,
   removeNodeFromTree,
   removeNodesFromTree,
 } from './ucaInspectorAdapter';
@@ -44,16 +43,15 @@ export const useEntityOperations = (
    *   with top-level `pos`/`size`/`presentation`) and native patches
    *   (`Partial<OmegaNode>` with nested `layout.pos`/`layout.size`).
    * - If the entity is in the UCA tree → normalize in place, then call
-   *   `updateNodeInTree`, then rebuild the manifest via `buildManifestFromTree`.
-   * - If the entity is only in legacy arrays → adapt to a synthetic OmegaNode,
-   *   normalize, then either migrate to the tree (UCA mode) or project back
-   *   to the legacy array via `adaptNodeToManifestEntity` (legacy mode).
+   *   `updateNodeInTree`, then rebuild the manifest via `buildManifestFromTree`.* - If the entity is only in a legacy array → adapt to a synthetic OmegaNode,
+   *   normalize, and MIGRATE it into the tree. Antes se devolvía a la lista
+   *   plana; se quitó esa vuelta el 2026-10-03 porque esas listas no las dibuja
+   *   nadie: una edición hecha ahí era invisible.
    * - If the entity is not found anywhere → no-op + log.
    * - History label is always `Update Entity: ${id}`.
    */
   const updateItem = useCallback((id: string, updates: Partial<ManifestEntity> | Partial<OmegaNode>) => {
     updateManifest((latestManifest) => {
-      const isUCA = latestManifest.ui?.useUCA !== false;
       const currentTree = latestManifest.ui?.tree;
       if (!currentTree) { addLog('[updateItem] No UCA tree.'); return {}; }
       const nodeInTree = findNodeInTree(currentTree, id);
@@ -79,29 +77,15 @@ export const useEntityOperations = (
         return {};
       }
 
-      // Adapt legacy → OmegaNode, normalize, then route to UCA tree or legacy array.
+      // Path B — Entity not in the UCA tree: it lives in a legacy array.
+      // Adapt legacy → OmegaNode, normalize, and migrate it into the tree. Esta
+      // lectura de las listas planas se CONSERVA a propósito: es lo que hace que
+      // un documento antiguo se migre solo al editarlo. Lo que se quitó fue
+      // devolver la edición a la lista.
       const syntheticNode = adaptManifestEntityToNode(legacyItem);
       const translated = applyUpdatesToNode(syntheticNode, updates);
-
-      if (isUCA) {
-        // Migrate the normalized legacy entity into the UCA tree.
-        const nextTree = insertNodeInTree(currentTree, translated);
-        return buildManifestFromTree(latestManifest, nextTree);
-      }
-
-      // Legacy mode: project the normalized OmegaNode back to a ManifestEntity
-      // and write it into the appropriate legacy array.
-      const updatedEntity = adaptNodeToManifestEntity(translated);
-      const isJack = legacyItem.role === 'port' || legacyItem.type === 'port'
-        || (latestManifest.ui?.jacks || []).some((j: ManifestEntity) => j.id === id);
-
-      if (isJack) {
-        const nextJacks = (latestManifest.ui?.jacks || []).map((j: ManifestEntity) => j.id === id ? updatedEntity : j);
-        return { ui: { ...latestManifest.ui, jacks: nextJacks } };
-      }
-
-      const nextControls = (latestManifest.ui?.controls || []).map((c: ManifestEntity) => c.id === id ? updatedEntity : c);
-      return { ui: { ...latestManifest.ui, controls: nextControls } };
+      const nextTree = insertNodeInTree(currentTree, translated);
+      return buildManifestFromTree(latestManifest, nextTree);
     }, `Update Entity: ${id}`);
   }, [updateManifest, addLog]);
 
@@ -140,11 +124,9 @@ export const useEntityOperations = (
    * duplicateItem — Clones an entity with regenerated IDs and offset position.
    */
   const duplicateItem = useCallback((id: string) => {
-    const isUCA = manifest.ui?.useUCA !== false;
-
     // Use findItem logic inline: check UCA tree first, then legacy
     let item: ManifestEntity | OmegaNode | undefined;
-    if (isUCA && manifest.ui?.tree) {
+    if (manifest.ui?.tree) {
       item = findNodeInTree(manifest.ui.tree, id);
     }
     if (!item) {
@@ -204,42 +186,36 @@ export const useEntityOperations = (
       return root;
     };
 
-    if (isUCA && manifest.ui?.tree) {
-      // Sibling insertion strategy
-      const parentNode = findParentInTree(manifest.ui.tree, id);
-      let nextTree: OmegaNode;
-      if (parentNode) {
-        nextTree = insertSiblingNode(manifest.ui.tree, id, newItem as OmegaNode);
-      } else {
-        nextTree = insertNodeInTree(manifest.ui.tree, newItem as OmegaNode);
-      }
-      const projections = treeToManifest(nextTree);
-      updateManifest({
-        nodes: [nextTree],
-        ui: {
-          ...manifest.ui,
-          tree: nextTree,
-          controls: projections.ui?.controls ?? projections.controls ?? manifest.ui?.controls ?? [],
-          jacks: projections.ui?.jacks ?? projections.jacks ?? manifest.ui?.jacks ?? [],
-          layout: {
-            ...manifest.ui?.layout,
-            width: manifest.ui?.layout?.width || 800,
-            height: manifest.ui?.layout?.height || 600,
-            containers: projections.ui?.layout?.containers ?? projections.layout?.containers ?? manifest.ui?.layout?.containers ?? [],
-          },
+    // Siempre al árbol. La rama "Legacy Array Mode" duplicaba en `ui.controls`,
+    // que nadie dibuja: el duplicado se guardaba y no aparecía.
+    const raiz = manifest.ui?.tree ?? {
+      id: 'root',
+      kind: 'container' as const,
+      role: 'structure' as const,
+      layout: { pos: { x: 0, y: 0 }, size: { width: 800, height: 600 } },
+      children: [],
+    };
+    const parentNode = findParentInTree(raiz, id);
+    const nextTree: OmegaNode = parentNode
+      ? insertSiblingNode(raiz, id, newItem as OmegaNode)
+      : insertNodeInTree(raiz, newItem as OmegaNode);
+
+    const projections = treeToManifest(nextTree);
+    updateManifest({
+      nodes: [nextTree],
+      ui: {
+        ...manifest.ui,
+        tree: nextTree,
+        controls: projections.ui?.controls ?? projections.controls ?? manifest.ui?.controls ?? [],
+        jacks: projections.ui?.jacks ?? projections.jacks ?? manifest.ui?.jacks ?? [],
+        layout: {
+          ...manifest.ui?.layout,
+          width: manifest.ui?.layout?.width || 800,
+          height: manifest.ui?.layout?.height || 600,
+          containers: projections.ui?.layout?.containers ?? projections.layout?.containers ?? manifest.ui?.layout?.containers ?? [],
         },
-      }, `Duplicate UCA Node: ${id} → ${newId}`, true);
-    } else {
-      // Legacy Array Mode
-      const isControl = manifest.ui?.controls?.some((c: ManifestEntity) => c.id === id);
-      if (isControl) {
-        const newList = [...(manifest.ui?.controls || []), newItem as ManifestEntity];
-        updateManifest({ ui: { ...manifest.ui, controls: newList } }, `Duplicate Control: ${id}`, true);
-      } else {
-        const newList = [...(manifest.ui?.jacks || []), newItem as ManifestEntity];
-        updateManifest({ ui: { ...manifest.ui, jacks: newList } }, `Duplicate Jack: ${id}`, true);
-      }
-    }
+      },
+    }, `Duplicate Node: ${id} → ${newId}`, true);
 
     addLog(`Duplicated entity: ${newId}`);
     return newId;

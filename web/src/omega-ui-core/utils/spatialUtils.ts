@@ -30,8 +30,11 @@ function boxesIntersect(b1: CollisionBox, b2: CollisionBox) {
 
 export function getOccupiedBoxes(manifest: OMEGA_Manifest): CollisionBox[] {
   const boxes: CollisionBox[] = [];
-  const isUCA = manifest.ui?.useUCA !== false;
-  if (isUCA && manifest.ui?.tree) {
+  // Se mide SIEMPRE contra el árbol, que es lo que se dibuja. Antes la bandera
+  // `useUCA` decidía, y con el fallback activo se medía contra `ui.controls`,
+  // o sea contra piezas que no están en pantalla: por eso dos nodos podian
+  // solaparse sin que nada lo notara.
+  if (manifest.ui?.tree) {
     const walk = (node: OmegaNode, parentX: number, parentY: number) => {
       const currentX = parentX + (node.layout?.pos?.x || 0);
       const currentY = parentY + (node.layout?.pos?.y || 0);

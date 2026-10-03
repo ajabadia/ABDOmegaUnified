@@ -181,10 +181,29 @@ export function CellNode({
     return raw;
   })();
 
+  /**
+   * Clase CSS del nodo. ADITIVA a propósito: `uca-cell` se queda SIEMPRE.
+   *
+   * `StructuralNode` tiene `if (target.closest('.uca-cell')) return;` para que
+   * pinchar en un nodo no seleccione su contenedor, y hay 16 tests de navegador
+   * que buscan `.uca-node.uca-cell`. Sustituirla por `uca-${node.kind}` rompería
+   * las dos cosas. Lo que faltaba era poder distinguir un puerto de una celda,
+   * y eso se resuelve AÑADIENDO `uca-port` para los nodos `kind: 'port'`, que es
+   * como lo hace `StructuralNode` con `uca-container` / `uca-group` / `uca-rack`.
+   *
+   * Medido antes de tocar nada (sonda en el navegador, inyectando "Audio input
+   * port" desde la barra): el nodo entra en el árbol con `kind: 'port'`,
+   * `cellRef: 'port'`, `role: 'stream'`, y aun así salía con `uca-cell` a secas.
+   * El kind era correcto; lo que estaba mal era la etiqueta del DOM. Por eso
+   * `.uca-node.uca-port` no encontraba nada nunca: no era que el puerto no se
+   * creara.
+   */
+  const kindClass = node.kind !== 'cell' ? ` uca-${node.kind}` : '';
+
   return (
     <motion.div
       id={`uca-${node.id}`}
-      className="uca-node uca-cell group"
+      className={`uca-node uca-cell${kindClass} group`}
       onClick={handleDebugClick}
       onTap={(e) => handleDebugClick(e as unknown as React.MouseEvent)}
       onPointerDown={(e) => {

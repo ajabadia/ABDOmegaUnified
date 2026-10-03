@@ -65,7 +65,7 @@ export default function ModuleArchitectureSection({
   const [activeSubTab, setActiveSubTab] = useState<'infra' | 'controls' | 'ports' | 'routing' | 'assets' | 'tree'>('infra');
   
   const subTabs = [
-    ...(manifest.ui?.useUCA !== false ? [{ id: 'tree' as const, label: 'Hierarchy', icon: Layout, color: 'text-purple-400' }] : []),
+    ...[{ id: 'tree' as const, label: 'Hierarchy', icon: Layout, color: 'text-purple-400' }],
     { id: 'infra' as const, label: 'Infrastructure', icon: Layout, color: 'text-accent' },
     { id: 'controls' as const, label: 'Controls', icon: Settings2, color: 'text-amber-400' },
     { id: 'ports' as const, label: 'Signal I/O', icon: Zap, color: 'text-cyan-400' },
@@ -83,29 +83,28 @@ export default function ModuleArchitectureSection({
           defaultOpen={false}
         >
           <div className="space-y-4 pt-3">
-            {/* LEGACY FALLBACK TOGGLE */}
-            <div className={`p-2 border rounded-xs flex items-center justify-between transition-colors ${
-              manifest.ui?.useUCA === false ? 'bg-amber-500/10 border-amber-500/30' : 'bg-white/5 border-white/10'
-            }`}>
-              <div className="flex flex-col">
-                <span className={`text-[7px] font-black uppercase tracking-widest ${manifest.ui?.useUCA === false ? 'text-amber-500' : 'text-white/50'}`}>Legacy Rendering Fallback</span>
-                <span className={`text-[6px] font-medium ${manifest.ui?.useUCA === false ? 'text-amber-500/70' : 'text-white/30'}`}>Temporarily revert to flat-array pipeline</span>
-              </div>
-              <button
-                onClick={() => onUpdate({ ui: { ...manifest.ui, useUCA: manifest.ui?.useUCA === false ? true : false } })}
-                aria-label={manifest.ui?.useUCA === false ? 'Disable legacy fallback' : 'Enable legacy fallback'}
-                className={`px-3 py-1 text-[8px] font-black uppercase rounded-full border transition-all ${
-                  manifest.ui?.useUCA === false
-                    ? 'bg-amber-500 border-amber-500 text-black' 
-                    : 'border-white/20 text-white/50 hover:bg-white/10'
-                }`}
-              >
-                {manifest.ui?.useUCA === false ? 'ACTIVE' : 'OFF'}
-              </button>
-            </div>
+            {/* SE QUITÓ EL BOTÓN "Legacy Rendering Fallback" (2026-10-03)
+
+                Medido antes de borrarlo, no deducido. Con el fallback activo:
+                  - ningún componente de renderizado lee `useUCA`: `VirtualRack`,
+                    `RenderedRackTree` y `useRackLayout` dibujan siempre desde
+                    `ui.tree`. El botón no desactivaba nada del dibujo.
+                  - añadir un nodo lo escribía en `ui.controls`, que nadie dibuja:
+                    el nodo no aparecía y el trabajo se perdía en silencio
+                    (medido: `celdasEnArbol: 0`, 0 celdas visibles).
+                  - cualquier escritura en el árbol lo revolvía a `true`, porque
+                    `omegaTreeToManifest` (omega-ui-core/uca/ucaBridge.ts) fuerza
+                    `useUCA: true` en el manifiesto que devuelve.
+
+                Es decir: el plan B no dibujaba, y activaba costs trabajo. La
+                regresión vive en `web/e2e/legacy-fallback.spec.ts`.
+
+                LO QUE NO SE TOCA: la LECTURA de ficheros antiguos sigue viva y
+                es otra cosa —`manifestToTree` migra un `.json` sin árbol al
+                abrirlo—. Eso no depende de esta bandera. */}
 
             {/* UCA DEBUG INSPECTOR */}
-            {manifest.ui?.useUCA !== false && (
+            <>
               <div className="p-2 bg-purple-500/5 border border-purple-500/20 rounded-xs flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
@@ -197,7 +196,7 @@ export default function ModuleArchitectureSection({
                   </div>
                 )}
               </div>
-            )}
+            </>
 
             {/* GRID SNAPPING (Phase 4.3.3) */}
             <div className="p-2 bg-emerald-500/5 border border-emerald-500/20 rounded-xs flex flex-col gap-2">
@@ -319,7 +318,7 @@ export default function ModuleArchitectureSection({
   
       {/* CONTENT AREA */}
       <div className="flex flex-col">
-        {activeSubTab === 'tree' && manifest.ui?.useUCA !== false && (
+        {activeSubTab === 'tree' && (
           <TreeSection 
             manifest={manifest} 
             selectedItemId={highlightPath || null} // Temporary using highlightPath or we need to pass selectedItemId 

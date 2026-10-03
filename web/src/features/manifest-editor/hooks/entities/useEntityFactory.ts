@@ -117,12 +117,12 @@ export const useEntityFactory = (
       },
     } as ManifestEntity : baseEntity;
 
-    const isUCA = manifest.ui?.useUCA !== false;
-
     updateManifest((prev) => {
       // 1. Re-verify ID uniqueness against LATEST tree (prev.ui.tree) to avoid double-click and desync stale closure bugs
       let safeId = id;
-      const allLatestIds = isUCA && prev.ui?.tree ? getAllIdsInTree(prev.ui.tree) : [...(prev.ui?.controls || []), ...(prev.ui?.jacks || [])].map(e => e.id);
+      const allLatestIds = prev.ui?.tree
+        ? getAllIdsInTree(prev.ui.tree)
+        : [...(prev.ui?.controls || []), ...(prev.ui?.jacks || [])].map(e => e.id);
 
       if (allLatestIds.includes(safeId)) {
         let idx = 1;
@@ -138,53 +138,51 @@ export const useEntityFactory = (
 
       const safeEntity = { ...newEntity, id: safeId, label: newEntity.label === generatedLabel ? safeId : newEntity.label };
 
-      if (isUCA && prev.ui?.tree) {
-        let newNode: OmegaNode;
-        if (container) {
-          newNode = {
-            id: container.id,
-            kind: 'container',
-            role: 'structure',
-            layout: {
-              pos: container.pos,
-              size: {
-                width: typeof container.size.width === 'number' ? container.size.width : 100,
-                height: typeof container.size.height === 'number' ? container.size.height : 100,
-              },
-            },
-            children: [],
-          };
-        } else {
-          newNode = {
-            id: safeId,
-            kind: type === 'control' ? 'cell' : 'port',
-            cellRef: safeEntity.type as ComponentType,
-            role: safeEntity.role as NodeRole,
-            bind: safeEntity.bind,
-            layout: { pos: safeEntity.pos, size: safeEntity.size as { width: number; height: number } },
-            style: { variant: safeEntity.presentation?.variant || 'default' },
-          };
-        }
+      // SIEMPRE al árbol. La rama que escribía en `ui.controls`/`ui.jacks` se
+      // quitó el 2026-10-03: nadie dibuja esas listas, así que un nodo creado con
+      // el fallback activo se guardaba y no aparecía nunca. Medido en el
+      // navegador antes de cortar: `celdasEnArbol: 0`, 0 celdas visibles.
+      //
+      // El `?? raizVacia` sustituye a la otra mitad de esa rama: antes, un
+      // documento sin árbol caía en las listas; ahora se le crea una raíz aquí
+      // mismo y no hay forma de escribir fuera del árbol.
+      const raiz = prev.ui?.tree ?? {
+        id: 'root',
+        kind: 'container' as const,
+        role: 'structure' as const,
+        layout: { pos: { x: 0, y: 0 }, size: { width: 800, height: 600 } },
+        children: [],
+      };
 
-        const nextTree = insertNodeInTree(prev.ui.tree, newNode);
-        return buildManifestFromTree(prev, nextTree);
+      let newNode: OmegaNode;
+      if (container) {
+        newNode = {
+          id: container.id,
+          kind: 'container',
+          role: 'structure',
+          layout: {
+            pos: container.pos,
+            size: {
+              width: typeof container.size.width === 'number' ? container.size.width : 100,
+              height: typeof container.size.height === 'number' ? container.size.height : 100,
+            },
+          },
+          children: [],
+        };
       } else {
-        if (container) {
-          const nextLayout = {
-            ...prev.ui?.layout,
-            width: prev.ui?.layout?.width || 800,
-            height: prev.ui?.layout?.height || 600,
-            containers: [...(prev.ui?.layout?.containers || []), container],
-          };
-          return { ui: { ...prev.ui, layout: nextLayout as OMEGA_Manifest['ui']['layout'] } };
-        } else if (type === 'control') {
-          const nextControls = [...(prev.ui?.controls || []), safeEntity];
-          return { ui: { ...prev.ui, controls: nextControls } };
-        } else {
-          const nextJacks = [...(prev.ui?.jacks || []), safeEntity];
-          return { ui: { ...prev.ui, jacks: nextJacks } };
-        }
+        newNode = {
+          id: safeId,
+          kind: type === 'control' ? 'cell' : 'port',
+          cellRef: safeEntity.type as ComponentType,
+          role: safeEntity.role as NodeRole,
+          bind: safeEntity.bind,
+          layout: { pos: safeEntity.pos, size: safeEntity.size as { width: number; height: number } },
+          style: { variant: safeEntity.presentation?.variant || 'default' },
+        };
       }
+
+      const nextTree = insertNodeInTree(raiz, newNode);
+      return buildManifestFromTree(prev, nextTree);
     }, container ? `Add Container: ${id}` : `Add ${type}: ${id}`, true);
 
     addLog(`Added new ${type}: ${id}`);
@@ -192,9 +190,6 @@ export const useEntityFactory = (
   }, [manifest, updateManifest, addLog]);
 
   const pasteEntity = useCallback((item: ManifestEntity | OmegaNode) => {
-    // 1. Collision Detection & ID Regeneration (RISK-004 Fix)
-    const isUCA = manifest.ui?.useUCA !== false;
-
     let newItem: ManifestEntity | OmegaNode;
     const occupied = getOccupiedBoxes(manifest);
 
@@ -216,42 +211,36 @@ export const useEntityFactory = (
 
     const newId = newItem.id;
 
-    // 2. Insertion Strategy
-    if (isUCA && manifest.ui?.tree) {
-      addLog(`[CLIPBOARD] Strategic Insertion: UCA Tree Mode.`);
-      // UCA Strategy: Insert into tree and sync projections
-      const nextTree = insertNodeInTree(manifest.ui.tree, newItem as OmegaNode);
-      const projections = treeToManifest(nextTree);
+    // 2. Insertion Strategy — SIEMPRE al árbol (mismo motivo que en addEntity:
+    //    la rama de listas planas se quitó el 2026-10-03 porque sus destinos no
+    //    los dibuja nadie, y pegar un nodo ahí lo hacía desaparecer).
+    const raiz = manifest.ui?.tree ?? {
+      id: 'root',
+      kind: 'container' as const,
+      role: 'structure' as const,
+      layout: { pos: { x: 0, y: 0 }, size: { width: 800, height: 600 } },
+      children: [],
+    };
 
-      updateManifest({
-        nodes: [nextTree],
-        ui: {
-          ...manifest.ui,
-          tree: nextTree,
-          controls: projections.ui?.controls ?? projections.controls ?? manifest.ui?.controls ?? [],
-          jacks: projections.ui?.jacks ?? projections.jacks ?? manifest.ui?.jacks ?? [],
-          layout: {
-            ...manifest.ui?.layout,
-            width: manifest.ui?.layout?.width || 800,
-            height: manifest.ui?.layout?.height || 600,
-            containers: projections.ui?.layout?.containers ?? projections.layout?.containers ?? manifest.ui?.layout?.containers ?? [],
-          },
+    addLog(`[CLIPBOARD] Strategic Insertion: UCA Tree Mode.`);
+    const nextTree = insertNodeInTree(raiz, newItem as OmegaNode);
+    const projections = treeToManifest(nextTree);
+
+    updateManifest({
+      nodes: [nextTree],
+      ui: {
+        ...manifest.ui,
+        tree: nextTree,
+        controls: projections.ui?.controls ?? projections.controls ?? manifest.ui?.controls ?? [],
+        jacks: projections.ui?.jacks ?? projections.jacks ?? manifest.ui?.jacks ?? [],
+        layout: {
+          ...manifest.ui?.layout,
+          width: manifest.ui?.layout?.width || 800,
+          height: manifest.ui?.layout?.height || 600,
+          containers: projections.ui?.layout?.containers ?? projections.layout?.containers ?? manifest.ui?.layout?.containers ?? [],
         },
-      }, `Paste Entity (UCA): ${newId}`, true);
-    } else {
-      addLog(`[CLIPBOARD] Strategic Insertion: Legacy Array Mode.`);
-      // Legacy Strategy: Add to correct array
-      const entity = newItem as ManifestEntity;
-      const isJack = entity.role === 'stream' || entity.role === 'port' || entity.type === 'port';
-
-      if (isJack) {
-        const nextJacks = [...(manifest.ui?.jacks || []), entity];
-        updateManifest({ ui: { ...manifest.ui, jacks: nextJacks } }, `Paste Jack: ${newId}`, true);
-      } else {
-        const nextControls = [...(manifest.ui?.controls || []), entity];
-        updateManifest({ ui: { ...manifest.ui, controls: nextControls } }, `Paste Control: ${newId}`, true);
-      }
-    }
+      },
+    }, `Paste Entity: ${newId}`, true);
 
     addLog(`Pasted entity: ${newId} (Industrial Sync Complete)`);
     return newId;

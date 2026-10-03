@@ -226,17 +226,13 @@ export function buildMenuItems(props: MenuBarProps): MenuCategory[] {
             });
           },
         },
-        {
-          label: 'Disable UCA Rendering (Fallback)',
-          icon: Layers,
-          checked: props.manifest?.ui?.useUCA === false,
-          onClick: () => {
-            if (!props.manifest || !props.onUpdateManifest) return;
-            props.onUpdateManifest({
-              ui: { ...props.manifest.ui, useUCA: props.manifest.ui?.useUCA === false ? true : false },
-            });
-          },
-        },
+        /* SE QUITÓ "Disable UCA Rendering (Fallback)" (2026-10-03).
+           Medido: con la bandera apagada ningún renderer lee `useUCA` (el rack
+           dibuja siempre desde `ui.tree`), los nodos se escriben en
+           `ui.controls` y NO se dibujan (trabajo perdido en silencio), y
+           `omegaTreeToManifest` la vuelve a poner en `true` en cada escritura
+           del árbol. El plan B no era un plan B. La regresión que vigila todo
+           esto está en `web/e2e/legacy-fallback.spec.ts`. */
       ],
     },
     {

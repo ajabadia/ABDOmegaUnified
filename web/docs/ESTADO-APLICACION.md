@@ -1,4 +1,4 @@
-# Estado de la aplicación — 3 de octubre de 2026
+# Estado de la aplicación — 3 de octubre de 2026 (segunda tanda)
 
 Este documento está pensado para alguien que **no** programa. Explica qué funciona,
 qué no, y qué hay que hacer. Nada de aquí requiere leer código para actuar.
@@ -174,6 +174,44 @@ probaron los tres casos en el navegador y **los tres descargan**.
 Ahora el tirador va en el borde lateral del nodo —entradas a la izquierda, salidas a la
 derecha, que es como lo hacen los editores de nodos— y el centro queda libre para seleccionar.
 La prueba deja de estar pendiente y comprueba la descarga y la reimportación de verdad.
+
+### 3.9 El botón de "renderizado de reserva" — **quitado, y perdía tu trabajo**
+
+Había un interruptor en **View → "Disable UCA Rendering (Fallback)"** y otro con el
+mismo efecto en el inspector. Lo probé antes de tocarlo y esto es lo que hacía de verdad:
+
+| | |
+|---|---|
+| ¿Cambiaba lo que se dibuja? | **No.** Ninguna pieza de la aplicación lee esa opción. El rack dibuja siempre desde una sola estructura. |
+| ¿Qué pasaba al añadir un nodo? | Se guardaba en una lista que **nadie dibuja**. Medido: **0 celdas en pantalla.** Añadías un knob y no aparecía nada. |
+| ¿La opción se quedaba? | **No.** Cualquier escritura en el rack la borraba sola. |
+
+Es decir: el interruptor no cambiaba el dibujado, y activarlo hacía que los nodos que
+añadieses **desaparecieran sin ningún aviso**. Eso no es una función de reserva: es una
+vía muerta con un botón en la interfaz.
+
+El botón y las ramas de código que dependían de él están eliminados. La prueba que lo
+vigila es `legacy-fallback`, y **se comprobó que se pone roja si vuelve**.
+
+**Lo que NO se quitó, y es importante:** la lectura de ficheros antiguos. Si abres un
+`.json` de antes, se migra solo al árbol y se puede editar con normalidad. Eso no
+dependía de la bandera. Hay un inventario fichero por fichero en
+[INV-EDITOR-DOBLE-REPRESENTACION.md](INV-EDITOR-DOBLE-REPRESENTACION.md).
+
+### 3.10 Un puerto era idéntico a una celda en el código
+
+Un puerto de audio se crea bien, con su conector dibujado. Pero en la página tenía
+**exactamente la misma etiqueta que una celda normal**, y nunca podía distinguirse por
+código. Medido antes de arreglarlo: el nodo entra con su tipo correcto, y aun así
+salía etiquetado como celda.
+
+Eso tuvo una consecuencia real: una prueba buscaba "un nodo que sea un puerto", no lo
+encontraba nunca, y alguien的热ó de conclusión de que el puerto no se creaba. No era
+cierto: **se creaba y se dibujaba, pero con la etiqueta equivocada.**
+
+Arreglado añadiendo la etiqueta, sin quitar la de celda (que la usan 16 pruebas y una
+comprobación interna que evita seleccionar el contenedor entero al pinchar un nodo).
+Con su prueba propia, que se comprobó roja antes del arreglo.
 
 ### 3.4 La barra de herramientas — **arreglada, y destapó dos fallos reales**
 

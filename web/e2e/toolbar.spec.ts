@@ -151,14 +151,20 @@ test.describe('Toolbar — Add Flyout', () => {
 
     // A port node should appear in the rack.
     //
-    // OJO con la clase: un puerto se crea en el árbol con `kind: 'port'`, pero
-    // `CellNode` (que es quien lo dibuja — `UniversalRenderer` manda `cell` Y
-    // `port` al mismo componente) tiene la clase `uca-cell` FIJA en su JSX, sin
-    // mirar `node.kind`. Por eso buscar `.uca-port` nunca encontraba nada: no
-    // es que el puerto no se creara. `PortRenderer` sí dibuja el conector, así
-    // que eso es lo que se comprueba.
-    const portSocket = page.locator('.uca-node .port-socket').first();
-    await expect(portSocket).toBeVisible({ timeout: 5000 });
+    // Este test llevaba tiempo buscando `.uca-node.uca-port` y no encontraba
+    // nada. Medido en el navegador: el nodo SÍ entraba en el árbol con
+    // `kind: 'port'` — el kind era correcto — pero `CellNode` escribía la clase
+    // `uca-cell` a pelo, sin mirar `node.kind`. Era una etiqueta equivocada en
+    // el DOM, no un puerto que no se creara.
+    //
+    // Ahora se comprueban las dos cosas: que el nodo se identifica como puerto
+    // en el DOM, y que dibuja de verdad el conector.
+    const portNode = page.locator('.uca-node.uca-cell.uca-port').first();
+    await expect(portNode, 'el puerto inyectado debe salir como uca-cell uca-port').toBeVisible({ timeout: 5000 });
+    await expect(
+      portNode.locator('.port-socket'),
+      'y debe dibujar el conector del puerto',
+    ).toBeVisible({ timeout: 5000 });
   });
 
   test('should close the flyout when clicking a primitive', async ({ page }) => {

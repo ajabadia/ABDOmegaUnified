@@ -24,8 +24,7 @@ export const useGroupCRUD = (
 
   const groupSelected = useCallback((ids: string[]) => {
     if (ids.length < 2) return;
-    const isUCA = manifest.ui?.useUCA !== false;
-    if (!isUCA || !manifest.ui?.tree) return;
+    if (!manifest.ui?.tree) return;
 
     const tree = manifest.ui.tree;
 
@@ -92,8 +91,7 @@ export const useGroupCRUD = (
   }, [manifest, updateManifest, addLog]);
 
   const groupDown = useCallback((id: string) => {
-    const isUCA = manifest.ui?.useUCA !== false;
-    if (!isUCA || !manifest.ui?.tree) return;
+    if (!manifest.ui?.tree) return;
 
     const tree = manifest.ui.tree;
     const parentNode = findParentInTree(tree, id);
@@ -151,8 +149,7 @@ export const useGroupCRUD = (
   }, [manifest, updateManifest, groupSelected, addLog]);
 
   const ungroupNode = useCallback((groupId: string) => {
-    const isUCA = manifest.ui?.useUCA !== false;
-    if (!isUCA || !manifest.ui?.tree) return;
+    if (!manifest.ui?.tree) return;
 
     const tree = manifest.ui.tree;
     const groupNode = findNodeInTree(tree, groupId);
@@ -202,8 +199,7 @@ export const useGroupCRUD = (
   }, [manifest, updateManifest, addLog]);
 
   const insertBlueprint = useCallback((groupNode: { id: string; label: string; pos: { x: number; y: number }; children: Array<{ id: string; type: string; label: string; pos: { x: number; y: number }; size?: { width: number; height: number }; style?: Record<string, unknown>; bind?: { target: string } }> }) => {
-    const isUCA = manifest.ui?.useUCA !== false;
-    if (!isUCA || !manifest.ui?.tree) return;
+    if (!manifest.ui?.tree) return;
 
     // Clone IDs to avoid collisions
     const idMap = new Map<string, string>();

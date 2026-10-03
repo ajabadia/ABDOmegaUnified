@@ -16,16 +16,18 @@ import { findNodeInTree, findLegacyItem } from './ucaInspectorAdapter';
 
 export const useEntityFinder = (manifest: OMEGA_Manifest) => {
   const findItem = useCallback((id: string): ManifestEntity | OmegaNode | undefined => {
-    // 1. UCA Priority (Industrial Rule - Phase 4.2)
-    if (manifest.ui?.useUCA !== false) {
-      const tree = manifest.ui?.tree;
-      if (tree) {
-        const ucaNode = findNodeInTree(tree, id);
-        if (ucaNode) return ucaNode;
-      }
+    // 1. El árbol manda, siempre. Antes lo saltábamos si `useUCA` era false;
+    // con la bandera ya no existe, y buscar solo en las listas planas hacía que
+    // un nodo del árbol no se encontrara por id.
+    const tree = manifest.ui?.tree;
+    if (tree) {
+      const ucaNode = findNodeInTree(tree, id);
+      if (ucaNode) return ucaNode;
     }
 
-    // 2. Legacy Fallback
+    // 2. Legacy Fallback — LECTURA, y se queda: es lo que permite abrir y
+    // editar un documento antiguo que aún no tiene árbol. Todas las escrituras
+    // van ya al árbol, así que esto solo se usa al importar.
     return findLegacyItem(manifest, id);
   }, [manifest]);
 

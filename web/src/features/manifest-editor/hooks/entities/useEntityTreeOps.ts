@@ -27,8 +27,7 @@ export const useEntityTreeOps = (
   addLog: (msg: string) => void,
 ) => {
   const moveNode = useCallback((nodeId: string, targetParentId: string, index?: number) => {
-    const isUCA = manifest.ui?.useUCA !== false;
-    if (!isUCA || !manifest.ui?.tree) return;
+    if (!manifest.ui?.tree) return;
 
     updateManifest((prev) => {
       const tree = prev.ui?.tree;
@@ -107,8 +106,7 @@ export const useEntityTreeOps = (
   }, [manifest, updateManifest, addLog]);
 
   const moveNodeUpDown = useCallback((nodeId: string, direction: 'up' | 'down') => {
-    const isUCA = manifest.ui?.useUCA !== false;
-    if (!isUCA || !manifest.ui?.tree) return;
+    if (!manifest.ui?.tree) return;
 
     updateManifest((prev) => {
       const tree = prev.ui?.tree;
