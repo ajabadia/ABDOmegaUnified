@@ -283,7 +283,13 @@ export function manifestToOmegaTree(manifest: OMEGA_Manifest, existingTree?: Ome
   }
   
   // 2. Transitory UCA (Phase 10.2)
-  if (manifest.ui.tree && manifest.ui.useUCA) {
+  //
+  // Antes exigia ademas `manifest.ui.useUCA`. Como `omegaTreeToManifest` ya no
+  // escribe ese flag, un manifiesto con `ui.tree` pero sin `nodes` (un `.json`
+  // viejo, o uno guardado antes de que existiera el arbol canonico) habria
+  // perdido el arbol y caido en la migracion legacy. Si el arbol esta, se usa:
+  // la condicion ya lo dice todo.
+  if (manifest.ui.tree) {
     return formalizeUCA(manifest.ui.tree);
   }
   
@@ -300,17 +306,45 @@ export { omegaTreeToManifest as treeToManifest };
 /**
  * omegaTreeToManifest
  * Serialization Bridge (Canonical).
+ *
+ * POR QUE `useUCA` NO SE ESCRIBE SIEMPRE (causa raíz del "se revierte solo")
+ * -----------------------------------------------------------------------
+ * Esta función devolvía `useUCA: true` fijo. Como
+ * `ucaInjection.injectBlueprintIntoManifest` hace `ui: { ...manifest.ui,
+ * ...canonicalUpdates.ui }`, cada inyección de blueprint machacaba el valor que
+ * tuviera el documento. Medido: un `.json` viejo con `useUCA: false` que pasa
+ * por `useRackStartupAssistant` salía con `true` sin tocar el toggle.
+ *
+ * El problema de fondo es que un serializador ÁRBOL->manifiesto no puede saber
+ * la política del documento: solo recibe el árbol. Ahora la clave `useUCA` no se
+ * emite, de modo que un `...canonicalUpdates.ui` conserva lo que hubiera, y si
+ * un llamante conoce el valor de verdad lo pasa por `options.useUCA`.
+ *
+ * Que no la escriba no rompe a nadie: los cuatro lectores infieren por su cuenta
+ * (`manifest.ui?.useUCA ?? !!manifest.nodes?.[0]` en `contractService` y
+ * `EntityIdentity`; `!== false` en `industrialRules`), y aquí siempre se emite
+ * `nodes: [tree]`. Ningún test dependía del `true` inyectado.
  */
-export function omegaTreeToManifest(tree: OmegaNode): Partial<OMEGA_Manifest> {
+export function omegaTreeToManifest(
+  tree: OmegaNode,
+  options: { useUCA?: boolean } = {}
+): Partial<OMEGA_Manifest> {
   const legacyProjections = legacySerializer(tree);
+  const ui: OMEGA_Manifest['ui'] = {
+    ...legacyProjections,
+    tree, // [DEPRECATED] Keep for transient compatibility
+    dimensions: undefined // Explicitly handle dimensions to satisfy strict checks if needed
+  };
+
+  // `useUCA` solo se escribe si el llamante lo trae de verdad (medido), nunca
+  // inventado. Ver el bloque de arriba.
+  if (typeof options.useUCA === 'boolean') {
+    ui.useUCA = options.useUCA;
+  }
+
   return {
     nodes: [tree], // Canonical root
-    ui: {
-      ...legacyProjections,
-      tree, // [DEPRECATED] Keep for transient compatibility
-      useUCA: true,
-      dimensions: undefined // Explicitly handle dimensions to satisfy strict checks if needed
-    }
+    ui
   } as Partial<OMEGA_Manifest>;
 }
 
