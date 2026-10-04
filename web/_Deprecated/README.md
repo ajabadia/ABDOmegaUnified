@@ -116,23 +116,36 @@ npm run recover:deprecated -- src/ruta/del/fichero.tsx         # solo informa
 npm run recover:deprecated -- src/ruta/del/fichero.tsx --apply  # lo mueve
 ```
 
- Hace tres cosas:
+ Hace cuatro cosas:
 
-1. **Mueve** el fichero de `_Deprecated/<ruta>` a `<ruta>`. **Los imports
- relativos se resuelven solos** al quitar el prefijo: se comprobó con
- `ToastContainer.tsx`, cuyo único error (`../ToastContainer` no encontrado)
- desapareció sin tocar una línea. Por eso el script no reescribe ningún import.
-2. **Avisa de los imports con alias `@/`**, que no se autoreparan: `@/x`
- resuelve contra `web/src/x`, y lo archivado está en `web/_Deprecated/src/x`.
- Si al mover el destino no existe, el script lo dice y sale con 1, en vez de
- fingir que ha ido bien.
-3. **Actualiza la línea base** del typecheck, porque los errores del fichero
- movido dejan de reproducirse.
+1. **Calcula qué hermanos necesita** el fichero y los propone TODOS. Un fichero
+ archivado rara vez va solo, y no solo por los alias: también por los imports
+ **relativos**, que solo quedan resueltos si el destino se mueve con él.
+ Medido aquí: de los 69 ficheros, **55 se mueven solos y 14 forman grupos de 2 a
+ 7**. El mayor grupo es de 7 (`AudioShowcase.tsx` con sus 6 hermanos de
+ `./audio/`). El script dice cuántos son y por qué entra cada uno.
+2. **Mueve el grupo entero**, o no mueve nada. Antes de este cálculo el script
+ decía de `AudioShowcase.tsx` "los imports relativos se resuelven solos" y salía
+ con 0, dejando 6 errores; se comprobó moviéndolo y contando. Y como `git mv` no
+ crea el directorio de destino, se crean antes, o el grupo se queda a medias.
+3. **Avisa de los imports sin destino**, ni vivo ni archivado. Esos no los
+ arregla ni el grupo entero, así que en ese caso **no mueve nada**: medio grupo
+ en el sitio nuevo es peor que el grupo entero aquí.
+4. **Actualiza la línea base** del typecheck, porque los errores de los ficheros
+ movidos dejan de reproducirse.
 
-Además indica qué ficheros vivos importan el recuperado, que son los que
+Los imports con alias `@/` no se autoreparan (`@/x` resuelve contra `web/src/x`,
+y lo archivado está en `web/_Deprecated/src/x`), pero el script los trata como
+cualquier otro: si su hermano está archivado, entra en el grupo y se resuelve al
+moverlo. Solo se quejan los que no tienen contraparte.
+
+Los 69 grupos **cierran**: ninguno tiene imports sin destino. Aun así, el script
+comprueba en cada ejecución, porque eso puede cambiar con el código.
+
+Además indica qué ficheros vivos importan los recuperados, que son los que
 habrá que revisar.
 
-Sus 15 tests están en
+Sus 42 tests están en
 [scripts/__tests__/recover-deprecated-file.spec.ts](../scripts/__tests__/recover-deprecated-file.spec.ts)
 y van en la suite normal.
 
