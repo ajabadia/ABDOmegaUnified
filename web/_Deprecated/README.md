@@ -19,8 +19,8 @@ Código que quedó atrás y que seguía ocupando sitio sin que nada lo abriera:
   eliminado en la v9.6.0 y el fichero nunca se borró.
 - **Una demostración nunca conectada.** Los ficheros de `src/components/ui/`
   (`AudioShowcase`, `CalibrationPanel`, `ImageGallery`...) son piezas sueltas.
-- **Piezas preparadas y no usadas.** `cell-conversion.ts` (517 líneas) traduce
-  entre tipos de nodo que ya no se usan entre sí (516 líneas).
+- **Piezas preparadas y no usadas.** `cell-conversion.ts` (516 líneas) traduce
+  entre tipos de nodo que ya no se usan entre sí.
 - **Tipos de una conversión antigua**, y un test (`useMenuNavigation.spec.ts`,
   33 tests) que solo probaba un hook retirado.
 
@@ -43,8 +43,9 @@ Un fichero entra aquí si:
 
    El caso de `ToastContainer.tsx` cambió el resultado: el fichero era un
    re-export de 14 líneas del componente real. Solo lo importaba
-   `accessibility.spec.tsx`, un spec que prueba 800 líneas de cosas vivas. En vez
-   de arrastrar el fichero muerto por toda la aplicación para no tocar ese test,
+   `accessibility.spec.tsx`, un spec de 806 líneas que prueba muchas cosas
+   vivas. En vez de arrastrar el fichero muerto por toda la aplicación para no
+   tocar ese test,
    **se cambió una línea del spec**: ahora importa el componente real
    (`components/ToastContainer`, 150 líneas, con 3 importadores vivos), que es lo
    que estaba probando de todas formas a través del alias. El spec sigue
