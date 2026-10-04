@@ -109,6 +109,33 @@ reapuntado a la ruta de aquí, y no eliminado de la lista: así sigue vigilado.
 
 ## Cómo recuperarlo
 
-`git log --follow -- _Deprecated/<ruta>` da todo su historial. Y para volver a
-usarlo: mover el fichero de vuelta a `src/` y quitar `/_Deprecated/` de
+Hay un script que lo hace en un paso, y **por defecto no hace nada** (dry-run):
+
+```
+npm run recover:deprecated -- src/ruta/del/fichero.tsx         # solo informa
+npm run recover:deprecated -- src/ruta/del/fichero.tsx --apply  # lo mueve
+```
+
+ Hace tres cosas:
+
+1. **Mueve** el fichero de `_Deprecated/<ruta>` a `<ruta>`. **Los imports
+ relativos se resuelven solos** al quitar el prefijo: se comprobó con
+ `ToastContainer.tsx`, cuyo único error (`../ToastContainer` no encontrado)
+ desapareció sin tocar una línea. Por eso el script no reescribe ningún import.
+2. **Avisa de los imports con alias `@/`**, que no se autoreparan: `@/x`
+ resuelve contra `web/src/x`, y lo archivado está en `web/_Deprecated/src/x`.
+ Si al mover el destino no existe, el script lo dice y sale con 1, en vez de
+ fingir que ha ido bien.
+3. **Actualiza la línea base** del typecheck, porque los errores del fichero
+ movido dejan de reproducirse.
+
+Además indica qué ficheros vivos importan el recuperado, que son los que
+habrá que revisar.
+
+Sus 15 tests están en
+[scripts/__tests__/recover-deprecated-file.spec.ts](../scripts/__tests__/recover-deprecated-file.spec.ts)
+y van en la suite normal.
+
+Y para el resto de casos, a mano: `git log --follow -- _Deprecated/<ruta>` da
+todo su historial. Para volver a usar el fichero, quitar `/_Deprecated/` de
 `testPathIgnorePatterns` en [jest.config.js](../jest.config.js).

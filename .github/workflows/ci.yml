@@ -92,6 +92,7 @@ jobs:
           npx jest src/lib src/features/manifest-editor src/services/history.test.ts src/omega-ui-core \
             app/api/modules scripts/__tests__/check-api-modules-trace \
             scripts/__tests__/check-deprecated-typecheck \
+            scripts/__tests__/recover-deprecated-file \
             --json --outputFile=../jest-report.json > ../jest-output.txt 2>&1
           status=$?
           node ../scripts/report_jest_failures.cjs ../jest-report.json

@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:deprecated": "node scripts/check-deprecated-typecheck.mjs",
     "typecheck:deprecated:update": "node scripts/check-deprecated-typecheck.mjs --update",
+    "recover:deprecated": "node scripts/recover-deprecated-file.mjs",
     "test": "jest",
     "test:node": "node --test src/features/manifest-editor/hooks/entities/__tests__/ucaInspectorAdapter.spec.ts",
     "test:e2e": "playwright test",
