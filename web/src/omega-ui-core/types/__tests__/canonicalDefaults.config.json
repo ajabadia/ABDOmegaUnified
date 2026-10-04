@@ -50,7 +50,7 @@
       { "name": "RackPlayerContainer.tsx", "path": "web/src/features/rack-player/components/RackPlayerContainer.tsx" },
       { "name": "useRackLayout.ts", "path": "web/src/features/manifest-editor/hooks/rack/useRackLayout.ts" },
       { "name": "useModuleMetrics.ts", "path": "web/src/features/manifest-editor/hooks/useModuleMetrics.ts" },
-      { "name": "AuditSummary.tsx", "path": "web/src/features/manifest-editor/components/audit/AuditSummary.tsx" },
+      { "name": "AuditSummary.tsx (movido a _Deprecated, fuera de la suite)", "path": "web/_Deprecated/src/features/manifest-editor/components/audit/AuditSummary.tsx" },
       { "name": "CompliancePanel.tsx", "path": "web/src/features/manifest-editor/components/inspector/CompliancePanel.tsx" },
       { "name": "MockupModal.tsx", "path": "web/src/features/manifest-editor/components/modals/MockupModal.tsx" },
       { "name": "ModuleIdentitySection.tsx", "path": "web/src/features/manifest-editor/components/inspector/sections/module/ModuleIdentitySection.tsx" },

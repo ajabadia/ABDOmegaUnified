@@ -56,7 +56,19 @@ const customJestConfig = {
   // No es un test nuestro que se pueda arreglar ni un bug: es un fichero ajeno
   // con otro runner. Se excluye el arbol entero, no el fichero, porque esto se
   // descarga de forma automatica y puede traer mas tests con el mismo patron.
-  testPathIgnorePatterns: ['/node_modules/', '/legacy/', '/e2e/', '/wasm-runtime/third_party/'],
+  //
+  // `/_Deprecated/` contiene codigo retirado que nadie usa (ver
+  // `web/docs/INV-EDITOR-DOBLE-REPRESENTACION.md`). Se MOVIDO aqui en vez de
+  // borrarse para poder recuperarlo, asi que sus tests tampoco deben contar
+  // como parte de la suite: si fallan, rompen el builds por codigo que ya no
+  // afecta a la aplicacion.
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/legacy/',
+    '/e2e/',
+    '/wasm-runtime/third_party/',
+    '/_Deprecated/',
+  ],
 
   // Polyfills de globals de navegador que jsdom no implementa
   // (hoy `structuredClone`). Ver web/jest.setup.js.
