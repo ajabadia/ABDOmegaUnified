@@ -90,6 +90,7 @@ jobs:
         run: |
           set +e
           npx jest src/lib src/features/manifest-editor src/services/history.test.ts src/omega-ui-core \
+            app/api/modules scripts/__tests__/check-api-modules-trace \
             --json --outputFile=../jest-report.json > ../jest-output.txt 2>&1
           status=$?
           node ../scripts/report_jest_failures.cjs ../jest-report.json
@@ -118,6 +119,19 @@ jobs:
           test -f public/monaco/vs/loader.js     || { echo "::error::Falta public/monaco (el editor de código)"; exit 1; }
           test -f public/worklets/rack.worklet.js || { echo "::error::Falta public/worklets/rack.worklet.js"; exit 1; }
           echo "public/ materializado correctamente"
+
+      # El peso de la lambda de /api/modules, medido sobre la traza que Turbopack
+      # acaba de escribir. Tiene que ir DESPUÉS del build, no antes.
+      #
+      # POR QUÉ hace falta: el aviso "the whole project was traced unintentionally"
+      # es cualitativo; Vercel corta a 250 MB por función sin comprimir y con eso
+      # el despliegue se queda en ERROR. MEDIDO el 4 de octubre de 2026: 3827
+      # ficheros / 294.07 MB trazados (la lambda de 264.38 MB), frente a 96
+      # ficheros / 1.59 MB con las anotaciones `turbopackIgnore` ya puestas.
+      # Los tests de Jest no pueden cubrir esto: la traza solo existe tras
+      # `next build`, así que la puerta va aquí y no en la suite.
+      - name: Peso de la lambda api/modules
+        run: node scripts/check-api-modules-trace.mjs
 
   # ───────────────────────────────────────────────────────────────────────────
   # PUERTA DE NAVEGADOR — ~30 minutos.

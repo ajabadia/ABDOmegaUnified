@@ -41,17 +41,49 @@ export const dynamic = "force-dynamic";
  * (`acemmCatalog.generated.ts`), que es el comportamiento que ya cubren sus
  * tests. Los `.acemm` estáticos (`/modules/<id>/<id>.acemm`) sí se sirven, los
  * materializa `prebuild` en `public/`.
+ *
+ * LA MISMA TRAZA, SIN LA ANOTACIÓN — MEDIDO
+ * ------------------------------------------
+ * Añadir `public/modules` no era el único problema: los dos candidatos de ARRIBA
+ * también salen del root (`..`), y eso arrastraba el repo entero a la lambda.
+ * El aviso del build lo decía literalmente, con el rastro
+ * `./next.config.ts -> ./app/api/modules/route.ts`, y
+ * `.next/server/app/api/modules/route.js.nft.json` medía **3827 ficheros /
+ * 294.07 MB** frente a 113 ficheros / 26.74 MB de `app/api/audio`: se colaban
+ * `exports/` (105.81 MB), `src/` (62.96), `public/` (53.21), `docs/` (48.52) y
+ * `wasm-runtime/` (19.68). En Vercel: una lambda de 264.38 MB, por encima del
+ * límite de 250 MB, y el despliegue en ERROR.
+ *
+ * Por qué la anotación va en el argumento de `fs` y no en el `path.join`
+ * ------------------------------------------------------------------
+ * El propio aviso del build sugiere annotar el `path.join`, y esa forma NO
+ * funciona: vercel/next.js#95125 lo mide en esta misma versión de Next y solo se
+ * silencia cuando la anotación va sobre una variable desnuda pasada directamente
+ * a la llamada `fs`. Por eso aquí cada ruta se calcula en una variable aparte y se
+ * anota ahí, y por eso no queda ningún `path.join` anidado dentro de un `fs`.
+ * La anotación del `path.join` se conserva igualmente, porque es inocua y es la
+ * que recomienda el aviso del build.
+ *
+ * OJO al editar este bloque: la anotación no puede escribirse con sus dos
+ * delimitadores dentro de un comentario de bloque, porque el de cierre lo termina
+ * antes de tiempo y el fichero deja de compilar. Abajo sí aparece en su forma
+ * completa, porque va en código.
+ *
+ * Nada de esto cambia lo que la ruta hace: `app/api/modules/__tests__/route.spec.ts`
+ * la ejecuta contra un directorio de módulos de prueba y ata con alambre tanto el
+ * resultado como la colocación de cada anotación. El peso de la lambda se mide en
+ * `scripts/check-api-modules-trace.mjs` sobre la traza del build.
  */
 function resolveModulesDir(): string {
   const candidates = [
     // Ruta real del monorepo (cwd = web/): <root>/modules
-    path.join(process.cwd(), "..", "modules"),
+    path.join(/* turbopackIgnore: true */ process.cwd(), "..", "modules"),
     // Si se ejecuta desde la raíz del repo
-    path.join(process.cwd(), "modules"),
+    path.join(/* turbopackIgnore: true */ process.cwd(), "modules"),
   ];
   for (const candidate of candidates) {
     try {
-      if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+      if (fs.existsSync(/* turbopackIgnore: true */ candidate) && fs.statSync(/* turbopackIgnore: true */ candidate).isDirectory()) {
         return candidate;
       }
     } catch {
@@ -73,7 +105,7 @@ function resolveRackMeta(manifest: any) {
 
 /** Parsea un .acemm (YAML o JSON — js-yaml soporta ambos). */
 function parseAcemm(filePath: string): any {
-  const raw = fs.readFileSync(filePath, "utf8");
+  const raw = fs.readFileSync(/* turbopackIgnore: true */ filePath, "utf8");
   return yaml.load(raw);
 }
 
@@ -91,14 +123,20 @@ function buildEntry(moduleId: string, filePath: string) {
 
   const dir = path.dirname(filePath);
 
-  const wasmPath = path.join(dir, `${moduleId}.wasm`);
-  const wasmBytes = fs.existsSync(wasmPath) ? fs.readFileSync(wasmPath) : null;
+  const wasmPath = path.join(/* turbopackIgnore: true */ dir, `${moduleId}.wasm`);
+  const wasmExists = fs.existsSync(/* turbopackIgnore: true */ wasmPath);
+  const wasmBytes = wasmExists ? fs.readFileSync(/* turbopackIgnore: true */ wasmPath) : null;
   const artifact = wasmBytes
     ? {
         sha256: createHash("sha256").update(wasmBytes).digest("hex"),
         size: wasmBytes.length,
       }
     : null;
+
+  // La ruta del `.cpp` tambien en variable, no anidada en el `fs`: un `path.join`
+  // dentro de la llamada es justo la forma que vercel/next.js#95125 demuestra que
+  // la anotación NO silencia. El `.wasm` ya lo tiene (`wasmPath`).
+  const cppPath = path.join(/* turbopackIgnore: true */ dir, `${moduleId}.cpp`);
 
   return {
     id: moduleId,
@@ -112,8 +150,8 @@ function buildEntry(moduleId: string, filePath: string) {
     },
     rack: { slot: rack.slot, hp: rack.hp },
     assets: {
-      source: fs.existsSync(path.join(dir, `${moduleId}.cpp`)),
-      wasm: fs.existsSync(path.join(dir, `${moduleId}.wasm`)),
+      source: fs.existsSync(/* turbopackIgnore: true */ cppPath),
+      wasm: wasmExists,
     },
     artifact,
     wasmUrl: wasmBytes ? `modules/${moduleId}/${moduleId}.wasm` : null,
@@ -131,15 +169,15 @@ export async function GET(_req: NextRequest) {
     const modulesDir = resolveModulesDir();
     const entries: Record<string, any> = {};
 
-    for (const moduleId of fs.readdirSync(modulesDir).sort()) {
-      const dir = path.join(modulesDir, moduleId);
+    for (const moduleId of fs.readdirSync(/* turbopackIgnore: true */ modulesDir).sort()) {
+      const dir = path.join(/* turbopackIgnore: true */ modulesDir, moduleId);
       try {
-        if (!fs.statSync(dir).isDirectory()) continue;
+        if (!fs.statSync(/* turbopackIgnore: true */ dir).isDirectory()) continue;
       } catch {
         continue;
       }
-      const acemmPath = path.join(dir, `${moduleId}.acemm`);
-      if (fs.existsSync(acemmPath)) {
+      const acemmPath = path.join(/* turbopackIgnore: true */ dir, `${moduleId}.acemm`);
+      if (fs.existsSync(/* turbopackIgnore: true */ acemmPath)) {
         entries[moduleId] = buildEntry(moduleId, acemmPath);
       }
     }
