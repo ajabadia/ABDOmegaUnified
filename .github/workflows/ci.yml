@@ -77,6 +77,19 @@ jobs:
       - name: Guard de defaults canónicos
         run: node ../scripts/check_canonical_defaults.mjs
 
+      # Guard de la raíz: falla si un .acemm de modules/ rompe las reglas de
+      # layout — posiciones fuera de la rejilla de 5px, o un ancho de panel que
+      # no sea hp x 15 (RACK_HP_WIDTH_PX). Se pone antes de los tests porque es
+      # instantáneo y da un mensaje concreto en vez de un fallo en downstream.
+      - name: Guard de layout de los manifiestos
+        run: node ../scripts/check_acemm_layout.mjs
+
+      # El spec del guard va con `node --test`, no con Jest: los guards de la
+      # raíz son ESM puro y no entran en el tsconfig de web/. Se ejecuta aquí
+      # para que el guard tenga cobertura en CI y no solo en local.
+      - name: Spec del guard de layout
+        run: node --test ../scripts/__tests__/check_acemm_layout.test.mjs
+
       - name: Tipos
         run: npx tsc --noEmit
 

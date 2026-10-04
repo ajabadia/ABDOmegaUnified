@@ -8,6 +8,7 @@
     "build": "next build",
     "postbuild": "node scripts/link-vercel-root-output.mjs",
     "check:public-assets": "node ../scripts/prepare_public_assets.mjs --check",
+    "check:acemm-layout": "node ../scripts/check_acemm_layout.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
