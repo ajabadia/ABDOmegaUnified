@@ -43,7 +43,6 @@
   "consumerFiles": {
     "web": [
       { "name": "flatToTree.ts (omega-ui-core)", "path": "web/src/omega-ui-core/uca/converters/flatToTree.ts" },
-      { "name": "mockupService.ts", "path": "web/src/services/mockupService.ts" },
       { "name": "industrialRules.ts", "path": "web/src/services/validation/industrialRules.ts" },
       { "name": "contractService.ts", "path": "web/src/services/contractService.ts" },
       { "name": "cadExportService.ts", "path": "web/src/services/cadExportService.ts" },

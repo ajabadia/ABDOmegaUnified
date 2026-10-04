@@ -1,8 +1,24 @@
 # Inventario: quién lee el manifiesto por listas planas
 
-> Medido el 3 de octubre de 2026, tras quitar el fallback legacy. Responde a una
-> pregunta concreta: de los 35 ficheros que leen `ui.controls` / `ui.jacks`,
-> cuáles dependían del interruptor que se quitó y cuáles son lecturas legítimas?
+> Medido el 3 de octubre de 2026, tras quitar el fallback legacy. Recontado el 4 de
+> octubre de 2026, tras eliminar `services/mockupService.ts`. Responde a una pregunta
+> concreta: de los **33** ficheros que leen `ui.controls` / `ui.jacks` en código que no
+> es de test, cuáles dependían del interruptor que se quitó y cuáles son lecturas
+> legítimas?
+>
+> El recuento se reproduce con:
+>
+> ```
+> grep -rln --include=*.ts --include=*.tsx -E "ui(\?)?\.(controls|jacks)" src/ app/ \
+>   | grep -v -E "(__tests__|\.test\.|\.spec\.)" | wc -l
+> ```
+>
+> **Desfase corregido**: la primera versión de este inventario decía 35. Medido con el
+> fichero `mockupService.ts` todavía en disco eran **34**, no 35, así que el número
+> original ya estaba desviado en uno antes de este cambio. Los tres ficheros que
+> ninguna versión del inventario citaba son `hooks/useWorkbenchSelectionPanel.ts`,
+> `services/StructuralAuditor.ts` y `omega-ui-core/uca/utils/autoWireResolver.ts`,
+> que leen la proyección de verdad (`StructuralAuditor.ts:48-49`, entre otros).
 
 ## Qué era "el fallback legacy"
 
@@ -49,12 +65,13 @@ Leen la lista derivada para no recorrer el árbol. Correcto.
 |---|---|
 | `components/rack/useConnectionPositions.ts` (3) | Posiciona los tiradores de conexión desde la proyección. **El más importante**: de él dependen los cables, y lo cubren las 22 pruebas de `connection-editor.spec.ts`. |
 | `utils/manifestDiff.ts` (10) | Compara dos manifiestos; la forma plana es cómoda para comparar. |
-| `services/cadExportService.ts` (2) · `services/mockupService.ts` (2) · `services/sharedModuleCatalog.ts` (1) | Exportación a CAD, maquetas y catálogo de módulos. |
+| `services/cadExportService.ts` (2) · `services/sharedModuleCatalog.ts` (1) | Exportación a CAD y catálogo de módulos. |
 | `utils/buildCommandPalette.ts` (2) · `utils/alignmentUtils.ts` (2) | Paleta de comandos y matemáticas de alineación. |
 | `components/modulation/ModulationGrid.tsx` (2) · `components/modulation/VisualModulationMatrix.tsx` (2) · `components/inspector/sections/ModulationSection.tsx` (2) | Visualización de modulación. |
 | `components/inspector/sections/EntityIdentity.tsx` (4) · `services/contractService.ts` (4) | Leen `useUCA` como heurística "¿esto es un documento con árbol?", no como interruptor. Inofensivas, se dejan. |
 | `hooks/useModuleMetrics.ts` (2) · `hooks/useAuditNavigator.ts` (2) · `utils/governanceUtils.ts` (3) | Métricas, navegación de auditoría y reglas de gobernanza. |
 | `hooks/io/useManifestTransfer.ts` (3) | Importar/exportir. **Conserva `useUCA` al cargar** a propósito, para no perder el dato de un fichero antiguo. |
+| `hooks/useWorkbenchSelectionPanel.ts` (2) · `services/StructuralAuditor.ts` (2) · `omega-ui-core/uca/utils/autoWireResolver.ts` (1) | Selección por id, auditoría estructural y resolución de conexiones. **No estaban en la primera versión de este inventario**; se añaden tras medir el recuento. |
 
 ### Compatibilidad con ficheros antiguos — deben quedarse (5 ficheros)
 
@@ -83,6 +100,20 @@ Así se lee y se migra un documento viejo que aún no tiene árbol.
 - `omega-ui-core/uca/panelGeometry.ts` (2) · `omega-ui-core/uca/utils/idManager.ts` (2) —
   geometría y reparto de identificadores sobre la forma plana.
 
+### Eliminado tras el inventario — `services/mockupService.ts` (1 fichero)
+
+Clasificado aquí erróneamente como "consumidor legítimo" en la primera versión. **Era
+código muerto**: `git grep` sobre el repo versionado solo devuelve su propia
+declaración, sin un solo call site — ni barrel (`services/index.ts` no existe), ni
+import dinámico, ni test. Leía `ui.controls` / `ui.jacks`, pero eso no lo convertía en
+consumidor: leería una proyección sin usar el resultado.
+
+El obstáculo para borrarlo era el guard DRY: figuraba en `consumerFiles.web` de
+`canonicalDefaults.config.json`, y la spec del guard hace `readFileSync` sin `try`, así
+que quitar el fichero sin quitar la entrada rompe la suite con `ENOENT` (medido).
+Guard verificado en los tres ejecutores tras el cambio: jest 24/24, vitest host/ui 4/4,
+CLI `check_canonical_defaults.mjs` exit 0 con 19 ficheros escaneados (antes 20).
+
 ### Vaciados — el interruptor y sus ramas muertas
 
 Ya no ramifican por la bandera.
@@ -110,6 +141,11 @@ Ya no ramifican por la bandera.
 
 - **Las listas planas no se han borrado.** Son la proyección que consumen 17
   ficheros, y la vía de entrada de los documentos antiguos.
+  **Y no están rancias, porque todavía se escriben**: `buildManifestFromTree`
+  (`hooks/entities/entityCRUDUtils.ts:22-23`) llama a `treeToManifest` en cada
+  operación de escritura, y lo usan 5 ficheros —`useEntityFactory`,
+  `useEntityOperations`, `useEntityTreeOps`, `useWorkbenchContainer` y el propio
+  `entityCRUDUtils`. Borrarlas cambiaría el contrato de todo lo que las lee.
 
 ## La regresión que vigila todo esto
 

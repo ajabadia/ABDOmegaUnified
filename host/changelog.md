@@ -2,6 +2,20 @@
 
 Este archivo registra todos los cambios significativos, mejoras y correcciones del sintetizador OMEGA.
 
+## [2026-10-04] — Despliegue en READY tras el arreglo de la lambda `api/modules`, y eliminado un fichero muerto
+
+### Fixed
+- **Despliegue en Vercel: la lambda `api/modules` arrastraba el repo entero y Vercel la rechazaba.** La ruta resuelve la estantería con `..`, fuera de la raíz de Next, y Turbopack trazaba las llamadas a `fs`: `.next/server/app/api/modules/route.js.nft.json` medía **3827 ficheros / 294.07 MB** (frente a 113 ficheros / 26.74 MB de `app/api/audio`), colando `exports/` (105.81 MB), `src/` (62.96), `public/` (53.21), `docs/` (48.52) y `wasm-runtime/` (19.68). En Vercel: lambda de **264.38 MB**, por encima del límite de 250 MB, despliegue en ERROR. Con anotaciones `turbopackIgnore` la traza baja a **96 ficheros / 1.59 MB** y el aviso "the whole project was traced unintentionally" desaparece.
+- **La colocación de la anotación no es la que recomienda el aviso del build.** El aviso sugiere annotar el `path.join`, pero vercel/next.js#95125 lo mide en esta misma versión de Next: solo silencia cuando la anotación va sobre una **variable desnuda** pasada directamente a la llamada `fs`. Por eso cada ruta se calcula en una variable aparte y no queda ningún `path.join` anidado dentro de un `fs`.
+- **Puerta nueva del peso de la lambda** (`scripts/check-api-modules-trace.mjs`): mide los bytes reales de la traza y falla por encima de **200 MB**, más estricto que Vercel a propósito. Va en el CI **después** del build, porque la traza solo existe tras `next build`. Comprobada en rojo y en verde de extremo a extremo.
+
+### Removed
+- **`web/src/services/mockupService.ts` (41 líneas, código muerto confirmado).** `MockupService` no tenía ni un call site: `git grep` sobre el repo versionado solo devuelve su propia declaración. Ni barrel, ni import dinámico, ni test. Leía `ui.controls`/`ui.jacks`, campos que la proyección a listas planas ya no escribe. **El obstáculo era el guard DRY**: estaba en `consumerFiles.web` de `canonicalDefaults.config.json` y la spec hace `readFileSync` sin `try`, así que quitar el fichero sin quitar la entrada rompe la suite con `ENOENT` (verificado en rojo a propósito). Las entradas de los builds anteriores que lo citan como fixture de test negativo **se conservan**: registran lo que se verificó en su fecha.
+
+### Validation
+- Guard DRY verificado en los **TRES ejecutores**: jest 24/24 (25 → 24, uno menos por el fichero borrado), vitest host/ui 4/4, CLI `check_canonical_defaults.mjs` exit 0 con **19 ficheros escaneados** (antes 20).
+
+---
 ## [Build #731] - 2026-08-06 — "Nuevo módulo MIDI 2 CV + 440demo ampliado a 3 params + verificaciones runtime (16/16, 13/13, player E2E)"
 
 ### Added
