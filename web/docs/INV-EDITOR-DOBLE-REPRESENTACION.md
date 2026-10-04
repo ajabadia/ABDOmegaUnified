@@ -57,7 +57,7 @@ bandera pero **no** las listas.
 Entre paréntesis, número de apariciones de `ui.controls` / `ui.jacks` en
 código que no es de test.
 
-### Consumidores de la proyección — correctos tal cual (17 ficheros)
+### Consumidores de la proyección — correctos tal cual (16 ficheros)
 
 Leen la lista derivada para no recorrer el árbol. Correcto.
 
@@ -67,7 +67,7 @@ Leen la lista derivada para no recorrer el árbol. Correcto.
 | `utils/manifestDiff.ts` (10) | Compara dos manifiestos; la forma plana es cómoda para comparar. |
 | `services/cadExportService.ts` (2) · `services/sharedModuleCatalog.ts` (1) | Exportación a CAD y catálogo de módulos. |
 | `utils/buildCommandPalette.ts` (2) · `utils/alignmentUtils.ts` (2) | Paleta de comandos y matemáticas de alineación. |
-| `components/modulation/ModulationGrid.tsx` (2) · `components/modulation/VisualModulationMatrix.tsx` (2) · `components/inspector/sections/ModulationSection.tsx` (2) | Visualización de modulación. |
+| `components/modulation/VisualModulationMatrix.tsx` (2) · `components/inspector/sections/ModulationSection.tsx` (2) | Visualización de modulación. |
 | `components/inspector/sections/EntityIdentity.tsx` (4) · `services/contractService.ts` (4) | Leen `useUCA` como heurística "¿esto es un documento con árbol?", no como interruptor. Inofensivas, se dejan. |
 | `hooks/useModuleMetrics.ts` (2) · `hooks/useAuditNavigator.ts` (2) · `utils/governanceUtils.ts` (3) | Métricas, navegación de auditoría y reglas de gobernanza. |
 | `hooks/io/useManifestTransfer.ts` (3) | Importar/exportir. **Conserva `useUCA` al cargar** a propósito, para no perder el dato de un fichero antiguo. |
@@ -100,7 +100,20 @@ Así se lee y se migra un documento viejo que aún no tiene árbol.
 - `omega-ui-core/uca/panelGeometry.ts` (2) · `omega-ui-core/uca/utils/idManager.ts` (2) —
   geometría y reparto de identificadores sobre la forma plana.
 
-### Eliminado tras el inventario — `services/mockupService.ts` (1 fichero)
+### Eliminado tras el inventario (2 ficheros)
+
+#### `components/modulation/ModulationGrid.tsx`
+
+Clasificado aquí erróneamente como "consumidor legítimo" en la primera versión, y
+también en la corrección del 4 de octubre. **Es código muerto**: nadie lo importa.
+Las únicas apariciones fuera del propio fichero son un comentario de
+`VisualModulationMatrix.tsx:219` que dice que lo reemplaza, y una lista en
+`web/fix-imports.ps1:47` (script de reparación de imports, no código de la app).
+El propio proyecto ya lo tenía anotado en `web/ui_features_inventory.md:239`:
+"**ModulationGrid** | ❌ Eliminado v9.6.0 | Reemplazado por VisualModulationMatrix
+SVG". El fichero nunca se borró.
+
+#### `services/mockupService.ts` (41 líneas)
 
 Clasificado aquí erróneamente como "consumidor legítimo" en la primera versión. **Era
 código muerto**: `git grep` sobre el repo versionado solo devuelve su propia
