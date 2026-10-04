@@ -4,7 +4,7 @@ metadata:
   name: Omega LFO
   family: control
   version: 1.0.0
-  rack: { hp: 8, height_mode: "3U" }
+  rack: { hp: 4, height_mode: "3U" }
 params:
   rate:
     label: Rate

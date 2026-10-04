@@ -73,7 +73,7 @@ ui:
     # --- DIGITAL VOLTMETER / FREQUENCY DISPLAY ---
     - id: d_volts
       bind: signal_telemetry
-      pos: { x: 5, y: 12 }
+      pos: { x: 5, y: 10 }
       presentation:
         container: meter_sec
         component: display

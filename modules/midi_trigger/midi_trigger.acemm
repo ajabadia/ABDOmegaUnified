@@ -45,7 +45,7 @@ ui:
     # --- RIGHT CONTAINER: TRIG, MIDI OUT & VELOCITY ---
     - id: b_trig
       bind: trigger
-      pos: { x: 8, y: 15 }
+      pos: { x: 10, y: 15 }
       presentation:
         container: right
         component: button

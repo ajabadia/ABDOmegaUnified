@@ -446,14 +446,14 @@ export const GENERATED_ACEMM_CATALOG: Record<string, any> = {
       "family": "control",
       "version": "1.0.0",
       "rack": {
-        "hp": 8,
+        "hp": 4,
         "units": "3U",
         "slot": "lower"
       }
     },
     "rack": {
       "slot": "lower",
-      "hp": 8
+      "hp": 4
     },
     "assets": {
       "source": true,
@@ -1080,7 +1080,7 @@ export const GENERATED_ACEMM_CATALOG: Record<string, any> = {
           "id": "b_trig",
           "bind": "trigger",
           "pos": {
-            "x": 8,
+            "x": 10,
             "y": 15
           },
           "presentation": {
@@ -1297,7 +1297,7 @@ export const GENERATED_ACEMM_CATALOG: Record<string, any> = {
           "bind": "signal_telemetry",
           "pos": {
             "x": 5,
-            "y": 12
+            "y": 10
           },
           "presentation": {
             "container": "meter_sec",
