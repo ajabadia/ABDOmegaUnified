@@ -1,0 +1,29 @@
+{
+  "$comment": "Errores del typecheck de _Deprecated que se aceptan a proposito. Se generan con `npm run typecheck:deprecated:update`. Ver el README de _Deprecated.",
+  "known": [
+    "_Deprecated/src/components/ui/CalibrationPanel.tsx|TS2307|Cannot find module '@/data/calibration-data' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/WorkbenchStudioOverlay.tsx|TS2307|Cannot find module './lab/CellStudioContainer' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/aesthetic/ArchPlaneSelector.tsx|TS2307|Cannot find module '../shared/InspectorCollapsible' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/aesthetic/governance/ModuleGlobalAesthetics.tsx|TS2307|Cannot find module '../../shared/AssetSelector' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/aesthetic/governance/ModuleGlobalAesthetics.tsx|TS2307|Cannot find module '../../shared/InspectorCollapsible' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/aesthetic/governance/ModuleGlobalAesthetics.tsx|TS2307|Cannot find module './AtmosphericPhysicsGovernance' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/aesthetic/governance/ModuleGlobalAesthetics.tsx|TS2307|Cannot find module './ThemePaletteGovernance' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/sections/identity/ModuleGridResolution.tsx|TS2307|Cannot find module '../../PropertyField' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/shared/AestheticsGovernance.tsx|TS2307|Cannot find module './IndustrialGovernanceConsole' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/shared/CanonicalStylePreview.tsx|TS2307|Cannot find module '../../shared/IndustrialContainer' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/shared/aesthetic/IdentityGovernance.tsx|TS2307|Cannot find module '../AssetSelector' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/shared/aesthetic/IdentityGovernance.tsx|TS2307|Cannot find module '../InspectorCollapsible' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/shared/aesthetic/IdentityGovernance.tsx|TS2307|Cannot find module './FittingGovernance' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/inspector/shared/useAssetVFS.ts|TS2307|Cannot find module './AssetSelector' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/layout/SystemControls.tsx|TS2307|Cannot find module '../header/ThemeToggle' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/layout/SystemControls.tsx|TS2307|Cannot find module '../shared/ComplianceBadge' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/components/shared/ToastContainer.tsx|TS2307|Cannot find module '../ToastContainer' or its corresponding type declarations.",
+    "_Deprecated/src/features/manifest-editor/hooks/useWorkbenchModals.ts|TS2307|Cannot find module '../types/diff' or its corresponding type declarations.",
+    "_Deprecated/src/omega-ui-core/renderers/hooks/useCellNodeDimensions.ts|TS2307|Cannot find module '../../types/manifest' or its corresponding type declarations.",
+    "_Deprecated/src/omega-ui-core/renderers/hooks/useCellNodeDimensions.ts|TS2307|Cannot find module '../ucaTypes' or its corresponding type declarations.",
+    "_Deprecated/src/omega-ui-core/renderers/hooks/useKnobInteraction.ts|TS2307|Cannot find module '../ucaTypes' or its corresponding type declarations.",
+    "_Deprecated/src/omega-ui-core/renderers/utils/cellNodeUtils.ts|TS2307|Cannot find module '../../types/manifest' or its corresponding type declarations.",
+    "_Deprecated/src/omega-ui-core/renderers/utils/cellNodeUtils.ts|TS2307|Cannot find module '../../types/rack' or its corresponding type declarations.",
+    "_Deprecated/src/omega-ui-core/utils/blueprintMigration.ts|TS2307|Cannot find module '../types/rack' or its corresponding type declarations."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false
+  },
+  "include": ["_Deprecated/**/*.ts", "_Deprecated/**/*.tsx"],
+  "exclude": ["node_modules", "public"]
+}

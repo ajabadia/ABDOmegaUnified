@@ -11,6 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "typecheck:deprecated": "node scripts/check-deprecated-typecheck.mjs",
+    "typecheck:deprecated:update": "node scripts/check-deprecated-typecheck.mjs --update",
     "test": "jest",
     "test:node": "node --test src/features/manifest-editor/hooks/entities/__tests__/ucaInspectorAdapter.spec.ts",
     "test:e2e": "playwright test",

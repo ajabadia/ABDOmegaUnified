@@ -58,6 +58,43 @@ Un fichero entra aquí si:
   ficheros se llamen `src/...` — así que `tsc` no lo revisa: no puede romper el
   typecheck. Esto es también la razón de que el import roto del `ToastContainer`
   de arriba no moleste.
+- **No se vigila en CI.** A propósito: si estuviera, un error aquí bloquearía
+  cada despliegue sin que nadie pudiera arreglarlo sin deshacer el congelado.
+
+## Cómo mirar dentro cuando te interesa (bajo demanda)
+
+Existe una forma de typecheckear esta carpeta **sin que toque la suite normal ni
+la CI**:
+
+```
+npm run typecheck:deprecated            # informa; sale 1 solo si hay errores NUEVOS
+npm run typecheck:deprecated:update     # regenera la línea base
+```
+
+La primera vez no dice "0 errores", sino **"25 errores relevantes, los 25 ya
+conocidos"**. No es decoracion: al congelar, los ficheros se llevaron sus
+imports relativos a ficheros que **se quedaron en `src/`**, y esos 25 errores
+`TS2307` ("no encuentro el módulo") son lo esperable.
+
+El typecheck además arroja 9 `TS7006` ("implicit any"), pero **se omiten**: cuando
+un import falla, todo lo que viene de él es `any`, y esos 9 solo repetirían que
+el import está roto. Está comprobado, no supuesto: al arreglar el import de
+`CalibrationPanel.tsx` desaparecieron sus 5 `TS7006` junto con el `TS2307`.
+
+El filtro es estrecho a propósito: solo afecta a `TS7006` y **solo en ficheros
+que además tienen un import sin resolver**. Un `implicit any` en un fichero sin
+imports rotos se conserva y sale en rojo, porque ese sí puede ser un bug real.
+Así que si al recuperar un fichero te aparece un `TS7006` nuevo, míralo.
+
+Por eso el script compara contra
+[scripts/deprecated-typecheck-baseline.json](../scripts/deprecated-typecheck-baseline.json):
+la lista de lo que ya se sabe roto. Solo fallan los errores **nuevos**, que
+ significan que alguien ha tocado el código archivado. Y avisa de lo que ya no se
+ reproduce, que es justo lo que pasa al recuperar un fichero.
+
+Los tests de esta lógica (20) están en
+[scripts/__tests__/check-deprecated-typecheck.spec.ts](../scripts/__tests__/check-deprecated-typecheck.spec.ts)
+y van en la suite normal.
 - **No se ejecuta.** `next build` no lo ve, porque nada lo importa.
 - **No cuenta para los tests.** `jest.config.js` excluye `/_Deprecated/`, así que
   sus tests no forman parte de la suite.
