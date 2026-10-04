@@ -50,7 +50,7 @@ import BlueprintPromptDialog from '@/features/manifest-editor/components/modals/
 import ManifestDiffModal from '@/features/manifest-editor/components/modals/ManifestDiffModal';
 import ExposeParametersDialog from '@/features/manifest-editor/components/modals/ExposeParametersDialog';
 import CommandPalette from '@/features/manifest-editor/components/layout/CommandPalette';
-import { ToastProvider, useToast } from '@/features/manifest-editor/components/shared/ToastContainer';
+import { ToastProvider, useToast } from '@/features/manifest-editor/components/ToastContainer';
 import IngestionModal from '@/features/manifest-editor/components/modals/IngestionModal';
 import TemplateGallery from '@/features/manifest-editor/components/gallery/TemplateGallery';
 import MockupModal from '@/features/manifest-editor/components/modals/MockupModal';
